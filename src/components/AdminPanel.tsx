@@ -4,9 +4,81 @@ import {
   X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, 
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
-  Edit, FileEdit
+  Edit, FileEdit, Loader2
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
+
+// Reusable Media Upload Button supporting image and video uploads directly from PC or Phone
+interface MediaUploadButtonProps {
+  label: string;
+  onUploadSuccess: (url: string) => void;
+  accept?: string;
+}
+
+function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" }: MediaUploadButtonProps) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Direct client-side size warning
+    if (file.size > 100 * 1024 * 1024) {
+      setError("Dosya boyutu çok büyük! En fazla 100MB yükleyebilirsiniz.");
+      return;
+    }
+
+    setUploading(true);
+    setError(null);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        onUploadSuccess(data.url);
+      } else {
+        setError(data.error || "Yükleme başarısız.");
+      }
+    } catch (err) {
+      setError("Sunucuya bağlanırken hata oluştu.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="mt-1 flex flex-col gap-1 w-full">
+      <label className="relative flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-zinc-900/80 hover:bg-zinc-800 active:scale-95 text-[10px] font-mono font-bold text-zinc-400 hover:text-white rounded-lg border border-zinc-800 hover:border-zinc-750 cursor-pointer transition-all">
+        {uploading ? (
+          <>
+            <Loader2 size={11} className="animate-spin text-red-500" />
+            <span>Yükleniyor...</span>
+          </>
+        ) : (
+          <>
+            <UploadCloud size={11} className="text-red-500" />
+            <span>{label}</span>
+          </>
+        )}
+        <input 
+          type="file" 
+          accept={accept} 
+          onChange={handleFileChange} 
+          className="hidden" 
+          disabled={uploading}
+        />
+      </label>
+      {error && <span className="text-[9px] text-red-500 font-mono mt-0.5">{error}</span>}
+    </div>
+  );
+}
 
 interface AdminPanelProps {
   content: SiteContent;
@@ -424,6 +496,35 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         </div>
                       </div>
 
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 border-t border-zinc-900/40 pt-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold flex items-center gap-1.5">
+                            <span>ÜST BRAND LOGO GÖRSELİ (OPSİYONEL)</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={editedContent.settings.logoImage || ""}
+                            placeholder="Görsel URL veya dosya yükleyin..."
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, logoImage: e.target.value }
+                            })}
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1.5 flex flex-col justify-end">
+                          <label className="text-[11px] text-zinc-500 font-mono tracking-wide uppercase font-bold">TELEFONDAN VEYA PC'DEN YÜKLE</label>
+                          <MediaUploadButton 
+                            label="Logo Resmi Seç / Kameradan Çek" 
+                            accept="image/*"
+                            onUploadSuccess={(url) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, logoImage: url }
+                            })}
+                          />
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
                           <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">HERO ÜST ROZET</label>
@@ -829,33 +930,48 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-zinc-900 pt-3">
                                       <div className="space-y-1">
-                                        <label className="text-[9px] text-zinc-500 font-mono">ÖNCESİ RESİM URL (OPSİYONEL)</label>
+                                        <label className="text-[9px] text-zinc-500 font-mono">ÖNCESİ RESİM (OPSİYONEL)</label>
                                         <input
                                           type="text"
-                                          placeholder="https://gorsel-linki.com/oncesi.jpg"
+                                          placeholder="https://gorsel-linki.com/oncesi.jpg veya dosya yükleyin"
                                           value={newItem.previewBefore || ""}
                                           onChange={(e) => setNewItem({ ...newItem, previewBefore: e.target.value })}
                                           className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
                                         />
+                                        <MediaUploadButton 
+                                          label="Görsel Seç / Kameradan Çek" 
+                                          accept="image/*"
+                                          onUploadSuccess={(url) => setNewItem({ ...newItem, previewBefore: url })}
+                                        />
                                       </div>
                                       <div className="space-y-1">
-                                        <label className="text-[9px] text-zinc-500 font-mono">SONRASI RESİM URL (OPSİYONEL)</label>
+                                        <label className="text-[9px] text-zinc-500 font-mono">SONRASI RESİM (OPSİYONEL)</label>
                                         <input
                                           type="text"
-                                          placeholder="https://gorsel-linki.com/sonrasi.jpg"
+                                          placeholder="https://gorsel-linki.com/sonrasi.jpg veya dosya yükleyin"
                                           value={newItem.previewAfter || ""}
                                           onChange={(e) => setNewItem({ ...newItem, previewAfter: e.target.value })}
                                           className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
                                         />
+                                        <MediaUploadButton 
+                                          label="Görsel Seç / Kameradan Çek" 
+                                          accept="image/*"
+                                          onUploadSuccess={(url) => setNewItem({ ...newItem, previewAfter: url })}
+                                        />
                                       </div>
                                       <div className="space-y-1">
-                                        <label className="text-[9px] text-zinc-500 font-mono">VİDEO ÖNİZLEME URL (OPSİYONEL)</label>
+                                        <label className="text-[9px] text-zinc-500 font-mono">VİDEO ÖNİZLEME (OPSİYONEL)</label>
                                         <input
                                           type="text"
-                                          placeholder="https://youtube.com/watch?v=..."
+                                          placeholder="Video linki veya dosya yükleyin"
                                           value={newItem.previewVideo || ""}
                                           onChange={(e) => setNewItem({ ...newItem, previewVideo: e.target.value })}
                                           className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
+                                        />
+                                        <MediaUploadButton 
+                                          label="Video Seç / Kaydet" 
+                                          accept="video/*"
+                                          onUploadSuccess={(url) => setNewItem({ ...newItem, previewVideo: url })}
                                         />
                                       </div>
                                     </div>
@@ -934,33 +1050,48 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                           </div>
                                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-zinc-900/60 pt-2 bg-zinc-950/20 p-2 rounded-xl mt-1">
                                             <div className="space-y-1">
-                                              <span className="text-[8px] text-zinc-500 font-mono">ÖNCESİ RESİM URL</span>
+                                              <span className="text-[8px] text-zinc-500 font-mono">ÖNCESİ RESİM URL / DOSYA</span>
                                               <input
                                                 type="text"
                                                 value={item.previewBefore || ""}
-                                                placeholder="Öncesi görsel URL..."
+                                                placeholder="Öncesi görsel URL veya dosya yükleyin..."
                                                 onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewBefore", e.target.value)}
                                                 className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
                                               />
-                                            </div>
-                                            <div className="space-y-1">
-                                              <span className="text-[8px] text-zinc-500 font-mono">SONRASI RESİM URL</span>
-                                              <input
-                                                type="text"
-                                                value={item.previewAfter || ""}
-                                                placeholder="Sonrası görsel URL..."
-                                                onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewAfter", e.target.value)}
-                                                className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              <MediaUploadButton 
+                                                label="Görsel Seç / Kameradan Çek" 
+                                                accept="image/*"
+                                                onUploadSuccess={(url) => handleUpdateItemField(cat.id, item.id, "previewBefore", url)}
                                               />
                                             </div>
                                             <div className="space-y-1">
-                                              <span className="text-[8px] text-zinc-500 font-mono">VİDEO ÖNİZLEME URL</span>
+                                              <span className="text-[8px] text-zinc-500 font-mono">SONRASI RESİM URL / DOSYA</span>
+                                              <input
+                                                type="text"
+                                                value={item.previewAfter || ""}
+                                                placeholder="Sonrası görsel URL veya dosya yükleyin..."
+                                                onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewAfter", e.target.value)}
+                                                className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              />
+                                              <MediaUploadButton 
+                                                label="Görsel Seç / Kameradan Çek" 
+                                                accept="image/*"
+                                                onUploadSuccess={(url) => handleUpdateItemField(cat.id, item.id, "previewAfter", url)}
+                                              />
+                                            </div>
+                                            <div className="space-y-1">
+                                              <span className="text-[8px] text-zinc-500 font-mono">VİDEO ÖNİZLEME URL / DOSYA</span>
                                               <input
                                                 type="text"
                                                 value={item.previewVideo || ""}
-                                                placeholder="Video önizleme URL..."
+                                                placeholder="Video önizleme URL veya dosya yükleyin..."
                                                 onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewVideo", e.target.value)}
                                                 className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              />
+                                              <MediaUploadButton 
+                                                label="Video Seç / Kaydet" 
+                                                accept="video/*"
+                                                onUploadSuccess={(url) => handleUpdateItemField(cat.id, item.id, "previewVideo", url)}
                                               />
                                             </div>
                                           </div>

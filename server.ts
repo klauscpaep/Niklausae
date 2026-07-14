@@ -4,10 +4,38 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import multer from "multer";
 
 const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), "site_content.json");
+
+// Configure uploads directory and multer
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + "-" + uniqueSuffix + ext);
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 100 * 1024 * 1024, // limit to 100MB for media/video files
+  },
+});
+
+// Serve uploads statically
+app.use("/uploads", express.static(uploadsDir));
 
 // Firebase setup
 const CONFIG_FILE = path.join(process.cwd(), "firebase-applet-config.json");
@@ -407,6 +435,20 @@ app.post("/api/visit", async (req, res) => {
     res.json({ visitorCount: data.visitorCount });
   } catch (err) {
     res.status(500).json({ error: "Ziyaretçi sayısı güncellenemedi." });
+  }
+});
+
+// File upload API endpoint
+app.post("/api/upload", upload.single("file"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "Dosya gönderilmedi veya yüklenirken bir hata oluştu." });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    res.json({ success: true, url: fileUrl });
+  } catch (err: any) {
+    console.error("Upload handler error:", err);
+    res.status(500).json({ error: err.message || "Dosya sunucuya yazılırken hata oluştu." });
   }
 });
 

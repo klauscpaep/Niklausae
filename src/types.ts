@@ -35,6 +35,7 @@ export interface SiteSettings {
   bioName?: string;
   bioRole?: string;
   bioDescription?: string;
+  logoImage?: string;
 }
 
 export interface EditPackItem {

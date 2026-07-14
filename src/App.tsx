@@ -166,8 +166,17 @@ export default function App() {
             className="flex items-center gap-3 group cursor-pointer"
             title="Yönetici paneli için çift tıklayın!"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white font-display font-black text-lg shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300">
-              P
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white font-display font-black text-lg shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
+              {content.settings.logoImage ? (
+                <img 
+                  src={content.settings.logoImage} 
+                  alt="Logo" 
+                  className="w-full h-full object-cover rounded-2xl" 
+                  referrerPolicy="no-referrer"
+                />
+              ) : (
+                "P"
+              )}
             </div>
             <div>
               <h1 className="text-sm font-mono font-bold text-zinc-300 tracking-[0.2em] uppercase flex items-center gap-1.5">
