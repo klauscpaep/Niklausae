@@ -41,6 +41,27 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Görsel boyutu çok büyük! Lütfen 2MB'tan daha küçük bir görsel yükleyin.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEditedContent({
+          ...editedContent,
+          settings: {
+            ...editedContent.settings,
+            bioImage: reader.result as string
+          }
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSaveAll = async () => {
     setIsSaving(true);
     setSaveStatus({ type: null, msg: "" });
@@ -286,8 +307,37 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                   {/* TAB 1: GENERAL SETTINGS */}
                   {activeTab === "general" && (
                     <div className="space-y-4">
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Ana Sayfa Başlıkları</h3>
+                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Ana Sayfa Başlıkları & Kimlik</h3>
                       
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-400 font-medium">Üst Logo Yazısı (Sol Üst Logo)</label>
+                          <input
+                            type="text"
+                            value={editedContent.settings.topBarText || ""}
+                            placeholder="PARS MAZI PACK"
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, topBarText: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-400 font-medium font-bold text-red-400">Sayfa Yenilenirken Yükleniyor Yazısı</label>
+                          <input
+                            type="text"
+                            value={editedContent.settings.loadingText || ""}
+                            placeholder="PARS MAZI EDIT PACK yükleniyor..."
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, loadingText: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors font-mono"
+                          />
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs text-zinc-400 font-medium">Hero Üst Rozet</label>
@@ -584,6 +634,77 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                     <div className="space-y-6">
                       <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Hakkımda & Kreatif Profil</h3>
                       
+                      {/* Interactive Image Upload Section */}
+                      <div className="p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl space-y-4">
+                        <label className="text-xs font-bold text-red-500 uppercase tracking-wider block">TELEFONDAN / BİLGİSAYARDAN RESİM YÜKLE</label>
+                        <div className="flex flex-col sm:flex-row items-center gap-5">
+                          {/* Image Preview */}
+                          <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 flex-shrink-0">
+                            {editedContent.settings.bioImage ? (
+                              <img src={editedContent.settings.bioImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 text-[10px] text-center p-2">
+                                <span>Varsayılan Resim</span>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Upload Controls */}
+                          <div className="space-y-2 flex-1 w-full">
+                            <input 
+                              type="file" 
+                              accept="image/*" 
+                              onChange={handleImageUpload}
+                              className="block w-full text-xs text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-600/10 file:text-red-500 hover:file:bg-red-600/20 cursor-pointer"
+                            />
+                            <p className="text-[10px] text-zinc-500">Önerilen boyut kare (1:1 aspect ratio), maks. 2MB. Mobil cihazınızın galerisinden veya kamerasından doğrudan fotoğraf seçebilirsiniz.</p>
+                            
+                            {editedContent.settings.bioImage && (
+                              <button
+                                type="button"
+                                onClick={() => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, bioImage: "" }
+                                })}
+                                className="px-3 py-1 bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 hover:border-red-500/20 text-zinc-400 hover:text-red-400 text-[10px] rounded-lg transition-all"
+                              >
+                                Varsayılan Resme Geri Dön
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bio Core Texts */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-400 font-medium">Kreatif Profil Ad Soyad</label>
+                          <input
+                            type="text"
+                            value={editedContent.settings.bioName || ""}
+                            placeholder="PARS MAZI"
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, bioName: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs text-zinc-400 font-medium">Kreatif Profil Ünvan/Rol</label>
+                          <input
+                            type="text"
+                            value={editedContent.settings.bioRole || ""}
+                            placeholder="VIDEO EDITOR • MOTION DESIGNER"
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, bioRole: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                          />
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
                           <label className="text-xs text-zinc-400 font-medium">Biyografi Kart Başlığı</label>
@@ -609,6 +730,20 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
                           />
                         </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-zinc-400 font-medium">Biyografi Açıklama Metni (Hakkında Paragrafı)</label>
+                        <textarea
+                          rows={3}
+                          value={editedContent.settings.bioDescription || ""}
+                          placeholder="Kendinizi tanıtın ve bu paketin amacını anlatın..."
+                          onChange={(e) => setEditedContent({
+                            ...editedContent,
+                            settings: { ...editedContent.settings, bioDescription: e.target.value }
+                          })}
+                          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
+                        />
                       </div>
 
                       <div className="space-y-1.5">

@@ -10,10 +10,25 @@ import CategoryDetailModal from "./components/CategoryDetailModal";
 import parsMaziProfile from "./assets/images/pars_mazi_profile_1784000260155.jpg";
 import { fetchSiteContent, saveSiteContent, incrementVisitorCount } from "./firebase";
 
+const TikTokIcon = ({ size = 16 }: { size?: number }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    width={size} 
+    height={size} 
+    fill="currentColor"
+    className="inline-block"
+  >
+    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.72 4.1 1.13 1.09 2.69 1.63 4.26 1.7v3.92c-1.74-.02-3.47-.48-4.94-1.42-.21-.13-.41-.28-.61-.43-.02 2.62-.01 5.24-.02 7.86-.06 2.37-1.12 4.67-2.98 6.13-2.14 1.69-5.11 2.21-7.72 1.34-2.5-1-4.32-3.37-4.57-6.04-.41-3.62 1.99-7.1 5.58-7.9 1.4-.35 2.89-.13 4.16.59.02 1.48.01 2.96.01 4.44-1.01-.58-2.22-.72-3.32-.36-.93.28-1.7 1.02-1.95 1.96-.39 1.43.34 3.03 1.71 3.59 1.15.5 2.53.25 3.44-.6.54-.53.81-1.27.8-2.02 0-3.32-.01-6.64-.01-9.97.01 0 .01-.01.01-.01z"/>
+  </svg>
+);
+
 export default function App() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadingText, setLoadingText] = useState(() => {
+    return localStorage.getItem("pars_mazi_loading_text") || "PARS MAZI EDIT PACK yükleniyor...";
+  });
   
   // Modals state
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -34,8 +49,12 @@ export default function App() {
         }
         
         // Fetch content directly from Firestore
-        const data = await fetchSiteContent();
-        setContent(data as SiteContent);
+        const data = await fetchSiteContent() as SiteContent;
+        setContent(data);
+        if (data?.settings?.loadingText) {
+          localStorage.setItem("pars_mazi_loading_text", data.settings.loadingText);
+          setLoadingText(data.settings.loadingText);
+        }
       } catch (err) {
         console.error(err);
         setError("Veritabanı bağlantısı kurulamadı. Lütfen internetinizi kontrol edin.");
@@ -75,6 +94,12 @@ export default function App() {
 
       await saveSiteContent(finalContent);
       setContent(finalContent);
+      
+      if (finalContent.settings?.loadingText) {
+        localStorage.setItem("pars_mazi_loading_text", finalContent.settings.loadingText);
+        setLoadingText(finalContent.settings.loadingText);
+      }
+
       return { success: true };
     } catch (err) {
       console.error(err);
@@ -89,7 +114,7 @@ export default function App() {
           <Loader2 size={40} className="text-red-500 animate-spin" />
           <div className="absolute w-12 h-12 rounded-full border border-red-500/20 animate-ping" />
         </div>
-        <p className="text-zinc-500 text-xs font-mono tracking-widest uppercase animate-pulse">PARS MAZI EDIT PACK yükleniyor...</p>
+        <p className="text-zinc-500 text-xs font-mono tracking-widest uppercase animate-pulse">{loadingText}</p>
       </div>
     );
   }
@@ -147,7 +172,20 @@ export default function App() {
         >
           <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           <h1 className="text-sm font-mono font-bold text-zinc-400 tracking-[0.25em] uppercase">
-            PARS MAZI <span className="text-red-500">PACK</span>
+            {(() => {
+              const text = content.settings.topBarText || "PARS MAZI PACK";
+              const words = text.split(" ");
+              if (words.length > 1) {
+                const lastWord = words.pop();
+                return (
+                  <>
+                    {words.join(" ")}{" "}
+                    <span className="text-red-500">{lastWord}</span>
+                  </>
+                );
+              }
+              return text;
+            })()}
           </h1>
           <Sparkles size={12} className="absolute right-4 text-zinc-700 group-hover:text-red-500 transition-colors" />
         </motion.div>
@@ -291,21 +329,27 @@ export default function App() {
           {/* Header */}
           <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
             <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">PARSMAZI / CREATIVE PROFILE</span>
+            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">
+              {content.settings.bioSub || "PARSMAZI / CREATIVE PROFILE"}
+            </span>
           </div>
 
           {/* Profile Picture */}
           <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-inner group">
             <img 
-              src={parsMaziProfile} 
+              src={content.settings.bioImage || parsMaziProfile} 
               alt="Pars Mazi Portrait" 
               className="w-full h-full object-cover grayscale brightness-95 group-hover:grayscale-0 transition-all duration-700"
             />
             {/* Subtle Gradient Overlays */}
             <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/10 to-transparent" />
             <div className="absolute bottom-4 left-4">
-              <span className="text-[10px] font-mono text-zinc-500 tracking-widest block">VIDEO EDITOR • MOTION DESIGNER</span>
-              <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5">PARS MAZI</span>
+              <span className="text-[10px] font-mono text-zinc-500 tracking-widest block">
+                {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
+              </span>
+              <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5">
+                {content.settings.bioName || "PARS MAZI"}
+              </span>
             </div>
           </div>
 
@@ -313,9 +357,14 @@ export default function App() {
           <div className="space-y-2">
             <span className="text-[10px] font-mono text-zinc-600 block">01 / CREATOR</span>
             <h3 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none">
-              BEN KİMİM?
+              {content.settings.bioTitle || "BEN KİMİM?"}
             </h3>
             <div className="w-12 h-1 bg-red-600 rounded-full" />
+            {content.settings.bioDescription && (
+              <p className="text-xs text-zinc-400 mt-3 leading-relaxed whitespace-pre-line">
+                {content.settings.bioDescription}
+              </p>
+            )}
           </div>
 
           {/* Bento Stats Grid */}
@@ -342,45 +391,82 @@ export default function App() {
             PORTFÖYÜ İNCELE
           </a>
 
-          {/* Social Icons Footer */}
-          <div className="flex justify-center items-center gap-4 pt-2">
-            <a 
-              href={content.settings.socialLinks.youtube} 
-              target="_blank" 
-              referrerPolicy="no-referrer"
-              className="p-2.5 bg-zinc-900 hover:bg-red-600/10 border border-zinc-850 hover:border-red-500/20 text-zinc-500 hover:text-red-500 rounded-xl transition-all cursor-pointer"
-              title="YouTube"
-            >
-              <Youtube size={16} fill="currentColor" />
-            </a>
-            <a 
-              href={content.settings.socialLinks.instagram} 
-              target="_blank" 
-              referrerPolicy="no-referrer"
-              className="p-2.5 bg-zinc-900 hover:bg-red-600/10 border border-zinc-850 hover:border-red-500/20 text-zinc-500 hover:text-red-400 rounded-xl transition-all cursor-pointer"
-              title="Instagram"
-            >
-              <Instagram size={16} />
-            </a>
-            <a 
-              href={content.settings.socialLinks.discord} 
-              target="_blank" 
-              referrerPolicy="no-referrer"
-              className="p-2.5 bg-zinc-900 hover:bg-red-600/10 border border-zinc-850 hover:border-red-500/20 text-zinc-500 hover:text-blue-400 rounded-xl transition-all cursor-pointer"
-              title="Discord"
-            >
-              <Disc size={16} />
-            </a>
-            <a 
-              href={content.settings.socialLinks.tiktok} 
-              target="_blank" 
-              referrerPolicy="no-referrer"
-              className="p-2.5 bg-zinc-900 hover:bg-red-600/10 border border-zinc-850 hover:border-red-500/20 text-zinc-500 hover:text-pink-400 rounded-xl transition-all cursor-pointer"
-              title="TikTok"
-            >
-              {/* Simple replacement of TikTok since it doesn't exist directly in standard simple lucide */}
-              <span className="text-[10px] font-mono font-bold">TT</span>
-            </a>
+          {/* Social Icons Footer - High Fidelity Design */}
+          <div className="pt-4 border-t border-zinc-900">
+            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-widest uppercase block text-center mb-4">SOSYAL MEDYA KANALLARI</span>
+            <div className="grid grid-cols-2 gap-3">
+              {/* YouTube Card */}
+              <a 
+                href={content.settings.socialLinks.youtube} 
+                target="_blank" 
+                referrerPolicy="no-referrer"
+                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-red-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="p-2 bg-red-600/10 group-hover:bg-red-600 text-red-500 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-red-600/0 group-hover:shadow-red-600/20">
+                  <Youtube size={16} fill="currentColor" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">PARS MAZI</span>
+                </div>
+                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all" />
+              </a>
+
+              {/* Instagram Card */}
+              <a 
+                href={content.settings.socialLinks.instagram} 
+                target="_blank" 
+                referrerPolicy="no-referrer"
+                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-pink-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="p-2 bg-pink-600/10 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-pink-600 text-pink-500 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-pink-600/0 group-hover:shadow-pink-600/20">
+                  <Instagram size={16} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">@parsmazi</span>
+                </div>
+                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-pink-500 group-hover:translate-x-0.5 transition-all" />
+              </a>
+
+              {/* Discord Card */}
+              <a 
+                href={content.settings.socialLinks.discord} 
+                target="_blank" 
+                referrerPolicy="no-referrer"
+                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-blue-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="p-2 bg-blue-600/10 group-hover:bg-[#5865F2] text-blue-400 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-blue-600/0 group-hover:shadow-blue-600/20">
+                  <Disc size={16} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block group-hover:text-blue-400 transition-colors">Discord</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">SUNUCUYA KATIL</span>
+                </div>
+                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+              </a>
+
+              {/* TikTok Card */}
+              <a 
+                href={content.settings.socialLinks.tiktok} 
+                target="_blank" 
+                referrerPolicy="no-referrer"
+                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-cyan-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/0 via-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="p-2 bg-cyan-600/10 group-hover:bg-zinc-900 text-cyan-400 group-hover:text-pink-500 rounded-xl transition-all duration-300 shadow-md shadow-cyan-600/0 group-hover:shadow-cyan-600/20 flex items-center justify-center">
+                  <TikTokIcon size={16} />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider font-mono">@parsmazi</span>
+                </div>
+                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-cyan-500 group-hover:translate-x-0.5 transition-all" />
+              </a>
+            </div>
           </div>
         </motion.div>
 

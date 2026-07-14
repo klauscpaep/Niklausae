@@ -24,6 +24,11 @@ export interface SiteSettings {
   portfolioUrl: string;
   socialLinks: SocialLinks;
   adminPassword?: string;
+  topBarText?: string;
+  loadingText?: string;
+  bioName?: string;
+  bioRole?: string;
+  bioDescription?: string;
 }
 
 export interface EditPackItem {

@@ -12,6 +12,8 @@ const DEFAULT_CONTENT = {
   visitorCount: 0,
   settings: {
     adminPassword: "parsmaziadmin",
+    topBarText: "PARS MAZI PACK",
+    loadingText: "PARS MAZI EDIT PACK yükleniyor...",
     heroTitle: "PARS MAZI EDIT PACK",
     heroSub: "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır.",
     heroBadge: "AFTER EFFECTS PACKS",
@@ -19,6 +21,12 @@ const DEFAULT_CONTENT = {
     pluginDesc: "Kurulum videosunu izle",
     pluginUrl: "https://youtube.com",
     portfolioUrl: "https://youtube.com",
+    bioTitle: "BEN KİMİM?",
+    bioSub: "01 / CREATOR",
+    bioName: "PARS MAZI",
+    bioRole: "VIDEO EDITOR • MOTION DESIGNER",
+    bioDescription: "Uzun yıllardır After Effects ve video kurgu üzerine çalışıyorum. Bu arşiv, kurgularınızı profesyonel seviyeye taşımak için özenle hazırladığım efekt paketlerinden oluşuyor.",
+    bioImage: "",
     stats: [
       { label: "ABONE", value: "10K+" },
       { label: "VİDEO", value: "250+" },
