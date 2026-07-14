@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
-  Play, ExternalLink, ArrowUp, Mail, ShieldAlert,
+  Play, ExternalLink, ArrowUp, Mail,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
@@ -80,6 +80,18 @@ export default function App() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Secret shortcut key combinations (Ctrl + Alt + A) to open admin console silently
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+        setIsAdminOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   // Back to top function
@@ -174,11 +186,10 @@ export default function App() {
         
         {/* Top Brand & Visitor Counter Header Bar */}
         <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-zinc-950/55 backdrop-blur-md border border-zinc-900/80 rounded-3xl shadow-xl shadow-black/40">
-          {/* Brand Logo Trigger */}
+          {/* Brand Logo Trigger (Double-click opens admin panel secretly) */}
           <div 
             onDoubleClick={() => setIsAdminOpen(true)}
             className="flex items-center gap-3 group cursor-pointer"
-            title="Yönetici paneli için çift tıklayın!"
           >
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white font-display font-black text-lg shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300 overflow-hidden">
               {content.settings.logoImage ? (
@@ -303,8 +314,11 @@ export default function App() {
                 <span className="text-[9px] font-mono text-zinc-600">ID: #01</span>
               </div>
 
-              {/* Profile Picture with high-fidelity effects */}
-              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-2xl group cursor-pointer">
+              {/* Profile Picture with high-fidelity effects (Double-click opens admin panel secretly) */}
+              <div 
+                onDoubleClick={() => setIsAdminOpen(true)}
+                className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-2xl group cursor-pointer"
+              >
                 <img 
                   src={content.settings.bioImage || parsMaziProfile} 
                   alt="Pars Mazi Portrait" 
@@ -566,13 +580,6 @@ export default function App() {
           <p className="text-[10px] text-zinc-600 font-mono text-center">
             © 2026 NIKLAUSAE EDIT PACK. Tüm Hakları Saklıdır.
           </p>
-          <button
-            onClick={() => setIsAdminOpen(true)}
-            className="text-[9px] text-zinc-700 hover:text-red-500 transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer bg-zinc-950/40 border border-zinc-900/60 px-2.5 py-1.5 rounded-lg"
-          >
-            <ShieldAlert size={10} />
-            Yönetici Girişi
-          </button>
         </footer>
 
       </div>
