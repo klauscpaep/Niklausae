@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "SiteContent": {
+      "title": "SiteContent",
+      "description": "The root document containing all site content, visitor count, categories, and settings",
+      "type": "object",
+      "properties": {
+        "visitorCount": {
+          "type": "integer",
+          "description": "Number of total visitors to the site"
+        },
+        "settings": {
+          "type": "object",
+          "description": "General branding settings, links, and passwords"
+        },
+        "categories": {
+          "type": "array",
+          "description": "List of all download categories (rooms) and their respective package items"
+        }
+      },
+      "required": ["visitorCount", "settings", "categories"]
+    }
+  },
+  "firestore": {
+    "/site/content": {
+      "schema": "SiteContent",
+      "description": "The single document storing all Pars Mazi site configuration and packs"
+    }
+  }
+}
