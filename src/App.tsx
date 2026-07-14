@@ -8,7 +8,7 @@ import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import parsMaziProfile from "./assets/images/pars_mazi_profile_1784000260155.jpg";
-import { fetchSiteContent, saveSiteContent, incrementVisitorCount } from "./firebase";
+import { fetchSiteContent, saveSiteContent, incrementVisitorCount, subscribeToSiteContent } from "./firebase";
 
 const TikTokIcon = ({ size = 16 }: { size?: number }) => (
   <svg 
@@ -35,34 +35,41 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // Fetch site content & increment visitor count
+  // Fetch site content & increment visitor count with real-time sync
   useEffect(() => {
-    async function initApp() {
-      try {
-        setIsLoading(true);
-        
-        // Track unique visit first (run transaction)
-        const hasVisited = sessionStorage.getItem("has_visited_pars_mazi");
-        if (!hasVisited) {
-          await incrementVisitorCount();
-          sessionStorage.setItem("has_visited_pars_mazi", "true");
-        }
-        
-        // Fetch content directly from Firestore
-        const data = await fetchSiteContent() as SiteContent;
-        setContent(data);
+    let isMounted = true;
+    
+    // Track unique visit first (run transaction once)
+    const hasVisited = sessionStorage.getItem("has_visited_pars_mazi");
+    if (!hasVisited) {
+      incrementVisitorCount();
+      sessionStorage.setItem("has_visited_pars_mazi", "true");
+    }
+    
+    setIsLoading(true);
+    
+    const unsubscribe = subscribeToSiteContent(
+      (data) => {
+        if (!isMounted) return;
+        setContent(data as SiteContent);
         if (data?.settings?.loadingText) {
           localStorage.setItem("pars_mazi_loading_text", data.settings.loadingText);
           setLoadingText(data.settings.loadingText);
         }
-      } catch (err) {
-        console.error(err);
+        setIsLoading(false);
+      },
+      (err) => {
+        if (!isMounted) return;
+        console.error("Real-time content subscription error:", err);
         setError("Veritabanı bağlantısı kurulamadı. Lütfen internetinizi kontrol edin.");
-      } finally {
         setIsLoading(false);
       }
-    }
-    initApp();
+    );
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, []);
 
   // Monitor scroll for "back to top" button
@@ -408,7 +415,9 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">PARS MAZI</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
+                    {content.settings.socialHandles?.youtube || "PARS MAZI"}
+                  </span>
                 </div>
                 <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all" />
               </a>
@@ -426,7 +435,9 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">@parsmazi</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
+                    {content.settings.socialHandles?.instagram || "@parsmazi"}
+                  </span>
                 </div>
                 <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-pink-500 group-hover:translate-x-0.5 transition-all" />
               </a>
@@ -444,7 +455,9 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block group-hover:text-blue-400 transition-colors">Discord</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">SUNUCUYA KATIL</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
+                    {content.settings.socialHandles?.discord || "SUNUCUYA KATIL"}
+                  </span>
                 </div>
                 <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
               </a>
@@ -462,7 +475,9 @@ export default function App() {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider font-mono">@parsmazi</span>
+                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider font-mono">
+                    {content.settings.socialHandles?.tiktok || "@parsmazi"}
+                  </span>
                 </div>
                 <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-cyan-500 group-hover:translate-x-0.5 transition-all" />
               </a>

@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, 
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
-  TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check
+  TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
+  Edit, FileEdit
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 
@@ -27,6 +28,8 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   const [editedContent, setEditedContent] = useState<SiteContent>(JSON.parse(JSON.stringify(content)));
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<{ type: "success" | "error" | null; msg: string }>({ type: null, msg: "" });
+
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
 
   // Temp states for adding category/item
   const [selectedCatId, setSelectedCatId] = useState<string>("");
@@ -145,7 +148,10 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       name: newItem.name,
       size: newItem.size || "10 KB",
       downloadUrl: newItem.downloadUrl,
-      description: newItem.description || ""
+      description: newItem.description || "",
+      previewBefore: newItem.previewBefore || "",
+      previewAfter: newItem.previewAfter || "",
+      previewVideo: newItem.previewVideo || ""
     };
 
     const updatedCategories = editedContent.categories.map(c => {
@@ -160,7 +166,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     });
 
     setEditedContent({ ...editedContent, categories: updatedCategories });
-    setNewItem({ name: "", size: "15 KB", downloadUrl: "", description: "" });
+    setNewItem({ name: "", size: "15 KB", downloadUrl: "", description: "", previewBefore: "", previewAfter: "", previewVideo: "" });
   };
 
   const handleRemoveItem = (catId: string, itemId: string) => {
@@ -605,6 +611,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         
                         {editedContent.categories.map((cat) => {
                           const isOpenDrawer = selectedCatId === cat.id;
+                          const isEditingCat = editingCatId === cat.id;
                           return (
                             <div 
                               key={cat.id} 
@@ -615,48 +622,151 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               }`}
                             >
                               {/* Category Card Header */}
-                              <div className="p-4 sm:px-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                                <div className="flex items-center gap-3 w-full sm:w-auto">
-                                  <div className="font-mono text-[11px] text-zinc-400 font-black bg-zinc-950 border border-zinc-850 px-2.5 py-1 rounded-lg">
-                                    {cat.index}
-                                  </div>
-                                  <div className="flex-1 space-y-1">
-                                    <input
-                                      type="text"
-                                      value={cat.title}
-                                      onChange={(e) => handleUpdateCategoryField(cat.id, "title", e.target.value)}
-                                      className="font-display font-black text-white bg-transparent border-b border-transparent hover:border-zinc-800 focus:border-red-500/50 outline-none text-sm w-full py-0.5 transition-all uppercase tracking-wide"
-                                    />
-                                    <input
-                                      type="text"
-                                      value={cat.badge}
-                                      onChange={(e) => handleUpdateCategoryField(cat.id, "badge", e.target.value)}
-                                      className="text-[10px] text-zinc-400 font-mono tracking-wider bg-transparent border-b border-transparent hover:border-zinc-800 focus:border-red-500/50 outline-none w-full py-0.5"
-                                    />
-                                  </div>
-                                </div>
+                              <div className="p-4 sm:px-5 flex flex-col justify-between items-stretch gap-4">
+                                {isEditingCat ? (
+                                  <div className="space-y-4 bg-zinc-950/60 p-4 rounded-2xl border border-red-500/20">
+                                    <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                                      <div className="flex items-center gap-2">
+                                        <FileEdit size={14} className="text-red-500" />
+                                        <span className="text-xs font-mono font-bold text-red-400 tracking-wider">KATEGORİ DETAYLARINI DÜZENLE</span>
+                                      </div>
+                                      <span className="text-[9px] text-zinc-500 font-mono">ID: {cat.id}</span>
+                                    </div>
 
-                                <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
-                                  <button
-                                    onClick={() => setSelectedCatId(isOpenDrawer ? "" : cat.id)}
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
-                                      isOpenDrawer 
-                                        ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                                        : "bg-zinc-950 border-zinc-850 hover:bg-zinc-900 text-zinc-400 hover:text-white"
-                                    }`}
-                                  >
-                                    <FileText size={13} />
-                                    <span>Dosyaları Yönet ({cat.items.length})</span>
-                                    <ChevronRight size={12} className={`transform transition-transform ${isOpenDrawer ? "rotate-90 text-red-400" : "text-zinc-600"}`} />
-                                  </button>
-                                  <button
-                                    onClick={() => handleRemoveCategory(cat.id)}
-                                    className="p-2 hover:bg-red-950/40 text-zinc-500 hover:text-red-500 rounded-xl border border-transparent hover:border-red-950 transition-all cursor-pointer"
-                                    title="Kategoriyi ve Dosyaları Komple Sil"
-                                  >
-                                    <Trash2 size={15} />
-                                  </button>
-                                </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">SIRA NO</label>
+                                        <input
+                                          type="text"
+                                          value={cat.index}
+                                          onChange={(e) => handleUpdateCategoryField(cat.id, "index", e.target.value)}
+                                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                                          placeholder="örn: 01"
+                                        />
+                                      </div>
+                                      <div className="space-y-1 sm:col-span-2">
+                                        <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">KATEGORİ (ODA) ADI</label>
+                                        <input
+                                          type="text"
+                                          value={cat.title}
+                                          onChange={(e) => handleUpdateCategoryField(cat.id, "title", e.target.value)}
+                                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none font-bold"
+                                          placeholder="Kategori Adı"
+                                        />
+                                      </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">ROZET METNİ</label>
+                                        <input
+                                          type="text"
+                                          value={cat.badge}
+                                          onChange={(e) => handleUpdateCategoryField(cat.id, "badge", e.target.value)}
+                                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                                          placeholder="örn: VISUALS"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">RENK VE IŞIMA TEMASI</label>
+                                        <select
+                                          value={cat.gradient}
+                                          onChange={(e) => handleUpdateCategoryField(cat.id, "gradient", e.target.value)}
+                                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                                        >
+                                          <option value="from-amber-500/20 to-red-600/10 hover:border-amber-500/40">Kırmızı - Turuncu Enerji</option>
+                                          <option value="from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40">Mavi - Çivit Derinlik</option>
+                                          <option value="from-teal-500/20 to-emerald-600/10 hover:border-teal-500/40">Zümrüt - Su Yeşili</option>
+                                          <option value="from-purple-500/20 to-fuchsia-600/10 hover:border-purple-500/40">Mor - Fuşya Kreatif</option>
+                                          <option value="from-pink-500/20 to-rose-600/10 hover:border-pink-500/40">Pembe - Gül Rüyası</option>
+                                          <option value="from-cyan-500/20 to-sky-600/10 hover:border-cyan-500/40">Turkuaz - Gökyüzü Esintisi</option>
+                                        </select>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                      <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">AÇIKLAMA YAZISI</label>
+                                      <textarea
+                                        value={cat.description || ""}
+                                        onChange={(e) => handleUpdateCategoryField(cat.id, "description", e.target.value)}
+                                        className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none resize-none h-16"
+                                        placeholder="Kategori altında listelenecek açıklama yazısı..."
+                                      />
+                                    </div>
+
+                                    <div className="flex justify-between items-center pt-2 border-t border-zinc-900">
+                                      <span className="text-[9px] text-yellow-500/80 font-mono flex items-center gap-1">
+                                        <Sparkles size={10} /> Değişiklikler anlık olarak taslağa işlenir.
+                                      </span>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => setEditingCatId(null)}
+                                          className="px-3.5 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-lg flex items-center gap-1 cursor-pointer transition-all shadow-md shadow-red-600/10"
+                                        >
+                                          <Check size={12} />
+                                          <span>Tamamla</span>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                      <div className="font-mono text-[11px] text-zinc-400 font-black bg-zinc-950 border border-zinc-850 px-2.5 py-1 rounded-lg">
+                                        {cat.index}
+                                      </div>
+                                      <div className="flex-1 space-y-0.5">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-display font-black text-white text-sm uppercase tracking-wide">
+                                            {cat.title}
+                                          </span>
+                                          <span className="px-1.5 py-0.5 text-[8px] bg-zinc-900 text-zinc-400 font-mono border border-zinc-850 rounded">
+                                            {cat.badge}
+                                          </span>
+                                        </div>
+                                        {cat.description && (
+                                          <p className="text-[11px] text-zinc-500 leading-normal max-w-md line-clamp-1">
+                                            {cat.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
+                                      <button
+                                        onClick={() => setEditingCatId(cat.id)}
+                                        className="p-2 bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                                        title="Kategori Bilgilerini Satır İçi Düzenle"
+                                      >
+                                        <Edit size={13} className="text-red-500" />
+                                        <span className="hidden sm:inline">Hızlı Düzenle</span>
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedCatId(isOpenDrawer ? "" : cat.id);
+                                          // Close editing mode if managing items
+                                          if (!isOpenDrawer) setEditingCatId(null);
+                                        }}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+                                          isOpenDrawer 
+                                            ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                                            : "bg-zinc-950 border-zinc-850 hover:bg-zinc-900 text-zinc-400 hover:text-white"
+                                        }`}
+                                      >
+                                        <FileText size={13} />
+                                        <span>Dosyaları Yönet ({cat.items.length})</span>
+                                        <ChevronRight size={12} className={`transform transition-transform ${isOpenDrawer ? "rotate-90 text-red-400" : "text-zinc-600"}`} />
+                                      </button>
+                                      <button
+                                        onClick={() => handleRemoveCategory(cat.id)}
+                                        className="p-2 hover:bg-red-950/40 text-zinc-500 hover:text-red-500 rounded-xl border border-transparent hover:border-red-950 transition-all cursor-pointer"
+                                        title="Kategoriyi ve Dosyaları Komple Sil"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
 
                               {/* Category Item Management (Slide out Drawer style) */}
@@ -717,7 +827,39 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                         className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
                                       />
                                     </div>
-                                    <div className="flex justify-end">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-zinc-900 pt-3">
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">ÖNCESİ RESİM URL (OPSİYONEL)</label>
+                                        <input
+                                          type="text"
+                                          placeholder="https://gorsel-linki.com/oncesi.jpg"
+                                          value={newItem.previewBefore || ""}
+                                          onChange={(e) => setNewItem({ ...newItem, previewBefore: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">SONRASI RESİM URL (OPSİYONEL)</label>
+                                        <input
+                                          type="text"
+                                          placeholder="https://gorsel-linki.com/sonrasi.jpg"
+                                          value={newItem.previewAfter || ""}
+                                          onChange={(e) => setNewItem({ ...newItem, previewAfter: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">VİDEO ÖNİZLEME URL (OPSİYONEL)</label>
+                                        <input
+                                          type="text"
+                                          placeholder="https://youtube.com/watch?v=..."
+                                          value={newItem.previewVideo || ""}
+                                          onChange={(e) => setNewItem({ ...newItem, previewVideo: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="flex justify-end pt-2">
                                       <button
                                         onClick={() => handleAddItem(cat.id)}
                                         disabled={!newItem.name || !newItem.downloadUrl}
@@ -789,6 +931,38 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                               onChange={(e) => handleUpdateItemField(cat.id, item.id, "description", e.target.value)}
                                               className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
                                             />
+                                          </div>
+                                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-zinc-900/60 pt-2 bg-zinc-950/20 p-2 rounded-xl mt-1">
+                                            <div className="space-y-1">
+                                              <span className="text-[8px] text-zinc-500 font-mono">ÖNCESİ RESİM URL</span>
+                                              <input
+                                                type="text"
+                                                value={item.previewBefore || ""}
+                                                placeholder="Öncesi görsel URL..."
+                                                onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewBefore", e.target.value)}
+                                                className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              />
+                                            </div>
+                                            <div className="space-y-1">
+                                              <span className="text-[8px] text-zinc-500 font-mono">SONRASI RESİM URL</span>
+                                              <input
+                                                type="text"
+                                                value={item.previewAfter || ""}
+                                                placeholder="Sonrası görsel URL..."
+                                                onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewAfter", e.target.value)}
+                                                className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              />
+                                            </div>
+                                            <div className="space-y-1">
+                                              <span className="text-[8px] text-zinc-500 font-mono">VİDEO ÖNİZLEME URL</span>
+                                              <input
+                                                type="text"
+                                                value={item.previewVideo || ""}
+                                                placeholder="Video önizleme URL..."
+                                                onChange={(e) => handleUpdateItemField(cat.id, item.id, "previewVideo", e.target.value)}
+                                                className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-md text-[11px] text-white outline-none font-mono"
+                                              />
+                                            </div>
                                           </div>
                                         </div>
                                       ))}
@@ -1012,24 +1186,55 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             else if (platformStr === "discord") colorClass = "focus:border-blue-500";
                             else if (platformStr === "tiktok") colorClass = "focus:border-cyan-500";
 
+                            const handleValue = editedContent.settings.socialHandles?.[platform] ?? "";
+                            let handlePlaceholder = "";
+                            if (platformStr === "youtube") handlePlaceholder = "PARS MAZI";
+                            else if (platformStr === "instagram") handlePlaceholder = "@parsmazi";
+                            else if (platformStr === "discord") handlePlaceholder = "SUNUCUYA KATIL";
+                            else if (platformStr === "tiktok") handlePlaceholder = "@parsmazi";
+
                             return (
-                              <div key={platformStr} className="space-y-1">
-                                <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">{platformStr.toUpperCase()} KANALI URL</label>
-                                <input
-                                  type="text"
-                                  value={editedContent.settings.socialLinks[platform]}
-                                  onChange={(e) => setEditedContent({
-                                    ...editedContent,
-                                    settings: {
-                                      ...editedContent.settings,
-                                      socialLinks: {
-                                        ...editedContent.settings.socialLinks,
-                                        [platform]: e.target.value
+                              <div key={platformStr} className="space-y-2 bg-zinc-950/40 p-3.5 rounded-2xl border border-zinc-900">
+                                <div className="space-y-1">
+                                  <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">{platformStr.toUpperCase()} KANALI URL</label>
+                                  <input
+                                    type="text"
+                                    value={editedContent.settings.socialLinks[platform]}
+                                    onChange={(e) => setEditedContent({
+                                      ...editedContent,
+                                      settings: {
+                                        ...editedContent.settings,
+                                        socialLinks: {
+                                          ...editedContent.settings.socialLinks,
+                                          [platform]: e.target.value
+                                        }
                                       }
-                                    }
-                                  })}
-                                  className={`w-full px-4 py-2.5 bg-zinc-900/60 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none ${colorClass} transition-colors font-mono`}
-                                />
+                                    })}
+                                    className={`w-full px-3 py-2 bg-zinc-900/60 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none ${colorClass} transition-colors font-mono`}
+                                  />
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider block">{platformStr.toUpperCase()} GÖRÜNEN AD / ETİKET</label>
+                                  <input
+                                    type="text"
+                                    value={handleValue}
+                                    placeholder={handlePlaceholder}
+                                    onChange={(e) => {
+                                      const currentHandles = editedContent.settings.socialHandles || {};
+                                      setEditedContent({
+                                        ...editedContent,
+                                        settings: {
+                                          ...editedContent.settings,
+                                          socialHandles: {
+                                            ...currentHandles,
+                                            [platform]: e.target.value
+                                          }
+                                        }
+                                      });
+                                    }}
+                                    className={`w-full px-3 py-2 bg-zinc-900/60 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none ${colorClass} transition-colors`}
+                                  />
+                                </div>
                               </div>
                             );
                           })}

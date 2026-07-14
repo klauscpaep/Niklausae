@@ -23,6 +23,12 @@ export interface SiteSettings {
   stats: StatItem[];
   portfolioUrl: string;
   socialLinks: SocialLinks;
+  socialHandles?: {
+    youtube?: string;
+    instagram?: string;
+    discord?: string;
+    tiktok?: string;
+  };
   adminPassword?: string;
   topBarText?: string;
   loadingText?: string;
@@ -37,6 +43,9 @@ export interface EditPackItem {
   size: string;
   downloadUrl: string;
   description: string;
+  previewBefore?: string;
+  previewAfter?: string;
+  previewVideo?: string;
 }
 
 export interface Category {

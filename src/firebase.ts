@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc, setDoc, runTransaction } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, runTransaction, onSnapshot } from "firebase/firestore";
 import firebaseConfig from "../firebase-applet-config.json";
 
 const firebaseApp = initializeApp(firebaseConfig);
@@ -110,4 +110,24 @@ export async function incrementVisitorCount() {
   } catch (error) {
     console.error("Firestore transaction error:", error);
   }
+}
+
+export function subscribeToSiteContent(onUpdate: (content: any) => void, onError: (err: any) => void) {
+  const docRef = doc(db, "site", "content");
+  return onSnapshot(
+    docRef, 
+    (docSnap) => {
+      if (docSnap.exists()) {
+        onUpdate(docSnap.data());
+      } else {
+        setDoc(docRef, DEFAULT_CONTENT)
+          .then(() => onUpdate(DEFAULT_CONTENT))
+          .catch(onError);
+      }
+    }, 
+    (err) => {
+      console.error("Firestore subscribe error:", err);
+      onError(err);
+    }
+  );
 }
