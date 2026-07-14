@@ -10,6 +10,18 @@ const app = express();
 const PORT = 3000;
 const DATA_FILE = path.join(process.cwd(), "site_content.json");
 
+// Robust CORS and Preflight handler
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 // Configure uploads directory and multer
 const uploadsDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsDir)) {
@@ -450,6 +462,15 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
     console.error("Upload handler error:", err);
     res.status(500).json({ error: err.message || "Dosya sunucuya yazılırken hata oluştu." });
   }
+});
+
+// Custom error handler for Express (handles multer and other parsing errors)
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error("Global Express error:", err);
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: `Dosya yükleme hatası: ${err.message}` });
+  }
+  res.status(500).json({ error: err.message || "Sunucuda beklenmedik bir hata oluştu." });
 });
 
 // Vite middleware and static serving setup
