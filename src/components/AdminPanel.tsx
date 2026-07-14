@@ -5,7 +5,7 @@ import {
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
-  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell
+  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell, ThumbsUp
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 import defaultProfileImg from "../assets/images/pars_mazi_profile_1784000260155.jpg";
@@ -107,7 +107,7 @@ interface AdminPanelProps {
   onSave: (updatedContent: SiteContent, passwordToVerify: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-type TabType = "dashboard" | "general" | "categories" | "announcements" | "bio" | "system";
+type TabType = "dashboard" | "general" | "categories" | "announcements" | "bio" | "system" | "requests";
 
 export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -123,6 +123,10 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  // FAQ Admin state
+  const [newFaq, setNewFaq] = useState({ question: "", answer: "", active: true });
+  const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
 
   // Temp states for adding category/item
   const [selectedCatId, setSelectedCatId] = useState<string>("");
@@ -148,6 +152,35 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sync requests & visitorCount in real-time from parent content
+  useEffect(() => {
+    if (content) {
+      setEditedContent(prev => {
+        if (!prev) return JSON.parse(JSON.stringify(content));
+        
+        const localRequests = prev.requests || [];
+        const remoteRequests = content.requests || [];
+        
+        const mergedRequests = remoteRequests.map(remoteReq => {
+          const localMatch = localRequests.find(l => l.id === remoteReq.id);
+          return localMatch ? localMatch : remoteReq;
+        });
+
+        localRequests.forEach(localReq => {
+          if (!mergedRequests.some(m => m.id === localReq.id)) {
+            mergedRequests.push(localReq);
+          }
+        });
+
+        return {
+          ...prev,
+          requests: mergedRequests,
+          visitorCount: content.visitorCount || 0
+        };
+      });
+    }
+  }, [content]);
 
   // Pre-made premium announcement templates for video editing / resource pack site
   const DUYURU_TEMPLATES = [
@@ -707,6 +740,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                           <Lock size={13} className={activeTab === "system" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
                           <span className="tracking-wide">Sayaç & Güvenlik</span>
                         </button>
+
+                        <button
+                          onClick={() => setActiveTab("requests")}
+                          className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:px-3.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold transition-all shrink-0 cursor-pointer group ${
+                            activeTab === "requests" 
+                              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" 
+                              : "text-zinc-400 hover:text-white hover:bg-zinc-900/40 border border-transparent"
+                          }`}
+                        >
+                          <HelpCircle size={13} className={activeTab === "requests" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
+                          <span className="tracking-wide">İstek & SSS</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -741,6 +786,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         {activeTab === "announcements" && "Duyurular & Tek Tıkla Hazır Taslaklar"}
                         {activeTab === "bio" && "Kişisel Biyografi & Linkler"}
                         {activeTab === "system" && "Sayaçlar & Güvenlik Şifresi"}
+                        {activeTab === "requests" && "Kullanıcı İstekleri & SSS Yönetimi"}
                       </span>
                     </div>
 
@@ -2336,6 +2382,313 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             </button>
                           </div>
                           <p className="text-[10px] text-zinc-500 leading-relaxed max-w-lg">Yönetici paneline giriş yaparken koruma sağlayan şifre. Değiştirdikten sonra kaydet butonuna tıklayarak güncelleyebilirsiniz.</p>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {/* TAB: REQUESTS & FAQ MANAGEMENT */}
+                    {activeTab === "requests" && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-8"
+                      >
+                        {/* PART 1: SUGGESTION BOX REQUESTS */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                            <div className="flex items-center gap-2">
+                              <Megaphone size={18} className="text-indigo-400" />
+                              <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">Kullanıcı Talepleri ({ (editedContent.requests || []).length })</h3>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm("Tüm kullanıcı isteklerini kalıcı olarak silmek istediğinize emin misiniz?")) {
+                                  setEditedContent({ ...editedContent, requests: [] });
+                                }
+                              }}
+                              className="text-[10px] font-mono font-bold text-red-500 hover:text-red-400 px-2.5 py-1.5 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 hover:border-red-500/25 rounded-lg cursor-pointer transition-all uppercase tracking-wider"
+                            >
+                              Tümünü Temizle
+                            </button>
+                          </div>
+
+                          <div className="space-y-3">
+                            {(!editedContent.requests || editedContent.requests.length === 0) ? (
+                              <div className="p-8 text-center bg-[#0a0b0f] border border-zinc-900 rounded-[24px] text-zinc-500 font-mono text-xs">
+                                Henüz hiçbir kullanıcı talebi gönderilmemiş.
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-3 max-h-[400px] overflow-y-auto pr-1">
+                                {editedContent.requests.map((req, idx) => {
+                                  return (
+                                    <div 
+                                      key={req.id || idx}
+                                      className="p-4 bg-[#0a0b0f] border border-zinc-900 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                    >
+                                      <div className="space-y-1.5 flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                          <span className="text-[9px] font-mono font-bold text-zinc-500 bg-zinc-950 px-2 py-0.5 border border-zinc-900 rounded">
+                                            {req.category}
+                                          </span>
+                                          <span className="text-[9px] font-mono text-zinc-500">
+                                            {new Date(req.createdAt).toLocaleDateString("tr-TR")}
+                                          </span>
+                                          <span className="text-[9px] font-mono font-extrabold text-indigo-400 bg-indigo-500/5 px-2 py-0.5 border border-indigo-500/10 rounded-full flex items-center gap-1">
+                                            <ThumbsUp size={10} /> {req.votes || 0} Oy
+                                          </span>
+                                        </div>
+                                        <h4 className="text-xs font-bold text-zinc-200 uppercase">{req.title}</h4>
+                                        <p className="text-[11px] text-zinc-400 leading-normal">{req.description}</p>
+                                        <div className="pt-2 flex items-center gap-1.5 flex-wrap">
+                                          <span className="text-[9px] font-mono font-bold text-zinc-500">Link/Ek Dosya:</span>
+                                          {req.referenceUrl && (
+                                            <a 
+                                              href={req.referenceUrl}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 rounded text-[9px] font-mono shrink-0 border border-indigo-500/10"
+                                            >
+                                              <ExternalLink size={9} />
+                                              <span>Aç</span>
+                                            </a>
+                                          )}
+                                          <input 
+                                            type="text"
+                                            value={req.referenceUrl || ""}
+                                            onChange={(e) => {
+                                              const updated = (editedContent.requests || []).map(r => {
+                                                if (r.id === req.id) {
+                                                  return { ...r, referenceUrl: e.target.value };
+                                                }
+                                                return r;
+                                              });
+                                              setEditedContent({ ...editedContent, requests: updated });
+                                            }}
+                                            className="px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-[9px] text-zinc-300 w-56 font-mono focus:outline-none focus:border-indigo-500"
+                                            placeholder="Link veya dosya URL ekle..."
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="flex items-center gap-2.5 shrink-0">
+                                        {/* Status Switcher */}
+                                        <div className="flex flex-col gap-1">
+                                          <span className="text-[8px] font-mono font-bold text-zinc-600 block uppercase tracking-wider">Durum:</span>
+                                          <select
+                                            value={req.status}
+                                            onChange={(e) => {
+                                              const updated = (editedContent.requests || []).map(r => {
+                                                if (r.id === req.id) {
+                                                  return { ...r, status: e.target.value as any };
+                                                }
+                                                return r;
+                                              });
+                                              setEditedContent({ ...editedContent, requests: updated });
+                                            }}
+                                            className="px-2 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-bold font-mono text-zinc-300 focus:outline-none"
+                                          >
+                                            <option value="pending" className="text-amber-500 font-bold">Beklemede</option>
+                                            <option value="approved" className="text-blue-500 font-bold">Kabul Edildi</option>
+                                            <option value="completed" className="text-emerald-500 font-bold">Tamamlandı</option>
+                                            <option value="rejected" className="text-red-500 font-bold">İptal Edildi</option>
+                                          </select>
+                                        </div>
+
+                                        {/* Vote Changer */}
+                                        <div className="flex flex-col gap-1 w-16">
+                                          <span className="text-[8px] font-mono font-bold text-zinc-600 block uppercase tracking-wider">Oy Ekle:</span>
+                                          <input
+                                            type="number"
+                                            value={req.votes}
+                                            onChange={(e) => {
+                                              const updated = (editedContent.requests || []).map(r => {
+                                                if (r.id === req.id) {
+                                                  return { ...r, votes: parseInt(e.target.value) || 0 };
+                                                }
+                                                return r;
+                                              });
+                                              setEditedContent({ ...editedContent, requests: updated });
+                                            }}
+                                            className="px-2 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-[10px] font-bold font-mono text-zinc-300 focus:outline-none text-center"
+                                          />
+                                        </div>
+
+                                        {/* Delete Button */}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            const updated = (editedContent.requests || []).filter(r => r.id !== req.id);
+                                            setEditedContent({ ...editedContent, requests: updated });
+                                          }}
+                                          className="p-2 bg-red-600/5 hover:bg-red-600 border border-red-500/10 hover:border-red-500 text-red-500 hover:text-white rounded-lg transition-all cursor-pointer self-end md:self-auto"
+                                          title="Talebi Sil"
+                                        >
+                                          <Trash2 size={12} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* PART 2: FAQ MANAGEMENT */}
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                            <div className="flex items-center gap-2">
+                              <HelpCircle size={18} className="text-indigo-400" />
+                              <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">Sıkça Sorulan Sorular ({ (editedContent.faqs || []).length })</h3>
+                            </div>
+                            <span className="text-[10px] font-mono text-zinc-500 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-850">
+                              SSS Konfigürasyonu
+                            </span>
+                          </div>
+
+                          {/* Add / Edit FAQ Form */}
+                          <div className="p-5 bg-[#0a0b0f] border border-zinc-900 rounded-[24px] space-y-4">
+                            <span className="text-[10px] font-mono font-extrabold text-indigo-400 uppercase tracking-widest block">
+                              {editingFaqId ? "📝 SSS SORUSUNU DÜZENLE" : "✍️ YENİ SSS SORUSU EKLE"}
+                            </span>
+
+                            <div className="space-y-3">
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-mono font-bold text-zinc-400 uppercase">SORU METNİ</label>
+                                <input
+                                  type="text"
+                                  placeholder="Örn: Paketler her ne sıklıkla güncellenir?"
+                                  value={newFaq.question}
+                                  onChange={(e) => setNewFaq({ ...newFaq, question: e.target.value })}
+                                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                                />
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="text-[10px] font-mono font-bold text-zinc-400 uppercase">CEVAP METNİ</label>
+                                <textarea
+                                  placeholder="Soruya verilecek ayrıntılı açıklayıcı cevap..."
+                                  value={newFaq.answer}
+                                  onChange={(e) => setNewFaq({ ...newFaq, answer: e.target.value })}
+                                  rows={3}
+                                  className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500 resize-none"
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between pt-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    id="faq-active-check"
+                                    checked={newFaq.active}
+                                    onChange={(e) => setNewFaq({ ...newFaq, active: e.target.checked })}
+                                    className="w-4 h-4 rounded bg-zinc-950 border border-zinc-850 text-indigo-600 focus:ring-0 cursor-pointer"
+                                  />
+                                  <label htmlFor="faq-active-check" className="text-[10px] font-mono font-bold text-zinc-400 uppercase cursor-pointer select-none">
+                                    Sitede Aktif Olarak Göster
+                                  </label>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                  {editingFaqId && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingFaqId(null);
+                                        setNewFaq({ question: "", answer: "", active: true });
+                                      }}
+                                      className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 border border-zinc-800 rounded-xl text-[10px] font-bold cursor-pointer"
+                                    >
+                                      Vazgeç
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (!newFaq.question.trim() || !newFaq.answer.trim()) {
+                                        alert("Lütfen tüm alanları doldurun.");
+                                        return;
+                                      }
+
+                                      let updatedFaqs = [...(editedContent.faqs || [])];
+                                      if (editingFaqId) {
+                                        updatedFaqs = updatedFaqs.map(f => {
+                                          if (f.id === editingFaqId) {
+                                            return { ...f, question: newFaq.question.trim(), answer: newFaq.answer.trim(), active: newFaq.active };
+                                          }
+                                          return f;
+                                        });
+                                      } else {
+                                        updatedFaqs.push({
+                                          id: `faq-${Date.now()}`,
+                                          question: newFaq.question.trim(),
+                                          answer: newFaq.answer.trim(),
+                                          active: newFaq.active
+                                        });
+                                      }
+
+                                      setEditedContent({ ...editedContent, faqs: updatedFaqs });
+                                      setNewFaq({ question: "", answer: "", active: true });
+                                      setEditingFaqId(null);
+                                    }}
+                                    className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-[10px] font-extrabold uppercase tracking-wider cursor-pointer shadow-md"
+                                  >
+                                    {editingFaqId ? "GÜNCELLE" : "LİSTEYE EKLE"}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* FAQs List for deletion and editing */}
+                          <div className="space-y-2">
+                            {(!editedContent.faqs || editedContent.faqs.length === 0) ? (
+                              <div className="p-4 text-center text-zinc-600 font-mono text-[10px]">
+                                Henüz hiçbir soru/cevap girilmemiş.
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1">
+                                {editedContent.faqs.map((faq) => (
+                                  <div
+                                    key={faq.id}
+                                    className="p-3 bg-[#0a0b0f] border border-zinc-900 rounded-xl flex items-center justify-between gap-4"
+                                  >
+                                    <div className="min-w-0 flex-1">
+                                      <h5 className="text-xs font-bold text-zinc-300 truncate uppercase flex items-center gap-1.5">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${faq.active ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-600'}`} />
+                                        {faq.question}
+                                      </h5>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingFaqId(faq.id);
+                                          setNewFaq({ question: faq.question, answer: faq.answer, active: !!faq.active });
+                                        }}
+                                        className="p-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-white rounded border border-zinc-850 cursor-pointer"
+                                        title="Soru Düzenle"
+                                      >
+                                        <Edit size={10} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = (editedContent.faqs || []).filter(f => f.id !== faq.id);
+                                          setEditedContent({ ...editedContent, faqs: updated });
+                                        }}
+                                        className="p-1.5 bg-red-600/5 hover:bg-red-600 border border-red-500/10 hover:border-red-500 text-red-500 hover:text-white rounded cursor-pointer"
+                                        title="Soru Sil"
+                                      >
+                                        <Trash2 size={10} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     )}

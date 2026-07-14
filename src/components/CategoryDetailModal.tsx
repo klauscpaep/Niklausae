@@ -7,6 +7,7 @@ import BeforeAfterSlider from "./BeforeAfterSlider";
 interface CategoryDetailModalProps {
   category: Category | null;
   onClose: () => void;
+  onPlayVideo?: (video: { id: string; name: string; url: string }) => void;
 }
 
 function getEmbedUrl(url: string): string | null {
@@ -23,7 +24,7 @@ function getEmbedUrl(url: string): string | null {
   return url;
 }
 
-export default function CategoryDetailModal({ category, onClose }: CategoryDetailModalProps) {
+export default function CategoryDetailModal({ category, onClose, onPlayVideo }: CategoryDetailModalProps) {
   // Store tab selection (image comparison vs. video preview) for each item
   const [activeTabs, setActiveTabs] = useState<Record<string, "image" | "video">>({});
   // Lightbox view for full-screen comparison/video
@@ -207,6 +208,18 @@ export default function CategoryDetailModal({ category, onClose }: CategoryDetai
                           </div>
 
                           <div className="flex items-center gap-2 self-end sm:self-auto">
+                            {/* Mini Player Picture-in-Picture Button */}
+                            {hasVideo && onPlayVideo && (
+                              <button
+                                onClick={() => onPlayVideo({ id: item.id, name: item.name, url: item.previewVideo! })}
+                                className="p-2.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-red-400 hover:text-red-300 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-wider"
+                                title="Mini Pencerede Oynat (Sitede Gezinirken İzle)"
+                              >
+                                <Play size={11} fill="currentColor" />
+                                <span>MİNİ İZLE</span>
+                              </button>
+                            )}
+
                             {/* Fullscreen Button */}
                             <button
                               onClick={() => setLightboxItem(item)}

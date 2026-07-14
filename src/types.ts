@@ -71,9 +71,29 @@ export interface Announcement {
   linkUrl?: string;
 }
 
+export interface SuggestionRequest {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  createdAt: string;
+  status: "pending" | "approved" | "completed" | "rejected";
+  votes: number;
+  referenceUrl?: string;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  answer: string;
+  active: boolean;
+}
+
 export interface SiteContent {
   visitorCount: number;
   settings: SiteSettings;
   categories: Category[];
   announcements?: Announcement[];
+  requests?: SuggestionRequest[];
+  faqs?: FAQItem[];
 }

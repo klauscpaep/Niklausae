@@ -8,6 +8,8 @@ import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import AnnouncementsList from "./components/AnnouncementsList";
+import HelpRequestsSection from "./components/HelpRequestsSection";
+import MiniPlayer from "./components/MiniPlayer";
 import defaultProfileImg from "./assets/images/pars_mazi_profile_1784000260155.jpg";
 import goldenPolyBg from "./assets/images/golden_poly_bg_1784006785795.jpg";
 import { fetchSiteContent, saveSiteContent, incrementVisitorCount, subscribeToSiteContent } from "./firebase";
@@ -36,6 +38,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [activeVideo, setActiveVideo] = useState<{ id: string; name: string; url: string } | null>(null);
 
   // Fetch site content & increment visitor count with real-time sync
   useEffect(() => {
@@ -125,6 +128,17 @@ export default function App() {
     } catch (err) {
       console.error(err);
       return { success: false, error: "Veritabanına kaydedilirken hata oluştu." };
+    }
+  };
+
+  // Save changes from normal users (no password verification required)
+  const handleSaveUserContent = async (updatedContent: SiteContent): Promise<void> => {
+    try {
+      await saveSiteContent(updatedContent);
+      setContent(updatedContent);
+    } catch (err) {
+      console.error("User save failed:", err);
+      throw err;
     }
   };
 
@@ -579,6 +593,9 @@ export default function App() {
 
         </div>
 
+        {/* User Requests & FAQ Section */}
+        <HelpRequestsSection content={content} onSaveContent={handleSaveUserContent} />
+
         {/* Footer */}
         <footer className="pt-8 flex flex-col items-center gap-2 border-t border-zinc-900/60 mt-12">
           <p className="text-[10px] text-zinc-600 font-mono text-center">
@@ -606,6 +623,13 @@ export default function App() {
       <CategoryDetailModal 
         category={selectedCategory} 
         onClose={() => setSelectedCategory(null)} 
+        onPlayVideo={setActiveVideo}
+      />
+
+      {/* Mini Preview Player (Picture-in-picture floating overlay) */}
+      <MiniPlayer 
+        video={activeVideo} 
+        onClose={() => setActiveVideo(null)} 
       />
 
       {/* Secret Admin Panel Control Overlay */}

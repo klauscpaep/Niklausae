@@ -341,6 +341,46 @@ const DEFAULT_CONTENT = {
         }
       ]
     }
+  ],
+  requests: [
+    {
+      id: "req-1",
+      title: "RTX Motion Blur Preseti",
+      description: "After Effects için pürüzsüz ve render süresini uzatmayan kaliteli bir motion blur ayarı gelebilir mi?",
+      category: "Geçiş Efektleri",
+      createdAt: new Date().toISOString(),
+      status: "approved",
+      votes: 42
+    },
+    {
+      id: "req-2",
+      title: "Glitch SFX Paketi",
+      description: "Video geçişlerinde kullanmak için mekanik ve dijital arıza (glitch) ses efektleri çok iyi olur.",
+      category: "Sound Effects (SFX)",
+      createdAt: new Date().toISOString(),
+      status: "pending",
+      votes: 18
+    }
+  ],
+  faqs: [
+    {
+      id: "faq-1",
+      question: "Efekt paketlerini ve .ffx dosyalarını After Effects'e nasıl kurarım?",
+      answer: "İndirdiğiniz .ffx uzantılı dosyaları After Effects klasörünüzdeki 'Support Files > Presets' dizinine kopyalamanız yeterlidir. Ardından AE içinde 'Effects & Presets' panelinden arayarak kullanabilirsiniz.",
+      active: true
+    },
+    {
+      id: "faq-2",
+      question: "İndirme linkleri güvenli mi, virüs riski var mı?",
+      answer: "Tüm indirme linklerimiz güvenli ve doğrudan bulut depolama sunucularında (Google Drive vb.) barındırılır. Kesinlikle hiçbir virüs, reklam veya kısaltılmış link içermez.",
+      active: true
+    },
+    {
+      id: "faq-3",
+      question: "Özel bir efekt veya preset talep edebilir miyim?",
+      answer: "Evet! Sayfanın altındaki 'Kullanıcı İstek Kutusu' kısmından dilediğiniz efekti kategorisiyle birlikte talep edebilirsiniz. Diğer kullanıcılar da isteğinize oy verirse, en popüler istekleri sırasıyla hazırlayıp sisteme ekliyorum.",
+      active: true
+    }
   ]
 };
 
