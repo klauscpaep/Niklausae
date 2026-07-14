@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   HelpCircle, ChevronDown, MessageSquare, ThumbsUp, PlusCircle, 
   Sparkles, CheckCircle2, Clock, Send, AlertCircle, RefreshCw,
-  Link2, UploadCloud, ExternalLink, Loader2
+  Link2, UploadCloud, ExternalLink, Loader2, Search, Filter
 } from "lucide-react";
 import { SiteContent, FAQItem, SuggestionRequest } from "../types";
 
@@ -15,9 +15,12 @@ interface HelpRequestsSectionProps {
 export default function HelpRequestsSection({ content, onSaveContent }: HelpRequestsSectionProps) {
   // FAQs State
   const [expandedFaqId, setExpandedFaqId] = useState<string | null>(null);
+  const [faqSearch, setFaqSearch] = useState("");
+  const [selectedFaqCategory, setSelectedFaqCategory] = useState("Tümü");
 
   // Suggestions State
   const [activeTab, setActiveTab] = useState<"popular" | "all" | "new">("popular");
+  const [requestStatusFilter, setRequestStatusFilter] = useState<"all" | "pending" | "approved" | "completed">("all");
   
   // Submit Form State
   const [title, setTitle] = useState("");
@@ -196,13 +199,67 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
     }
   };
 
-  // Filter and sort requests
+  // FAQ classification helper
+  const getFaqCategory = (id: string): string => {
+    switch (id) {
+      case "faq-1": // AE ffx kurulum
+      case "faq-4": // CapCut DaVinci uyumu
+      case "faq-14": // DaVinci / CapCut ffx
+        return "Kurulum & Uyum";
+      case "faq-5": // LUT ve CC
+      case "faq-7": // Siyah arka plan temizleme
+      case "faq-12": // Yeşil ekran temizleme
+        return "Kullanım & Efektler";
+      case "faq-6": // Twixtor CC
+      case "faq-10": // Expression error
+      case "faq-11": // Element 3D / Sapphire
+      case "faq-13": // Render kasması
+        return "Eklentiler & Hatalar";
+      case "faq-2": // Güvenli mi
+      case "faq-9": // Limit var mı
+      case "faq-15": // Kırık linkler
+        return "İndirme & Linkler";
+      case "faq-3": // Özel istek
+      case "faq-16": // İstekler onay
+      case "faq-8": // Telif hakkı
+      default:
+        return "Genel & İstekler";
+    }
+  };
+
+  const faqCategories = ["Tümü", "Kurulum & Uyum", "Kullanım & Efektler", "Eklentiler & Hatalar", "İndirme & Linkler", "Genel & İstekler"];
+
+  // Filter and sort FAQs
   const activeFaqs = faqs.filter(faq => faq.active !== false);
-  
+  const filteredFaqs = activeFaqs.filter(faq => {
+    const matchesSearch = 
+      faq.question.toLowerCase().includes(faqSearch.toLowerCase()) ||
+      faq.answer.toLowerCase().includes(faqSearch.toLowerCase());
+    
+    const matchesCategory = 
+      selectedFaqCategory === "Tümü" || 
+      getFaqCategory(faq.id) === selectedFaqCategory;
+      
+    return matchesSearch && matchesCategory;
+  });
+
+  // Calculate Request Statistics
+  const totalReqCount = requests.length;
+  const completedReqCount = requests.filter(r => r.status === "completed").length;
+  const approvedReqCount = requests.filter(r => r.status === "approved").length;
+  const pendingReqCount = requests.filter(r => r.status === "pending" || !r.status).length;
+
   const popularRequests = [...requests].sort((a, b) => (b.votes || 0) - (a.votes || 0));
   const recentRequests = [...requests].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const displayedRequests = activeTab === "popular" ? popularRequests : recentRequests;
+
+  // Filter requests by status
+  const filteredRequests = displayedRequests.filter(req => {
+    if (requestStatusFilter === "all") return true;
+    if (requestStatusFilter === "pending") return req.status === "pending" || !req.status;
+    return req.status === requestStatusFilter;
+  });
 
   const categoriesList = [
     "Geçiş Efektleri",
@@ -228,6 +285,16 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
     }
   };
 
+  const getProgressPercentage = (status: string) => {
+    switch (status) {
+      case "completed": return 100;
+      case "approved": return 60;
+      case "rejected": return 0;
+      case "pending":
+      default: return 20;
+    }
+  };
+
   return (
     <section className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-zinc-900/60" id="help-requests-section">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -246,13 +313,53 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
             </p>
           </div>
 
+          {/* FAQ Search and Filter Bar */}
+          <div className="space-y-3.5 bg-zinc-950/30 border border-zinc-900 p-4.5 rounded-2xl">
+            {/* Search Input */}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Soru veya cevap içinde hızlı arayın..."
+                value={faqSearch}
+                onChange={(e) => setFaqSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-900 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-red-500/50 transition-colors"
+              />
+              <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500" />
+              {faqSearch && (
+                <button
+                  onClick={() => setFaqSearch("")}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] font-mono font-bold text-zinc-500 hover:text-white cursor-pointer bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-800"
+                >
+                  TEMİZLE
+                </button>
+              )}
+            </div>
+
+            {/* Category Chips */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {faqCategories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedFaqCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider cursor-pointer transition-all border ${
+                    selectedFaqCategory === cat
+                      ? "bg-red-500/10 border-red-500/35 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)]"
+                      : "bg-[#0d0d12]/40 border-zinc-900/80 text-zinc-500 hover:text-zinc-300 hover:border-zinc-800"
+                  }`}
+                >
+                  {cat.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="space-y-4">
-            {activeFaqs.length === 0 ? (
+            {filteredFaqs.length === 0 ? (
               <div className="p-8 bg-zinc-900/10 border border-zinc-900 rounded-2xl text-center text-zinc-500 font-mono text-xs">
-                Soru ve cevaplar yükleniyor...
+                Aradığınız kriterlere uygun soru ve cevap bulunamadı.
               </div>
             ) : (
-              activeFaqs.map((faq) => {
+              filteredFaqs.map((faq) => {
                 const isExpanded = expandedFaqId === faq.id;
                 return (
                   <div 
@@ -283,8 +390,13 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.25, ease: "easeInOut" }}
                         >
-                          <div className="px-5 pb-5 pt-1 text-xs text-zinc-400 leading-relaxed border-t border-zinc-900/40">
-                            {faq.answer}
+                          <div className="px-5 pb-5 pt-1 text-xs text-zinc-400 leading-relaxed border-t border-zinc-900/40 space-y-2">
+                            <p>{faq.answer}</p>
+                            <div className="flex justify-end pt-1">
+                              <span className="text-[8px] font-mono font-bold text-zinc-600 uppercase tracking-widest bg-zinc-950 px-2 py-0.5 rounded border border-zinc-900">
+                                KAT: {getFaqCategory(faq.id)}
+                              </span>
+                            </div>
                           </div>
                         </motion.div>
                       )}
@@ -297,7 +409,7 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
         </div>
 
         {/* Right Panel: Suggestion Box */}
-        <div className="space-y-8 bg-zinc-950/20 border border-zinc-900/80 p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-2xl">
+        <div className="space-y-6 bg-zinc-950/20 border border-zinc-900/80 p-6 sm:p-8 rounded-3xl relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/[0.02] rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-3">
@@ -310,6 +422,26 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
             <p className="text-xs text-zinc-400 leading-relaxed">
               Arşivde bulunmasını istediğiniz yeni efekt paketlerini, presetleri veya araçları talep edin. Diğer kullanıcıların isteklerine oy vererek öne çıkmasını sağlayın!
             </p>
+          </div>
+
+          {/* Statistics Dashboard Widget */}
+          <div className="grid grid-cols-4 gap-2 bg-[#09090c]/50 p-3 rounded-2xl border border-zinc-900/60 shadow-inner">
+            <div className="text-center p-1.5 bg-[#0d0d12]/60 rounded-xl border border-zinc-900/40">
+              <span className="text-sm font-mono font-extrabold text-zinc-400 block leading-none">{totalReqCount}</span>
+              <span className="text-[7px] font-mono text-zinc-600 uppercase tracking-wider block font-black mt-1">Topl. İstek</span>
+            </div>
+            <div className="text-center p-1.5 bg-amber-500/5 rounded-xl border border-amber-500/10">
+              <span className="text-sm font-mono font-extrabold text-amber-400 block leading-none">{pendingReqCount}</span>
+              <span className="text-[7px] font-mono text-amber-600 uppercase tracking-wider block font-black mt-1">Değerlendir.</span>
+            </div>
+            <div className="text-center p-1.5 bg-blue-500/5 rounded-xl border border-blue-500/10">
+              <span className="text-sm font-mono font-extrabold text-blue-400 block leading-none">{approvedReqCount}</span>
+              <span className="text-[7px] font-mono text-blue-600 uppercase tracking-wider block font-black mt-1">Onaylanan</span>
+            </div>
+            <div className="text-center p-1.5 bg-emerald-500/5 rounded-xl border border-emerald-500/10">
+              <span className="text-sm font-mono font-extrabold text-emerald-400 block leading-none">{completedReqCount}</span>
+              <span className="text-[7px] font-mono text-emerald-600 uppercase tracking-wider block font-black mt-1">Tamamlanan</span>
+            </div>
           </div>
 
           {/* Tab Selection */}
@@ -346,6 +478,40 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
               İSTEK GÖNDER
             </button>
           </div>
+
+          {/* Status Sub-Filters (Only shown when not in 'new' submit request tab) */}
+          {activeTab !== "new" && (
+            <div className="flex flex-wrap gap-1.5 items-center bg-[#09090c]/40 p-2 rounded-xl border border-zinc-900/50">
+              <span className="text-[8px] font-mono font-bold text-zinc-600 uppercase tracking-widest flex items-center px-1">Durum:</span>
+              {(["all", "pending", "approved", "completed"] as const).map((status) => {
+                const labels = {
+                  all: "TÜMÜ",
+                  pending: "BEKLEMEDE",
+                  approved: "ONAYLANAN",
+                  completed: "TAMAMLANAN"
+                };
+                const activeColorClasses = {
+                  all: "bg-zinc-800 border-zinc-700 text-zinc-100",
+                  pending: "bg-amber-500/15 border-amber-500/30 text-amber-400",
+                  approved: "bg-blue-500/15 border-blue-500/30 text-blue-400",
+                  completed: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"
+                };
+                return (
+                  <button
+                    key={status}
+                    onClick={() => setRequestStatusFilter(status)}
+                    className={`px-2 py-0.5 rounded-md text-[8px] font-mono font-black tracking-wider cursor-pointer border transition-all ${
+                      requestStatusFilter === status
+                        ? activeColorClasses[status]
+                        : "bg-transparent border-transparent text-zinc-500 hover:text-zinc-300"
+                    }`}
+                  >
+                    {labels[status]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Tab Content */}
           <div className="space-y-4 max-h-[350px] overflow-y-auto pr-1">
@@ -481,14 +647,24 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
                   exit={{ opacity: 0 }}
                   className="space-y-3 pt-1"
                 >
-                  {displayedRequests.length === 0 ? (
+                  {filteredRequests.length === 0 ? (
                     <div className="p-8 text-center text-zinc-600 text-xs font-mono">
-                      Henüz hiçbir istek gönderilmemiş. İlk talebi siz iletin!
+                      Bu filtre ile eşleşen hiçbir istek bulunamadı.
                     </div>
                   ) : (
-                    displayedRequests.map((req) => {
+                    filteredRequests.map((req) => {
                       const hasVoted = votedIds.includes(req.id);
                       const statusInfo = getStatusBadge(req.status);
+                      const percent = getProgressPercentage(req.status);
+                      
+                      const barColorClass = req.status === "completed" 
+                        ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
+                        : req.status === "approved"
+                        ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"
+                        : req.status === "rejected"
+                        ? "bg-red-500"
+                        : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]";
+
                       return (
                         <div
                           key={req.id}
@@ -512,7 +688,7 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
                           </button>
 
                           {/* Content */}
-                          <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex-1 min-w-0 space-y-2">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span className="text-[8px] font-mono font-bold text-zinc-500 bg-zinc-900/60 px-1.5 py-0.5 rounded border border-zinc-850/50">
                                 {req.category}
@@ -530,8 +706,26 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
                               {req.description}
                             </p>
 
+                            {/* Roadmap Progress Bar */}
+                            <div className="space-y-1 pt-1 select-none">
+                              <div className="flex justify-between items-center text-[7px] font-mono font-extrabold tracking-wider text-zinc-500">
+                                <span>GELİŞİM SÜRECİ</span>
+                                <span className={req.status === "completed" ? "text-emerald-400" : req.status === "approved" ? "text-blue-400" : "text-amber-400"}>
+                                  {percent}% {req.status === "completed" ? "TAMAMLANDI" : req.status === "approved" ? "HAZIRLANIYOR" : "DEĞERLENDİRİLİYOR"}
+                                </span>
+                              </div>
+                              <div className="w-full h-[3px] bg-zinc-900 rounded-full overflow-hidden border border-zinc-850/40">
+                                <motion.div 
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${percent}%` }}
+                                  transition={{ duration: 0.8, ease: "easeOut" }}
+                                  className={`h-full rounded-full ${barColorClass}`}
+                                />
+                              </div>
+                            </div>
+
                             {req.referenceUrl && (
-                              <div className="pt-1.5">
+                              <div className="pt-1">
                                 <a 
                                   href={req.referenceUrl}
                                   target="_blank"
