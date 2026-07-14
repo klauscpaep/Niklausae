@@ -11,5 +11,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+
+    // Permanent image storage
+    match /images/{imageId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

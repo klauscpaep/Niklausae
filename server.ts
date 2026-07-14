@@ -546,6 +546,71 @@ app.post("/api/upload", upload.single("file"), (req, res) => {
   }
 });
 
+// Permanent image upload API (stores in Firestore 'images' collection to bypass Cloud Run stateless disk limits)
+app.post("/api/upload-image", async (req, res) => {
+  try {
+    const { base64, contentType } = req.body;
+    if (!base64) {
+      return res.status(400).json({ error: "Görsel verisi eksik." });
+    }
+
+    const imageId = "img_" + Date.now() + "_" + Math.round(Math.random() * 1e6);
+
+    if (db) {
+      const docRef = doc(db, "images", imageId);
+      await setDoc(docRef, {
+        base64,
+        contentType: contentType || "image/jpeg",
+        createdAt: new Date().toISOString()
+      });
+      console.log(`Saved image to Firestore images collection: ${imageId}`);
+    } else {
+      // Local fallback for offline mode
+      const localPath = path.join(uploadsDir, `${imageId}.jpg`);
+      fs.writeFileSync(localPath, Buffer.from(base64, "base64"));
+      console.log(`Saved image to local fallback: ${imageId}`);
+    }
+
+    res.json({ success: true, url: `/api/image/${imageId}` });
+  } catch (err: any) {
+    console.error("Upload image API error:", err);
+    res.status(500).json({ error: err.message || "Görsel kaydedilirken sunucu hatası oluştu." });
+  }
+});
+
+// Permanent image retrieval API
+app.get("/api/image/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (db) {
+      const docRef = doc(db, "images", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const buffer = Buffer.from(data.base64, "base64");
+        res.setHeader("Content-Type", data.contentType || "image/jpeg");
+        res.setHeader("Cache-Control", "public, max-age=31536000"); // Cache for 1 year
+        return res.send(buffer);
+      }
+    }
+
+    // Local fallback
+    const localPath = path.join(uploadsDir, `${id}.jpg`);
+    if (fs.existsSync(localPath)) {
+      const buffer = fs.readFileSync(localPath);
+      res.setHeader("Content-Type", "image/jpeg");
+      res.setHeader("Cache-Control", "public, max-age=31536000");
+      return res.send(buffer);
+    }
+
+    res.status(404).send("Görsel bulunamadı.");
+  } catch (err: any) {
+    console.error("Get image API error:", err);
+    res.status(500).send("Görsel yüklenirken hata oluştu.");
+  }
+});
+
 // Custom error handler for Express (handles multer and other parsing errors)
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error("Global Express error:", err);
