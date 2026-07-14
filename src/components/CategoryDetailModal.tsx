@@ -33,7 +33,7 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
   // Helper to determine active tab for an item
   const getActiveTab = (item: EditPackItem) => {
     if (activeTabs[item.id]) return activeTabs[item.id];
-    if (item.previewBefore && item.previewAfter) return "image";
+    if (item.previewBefore || item.previewAfter) return "image";
     if (item.previewVideo) return "video";
     return "image";
   };
@@ -97,8 +97,9 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
               ) : (
                 category.items.map((item, idx) => {
                   const hasBeforeAfter = !!(item.previewBefore && item.previewAfter);
+                  const hasSingleImage = !hasBeforeAfter && !!(item.previewBefore || item.previewAfter);
                   const hasVideo = !!item.previewVideo;
-                  const hasAnyPreview = hasBeforeAfter || hasVideo;
+                  const hasAnyPreview = hasBeforeAfter || hasVideo || hasSingleImage;
                   const activeTab = getActiveTab(item);
 
                   if (hasAnyPreview) {
@@ -114,7 +115,7 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                         {/* Interactive Tab Switcher & Preview Container */}
                         <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-zinc-850/50 bg-zinc-950">
                           {/* Tabs (If both media types exist) */}
-                          {hasBeforeAfter && hasVideo && (
+                          {(hasBeforeAfter || hasSingleImage) && hasVideo && (
                             <div className="absolute top-3 right-3 z-30 flex bg-zinc-950/80 backdrop-blur border border-zinc-800/80 p-1 rounded-xl">
                               <button
                                 onClick={() => handleToggleTab(item.id, "image")}
@@ -141,12 +142,21 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                             </div>
                           )}
 
-                          {/* Render comparison slider or video player */}
+                          {/* Render comparison slider, single image or video player */}
                           {activeTab === "image" && hasBeforeAfter && (
                             <BeforeAfterSlider 
                               beforeImage={item.previewBefore!} 
                               afterImage={item.previewAfter!}
                               className="w-full h-full rounded-none border-none"
+                            />
+                          )}
+
+                          {activeTab === "image" && hasSingleImage && (
+                            <img 
+                              src={item.previewBefore || item.previewAfter} 
+                              alt={item.name} 
+                              className="w-full h-full object-cover"
+                              referrerPolicy="no-referrer"
                             />
                           )}
 
@@ -169,8 +179,8 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                             </div>
                           )}
                           
-                          {/* Fallback if somehow tab is image but no before/after, but has video */}
-                          {activeTab === "image" && !hasBeforeAfter && hasVideo && (
+                          {/* Fallback if somehow tab is image but no image is set, but has video */}
+                          {activeTab === "image" && !hasBeforeAfter && !hasSingleImage && hasVideo && (
                             <div className="w-full h-full flex flex-col items-center justify-center p-6 text-zinc-500">
                               <Play size={32} className="text-zinc-700 animate-pulse" />
                             </div>
@@ -345,6 +355,13 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                   afterImage={lightboxItem.previewAfter}
                   className="w-full max-h-[60vh] aspect-video object-contain"
                 />
+              ) : getActiveTab(lightboxItem) === "image" && (lightboxItem.previewBefore || lightboxItem.previewAfter) ? (
+                <img 
+                  src={lightboxItem.previewBefore || lightboxItem.previewAfter} 
+                  alt={lightboxItem.name} 
+                  className="max-w-full max-h-[60vh] object-contain rounded-2xl border border-zinc-900"
+                  referrerPolicy="no-referrer"
+                />
               ) : lightboxItem.previewVideo ? (
                 <div className="w-full h-full max-h-[60vh] aspect-video rounded-2xl overflow-hidden border border-zinc-900">
                   {lightboxItem.previewVideo.includes("youtube.com") || lightboxItem.previewVideo.includes("youtu.be") ? (
@@ -370,7 +387,7 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
             {/* Bottom Actions */}
             <div className="p-4 bg-zinc-950 border-t border-zinc-900 flex justify-between items-center">
               <span className="text-[10px] text-zinc-500 font-mono flex items-center gap-1 select-none">
-                <Sparkles size={11} className="text-red-500" /> Sürgüyü kaydırarak etki farkını inceleyebilirsiniz.
+                <Sparkles size={11} className="text-red-500" /> {lightboxItem.previewBefore && lightboxItem.previewAfter ? "Sürgüyü kaydırarak etki farkını inceleyebilirsiniz." : "Görsel önizlemesi."}
               </span>
               <a
                 href={lightboxItem.downloadUrl}
