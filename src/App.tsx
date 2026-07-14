@@ -502,7 +502,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 + idx * 0.05 }}
                     onClick={() => setSelectedCategory(category)}
-                    className={`group relative p-5 bg-gradient-to-r ${category.gradient} border border-zinc-900/80 hover:border-zinc-800 hover:scale-[1.01] rounded-2xl shadow-xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                    className={`group relative p-5 bg-gradient-to-r ${category.gradient} border border-zinc-900/80 hover:border-red-500/35 hover:scale-[1.025] rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(239,68,68,0.12)] transition-all duration-300 cursor-pointer overflow-hidden`}
                   >
                     {/* Decorative Corner Glow */}
                     <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none" />
