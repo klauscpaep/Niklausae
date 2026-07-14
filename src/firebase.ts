@@ -153,6 +153,48 @@ const DEFAULT_CONTENT = {
       question: "Dosya indirme limitleri veya şifreleri var mı?",
       answer: "Arşivimizdeki tüm indirmeler tamamen şifresiz, reklamsız ve doğrudan yüksek hızlı Google Drive / Mega linklerinden oluşur. Herhangi bir kota veya hız sınırı bulunmamaktadır.",
       active: true
+    },
+    {
+      id: "faq-10",
+      question: "After Effects 'Expression error' hatası alıyorum, nasıl düzeltebilirim?",
+      answer: "Expression hataları genellikle dil uyumsuzluğundan kaynaklanır. Kullandığınız After Effects Türkçe ise, İngilizceye özel yazılan presetler hata verebilir. AE'yi İngilizceye çevirmek veya After Effects ayarlarından Expression motorunu 'Legacy ExtendScript' yerine 'Modern JavaScript' yapmak bu hatayı saniyeler içinde çözer.",
+      active: true
+    },
+    {
+      id: "faq-11",
+      question: "Element 3D, Sapphire veya RSMB gibi eklentiler (pluginler) olmadan paketler çalışır mı?",
+      answer: "Sapphire, RSMB, Twixtor, Element 3D veya Deep Glow gerektiren presetlerin yanındaki açıklamalarda gerekli eklentiler belirtilmiştir. Sisteminizde bu harici pluginler yüklü değilse o efektler düzgün çalışmaz. Ancak temel geçişler, sesler, LUT'lar ve overlay'ler için hiçbir ek eklentiye ihtiyacınız yoktur.",
+      active: true
+    },
+    {
+      id: "faq-12",
+      question: "Videolardaki yeşil ekran (Green Screen) arka planı After Effects'te nasıl temizlerim?",
+      answer: "After Effects içinde 'Keylight (1.2)' efektini videonuzun üstüne sürükleyin. Efekt kontrol panelindeki damlalık (Screen Colour) aracıyla yeşil rengi seçin. İnce ayarlar için 'Screen Matte' sekmesi altındaki Clip Black ve Clip White değerleriyle oynayarak temizliği pürüzsüz hale getirebilirsiniz.",
+      active: true
+    },
+    {
+      id: "faq-13",
+      question: "Render alırken After Effects çok kasıyor veya donuyor, ne yapmalıyım?",
+      answer: "After Effects'te Edit > Preferences > Media & Disk Cache menüsünden 'Enable Disk Cache' seçeneğini aktif edin ve hızlı bir SSD disk seçin. Render alırken ise yerleşik render motoru yerine 'Adobe Media Encoder' kullanarak 'H.264 (MP4)' formatında donanım ivmeli (Hardware Acceleration) çıktı alabilirsiniz.",
+      active: true
+    },
+    {
+      id: "faq-14",
+      question: "DaVinci Resolve veya CapCut kullanıcıları .ffx uzantılı dosyaları kullanabilir mi?",
+      answer: "Hayır, .ffx dosyaları sadece After Effects programına özeldir. Ancak arşivde sunduğumuz profesyonel ses paketleri (SFX), video kaplamaları (Overlay) ve renk ayarları (.cube LUT) DaVinci Resolve, CapCut, Premiere Pro ve diğer tüm programlarla %100 uyumludur.",
+      active: true
+    },
+    {
+      id: "faq-15",
+      question: "Sitedeki indirme linkleri kırık veya çalışmıyor, ne yapmalıyım?",
+      answer: "Arşivimizdeki tüm linkleri düzenli olarak kontrol edip güncelliyoruz. Eğer yine de erişemediğiniz veya kota aşımı uyarısı veren bir linkle karşılaşırsanız, hemen sayfanın altındaki 'Kullanıcı İstek Kutusu' aracılığıyla bana bildirebilirsiniz. En kısa sürede alternatif linkler eklenecektir.",
+      active: true
+    },
+    {
+      id: "faq-16",
+      question: "Yaptığım istekler ne zaman onaylanır veya arşive eklenir?",
+      answer: "Gönderilen tüm istekleri admin panelinden günlük olarak inceliyorum. Onaylanan istekler 'İstekler' listesinde oylamaya açılır. En yüksek oy alan ve en çok talep edilen efektleri/paketleri her hafta sonu hazırlayıp indirme kategorilerine dahil ediyorum.",
+      active: true
     }
   ]
 };
@@ -163,8 +205,8 @@ export async function fetchSiteContent() {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const data = docSnap.data();
-      // If the faqs list is empty or has fewer than 5 items, upgrade to the rich list immediately
-      if (!data.faqs || data.faqs.length <= 3) {
+      // If the faqs list is empty or has fewer than 10 items, upgrade to the rich list immediately to reflect new additions
+      if (!data.faqs || data.faqs.length <= 9) {
         data.faqs = DEFAULT_CONTENT.faqs;
         await setDoc(docRef, data);
       }
