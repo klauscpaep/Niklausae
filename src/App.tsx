@@ -203,15 +203,19 @@ export default function App() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="flex items-center gap-3 px-5 py-2 bg-zinc-900/40 border border-zinc-850/60 rounded-2xl shadow-inner"
+            className="relative px-8 py-3.5 bg-[#09090b] border border-zinc-900/80 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col items-center justify-center min-w-[170px] group transition-all duration-300 hover:border-zinc-800"
           >
-            <div className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </div>
-            <div className="text-left leading-none">
-              <span className="text-[8px] font-mono font-bold text-zinc-500 tracking-widest uppercase block">ZİYARETÇİ</span>
-              <span className="text-base font-mono font-black text-white mt-0.5 block tracking-tight">
+            {/* Glowing top line */}
+            <div className="absolute top-0 left-3 right-3 h-[2px] bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-400 rounded-full shadow-[0_1px_10px_rgba(168,85,247,0.5)]"></div>
+            
+            {/* Glowing light spread under the top bar */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-[8px] bg-gradient-to-r from-rose-500/10 via-purple-500/20 to-cyan-400/10 blur-sm pointer-events-none"></div>
+
+            <div className="text-center leading-none mt-1">
+              <span className="text-[9px] font-mono font-black text-zinc-400 tracking-[0.25em] uppercase block text-center">
+                TOPLAM ZİYARET
+              </span>
+              <span className="text-3xl font-bold font-sans text-white mt-2 block text-center tracking-wide leading-none select-none">
                 {content.visitorCount}
               </span>
             </div>

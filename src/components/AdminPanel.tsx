@@ -40,14 +40,32 @@ function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" 
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
-      if (data.success && data.url) {
-        onUploadSuccess(data.url);
+      
+      let errorMessage = "Yükleme başarısız.";
+      if (res.ok) {
+        try {
+          const data = await res.json();
+          if (data.success && data.url) {
+            onUploadSuccess(data.url);
+            return;
+          } else {
+            errorMessage = data.error || errorMessage;
+          }
+        } catch (jsonErr) {
+          errorMessage = "Sunucudan geçersiz yanıt alındı.";
+        }
       } else {
-        setError(data.error || "Yükleme başarısız.");
+        try {
+          const data = await res.json();
+          errorMessage = data.error || `Sunucu hatası: ${res.status}`;
+        } catch (jsonErr) {
+          const text = await res.text().catch(() => "");
+          errorMessage = text ? `Hata (${res.status}): ${text.substring(0, 100)}` : `Sunucu hatası (${res.status})`;
+        }
       }
-    } catch (err) {
-      setError("Sunucuya bağlanırken hata oluştu.");
+      setError(errorMessage);
+    } catch (err: any) {
+      setError(`Bağlantı hatası: ${err.message || err}`);
     } finally {
       setUploading(false);
     }
