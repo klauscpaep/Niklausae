@@ -71,18 +71,18 @@ try {
 
 app.use(express.json({ limit: "10mb" }));
 
-// Default high-fidelity site content representing Pars Mazi Edit Pack
+// Default high-fidelity site content representing Kreatif Edit Arşivi
 const DEFAULT_CONTENT = {
   visitorCount: 775,
   settings: {
-    heroTitle: "PARS MAZI EDIT PACK",
+    heroTitle: "KREATİF EDİT PACK",
     heroBadge: "AFTER EFFECTS PACKS",
     heroSub: "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır.",
     pluginTitle: "Gerekli Pluginler",
     pluginDesc: "Kurulum videosunu izle",
     pluginUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", // Placeholder or can be customized
     bioTitle: "BEN KİMİM?",
-    bioSub: "PARSMAZI / CREATIVE PROFILE",
+    bioSub: "EDİTÖR / KREATİF PROFİL",
     bioImage: "pars_mazi_profile_1784000260155.jpg", // The generated profile photo filename
     stats: [
       { value: "6+", label: "YILLIK DENEYİM" },
@@ -91,10 +91,10 @@ const DEFAULT_CONTENT = {
     ],
     portfolioUrl: "https://www.behance.net",
     socialLinks: {
-      youtube: "https://youtube.com/@parsmazi",
-      instagram: "https://instagram.com/parsmazi",
-      discord: "https://discord.gg/parsmazi",
-      tiktok: "https://tiktok.com/@parsmazi"
+      youtube: "https://youtube.com",
+      instagram: "https://instagram.com",
+      discord: "https://discord.gg",
+      tiktok: "https://tiktok.com"
     },
     adminPassword: "admin" // Default admin password
   },
@@ -347,12 +347,37 @@ const DEFAULT_CONTENT = {
 // Helper to read data safely
 let cachedData: any = null;
 
+function sanitizeContent(data: any): any {
+  if (!data) return data;
+  try {
+    let str = JSON.stringify(data);
+    str = str.replace(/Pars Mazi Edit Pack/gi, "Kreatif Edit Arşivi");
+    str = str.replace(/PARS MAZI EDIT PACK/gi, "KREATİF EDİT PACK");
+    str = str.replace(/PARS MAZI PACK/gi, "KREATİF EDİT PACK");
+    str = str.replace(/Pars Mazi/gi, "Kreatif Editör");
+    str = str.replace(/PARS MAZI/gi, "KREATİF EDİTÖR");
+    str = str.replace(/PARSMAZI/gi, "KREATİF EDİTÖR");
+    str = str.replace(/@parsmazi/gi, "@kreatifeditor");
+    str = str.replace(/parsmazi/gi, "kreatifeditor");
+    str = str.replace(/pars_mazi/gi, "kreatif_editor");
+    return JSON.parse(str);
+  } catch (e) {
+    console.error("Sanitizing failed:", e);
+    return data;
+  }
+}
+
 async function readData() {
   if (!db) {
     try {
       if (fs.existsSync(DATA_FILE)) {
         const raw = fs.readFileSync(DATA_FILE, "utf-8");
-        return JSON.parse(raw);
+        const originalData = JSON.parse(raw);
+        const sanitized = sanitizeContent(originalData);
+        if (JSON.stringify(originalData) !== JSON.stringify(sanitized)) {
+          fs.writeFileSync(DATA_FILE, JSON.stringify(sanitized, null, 2), "utf-8");
+        }
+        return sanitized;
       }
     } catch (err) {
       console.error("Error reading site_content.json", err);
@@ -364,7 +389,15 @@ async function readData() {
     const docRef = doc(db, "site", "content");
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      cachedData = docSnap.data();
+      const originalData = docSnap.data();
+      const sanitized = sanitizeContent(originalData);
+      if (JSON.stringify(originalData) !== JSON.stringify(sanitized)) {
+        console.log("Stale 'Pars Mazi' data detected in Firestore. Auto-sanitizing and writing back...");
+        await setDoc(docRef, sanitized);
+        cachedData = sanitized;
+      } else {
+        cachedData = originalData;
+      }
       return cachedData;
     } else {
       console.log("No content found in Firestore. Seeding with default data...");
@@ -378,7 +411,12 @@ async function readData() {
     try {
       if (fs.existsSync(DATA_FILE)) {
         const raw = fs.readFileSync(DATA_FILE, "utf-8");
-        return JSON.parse(raw);
+        const originalData = JSON.parse(raw);
+        const sanitized = sanitizeContent(originalData);
+        if (JSON.stringify(originalData) !== JSON.stringify(sanitized)) {
+          fs.writeFileSync(DATA_FILE, JSON.stringify(sanitized, null, 2), "utf-8");
+        }
+        return sanitized;
       }
     } catch (fileErr) {
       console.error("Error reading local fallback file:", fileErr);

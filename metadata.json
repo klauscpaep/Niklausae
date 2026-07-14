@@ -1,6 +1,6 @@
 {
-  "name": "Pars Mazi Edit Pack",
-  "description": "Pars Mazi Edit Pack - After Effects ve Premiere Pro video kurgu paketleri kütüphanesi, indirme linkleri ve gizli yönetici paneli.",
+  "name": "Kreatif Edit Arşivi",
+  "description": "Kreatif Edit Arşivi - After Effects ve Premiere Pro video kurgu paketleri kütüphanesi, indirme linkleri ve gizli yönetici paneli.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -11,10 +11,10 @@ export const db = firebaseConfig.firestoreDatabaseId
 const DEFAULT_CONTENT = {
   visitorCount: 0,
   settings: {
-    adminPassword: "parsmaziadmin",
-    topBarText: "PARS MAZI PACK",
-    loadingText: "PARS MAZI EDIT PACK yükleniyor...",
-    heroTitle: "PARS MAZI EDIT PACK",
+    adminPassword: "kreatifadmin",
+    topBarText: "KREATİF EDİT PACK",
+    loadingText: "KREATİF EDİT PACK yükleniyor...",
+    heroTitle: "KREATİF EDİT PACK",
     heroSub: "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır.",
     heroBadge: "AFTER EFFECTS PACKS",
     pluginTitle: "Gerekli Pluginler",
@@ -23,7 +23,7 @@ const DEFAULT_CONTENT = {
     portfolioUrl: "https://youtube.com",
     bioTitle: "BEN KİMİM?",
     bioSub: "01 / CREATOR",
-    bioName: "PARS MAZI",
+    bioName: "KREATİF EDİTÖR",
     bioRole: "VIDEO EDITOR • MOTION DESIGNER",
     bioDescription: "Uzun yıllardır After Effects ve video kurgu üzerine çalışıyorum. Bu arşiv, kurgularınızı profesyonel seviyeye taşımak için özenle hazırladığım efekt paketlerinden oluşuyor.",
     bioImage: "",
@@ -65,6 +65,18 @@ const DEFAULT_CONTENT = {
       description: "Geçiş sesleri, darbe efektleri, rüzgar uğultuları ve profesyonel foley kayıtları.",
       gradient: "from-blue-950/40 via-zinc-950/90 to-blue-950/20 hover:border-blue-500/20",
       items: []
+    }
+  ],
+  announcements: [
+    {
+      id: "welcome-announcement",
+      title: "🔥 KREATİF EDİT ARŞİVİNE HOŞ GELDİNİZ!",
+      message: " After Effects geçiş efektleri, özel kaplamalar, ses paketleri ve video kurgu kaynakları tek adreste. Yeni paketler her hafta ekleniyor!",
+      type: "announcement",
+      active: true,
+      createdAt: new Date().toISOString(),
+      linkText: "YouTube Kanalımı İncele",
+      linkUrl: "https://youtube.com"
     }
   ]
 };

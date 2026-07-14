@@ -7,7 +7,8 @@ import {
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
-import parsMaziProfile from "./assets/images/pars_mazi_profile_1784000260155.jpg";
+import AnnouncementsList from "./components/AnnouncementsList";
+import defaultProfileImg from "./assets/images/pars_mazi_profile_1784000260155.jpg";
 import goldenPolyBg from "./assets/images/golden_poly_bg_1784006785795.jpg";
 import { fetchSiteContent, saveSiteContent, incrementVisitorCount, subscribeToSiteContent } from "./firebase";
 
@@ -28,7 +29,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState(() => {
-    return localStorage.getItem("pars_mazi_loading_text") || "PARS MAZI EDIT PACK yükleniyor...";
+    return localStorage.getItem("kreatif_loading_text") || "KREATİF EDİT PACK yükleniyor...";
   });
   
   // Modals state
@@ -41,10 +42,10 @@ export default function App() {
     let isMounted = true;
     
     // Track unique visit first (run transaction once)
-    const hasVisited = sessionStorage.getItem("has_visited_pars_mazi");
+    const hasVisited = sessionStorage.getItem("has_visited_kreatif");
     if (!hasVisited) {
       incrementVisitorCount();
-      sessionStorage.setItem("has_visited_pars_mazi", "true");
+      sessionStorage.setItem("has_visited_kreatif", "true");
     }
     
     setIsLoading(true);
@@ -54,7 +55,7 @@ export default function App() {
         if (!isMounted) return;
         setContent(data as SiteContent);
         if (data?.settings?.loadingText) {
-          localStorage.setItem("pars_mazi_loading_text", data.settings.loadingText);
+          localStorage.setItem("kreatif_loading_text", data.settings.loadingText);
           setLoadingText(data.settings.loadingText);
         }
         setIsLoading(false);
@@ -116,7 +117,7 @@ export default function App() {
       setContent(finalContent);
       
       if (finalContent.settings?.loadingText) {
-        localStorage.setItem("pars_mazi_loading_text", finalContent.settings.loadingText);
+        localStorage.setItem("kreatif_loading_text", finalContent.settings.loadingText);
         setLoadingText(finalContent.settings.loadingText);
       }
 
@@ -206,7 +207,7 @@ export default function App() {
             <div>
               <h1 className="text-sm font-mono font-bold text-zinc-300 tracking-[0.2em] uppercase flex items-center gap-1.5">
                 {(() => {
-                  const text = content.settings.topBarText || "PARS MAZI PACK";
+                  const text = content.settings.topBarText || "KREATİF EDİT PACK";
                   const words = text.split(" ");
                   if (words.length > 1) {
                     const lastWord = words.pop();
@@ -247,6 +248,9 @@ export default function App() {
           </motion.div>
         </header>
 
+        {/* Active Announcements */}
+        <AnnouncementsList announcements={content.announcements} />
+
         {/* Dashboard Responsive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -274,7 +278,7 @@ export default function App() {
 
               {/* Title */}
               <h2 className="text-3xl font-display font-extrabold text-white text-center tracking-tight uppercase leading-tight">
-                {content.settings.heroTitle || "PARS MAZI EDIT PACK"}
+                {content.settings.heroTitle || "KREATİF EDİT PACK"}
               </h2>
 
               {/* Premium Accent Line and Nodes */}
@@ -308,7 +312,7 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
                   <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">
-                    {content.settings.bioSub || "PARSMAZI / CREATIVE PROFILE"}
+                    {content.settings.bioSub || "EDİTÖR / KREATİF PROFİL"}
                   </span>
                 </div>
                 <span className="text-[9px] font-mono text-zinc-600">ID: #01</span>
@@ -320,8 +324,8 @@ export default function App() {
                 className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-2xl group cursor-pointer"
               >
                 <img 
-                  src={content.settings.bioImage || parsMaziProfile} 
-                  alt="Pars Mazi Portrait" 
+                  src={content.settings.bioImage || defaultProfileImg} 
+                  alt="Editör Profil" 
                   className="w-full h-full object-cover grayscale brightness-90 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700 ease-out"
                 />
                 {/* Sleek shadow overlay */}
@@ -333,7 +337,7 @@ export default function App() {
                     {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
                   </span>
                   <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5 block glow-text-red">
-                    {content.settings.bioName || "PARS MAZI"}
+                    {content.settings.bioName || "KREATİF EDİTÖR"}
                   </span>
                 </div>
               </div>
@@ -404,7 +408,7 @@ export default function App() {
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
                     <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.youtube || "PARS MAZI"}
+                      {content.settings.socialHandles?.youtube || "KREATİF EDİTÖR"}
                     </span>
                   </div>
                 </a>
@@ -423,7 +427,7 @@ export default function App() {
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
                     <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.instagram || "@parsmazi"}
+                      {content.settings.socialHandles?.instagram || "@kreatifeditor"}
                     </span>
                   </div>
                 </a>
@@ -461,7 +465,7 @@ export default function App() {
                   <div className="min-w-0">
                     <span className="text-[10px] font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
                     <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.tiktok || "@parsmazi"}
+                      {content.settings.socialHandles?.tiktok || "@kreatifeditor"}
                     </span>
                   </div>
                 </a>

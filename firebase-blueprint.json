@@ -24,7 +24,7 @@
   "firestore": {
     "/site/content": {
       "schema": "SiteContent",
-      "description": "The single document storing all Pars Mazi site configuration and packs"
+      "description": "The single document storing all site configuration and packs"
     }
   }
 }

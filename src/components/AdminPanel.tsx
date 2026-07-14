@@ -5,10 +5,10 @@ import {
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
-  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle
+  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
-import parsMaziProfile from "../assets/images/pars_mazi_profile_1784000260155.jpg";
+import defaultProfileImg from "../assets/images/pars_mazi_profile_1784000260155.jpg";
 
 // Reusable Media Upload Button supporting image and video uploads directly from PC or Phone
 interface MediaUploadButtonProps {
@@ -107,7 +107,7 @@ interface AdminPanelProps {
   onSave: (updatedContent: SiteContent, passwordToVerify: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-type TabType = "dashboard" | "general" | "categories" | "bio" | "system";
+type TabType = "dashboard" | "general" | "categories" | "announcements" | "bio" | "system";
 
 export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -148,6 +148,175 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Pre-made premium announcement templates for video editing / resource pack site
+  const DUYURU_TEMPLATES = [
+    {
+      title: "🔥 YENİ EFEKT PAKETİ YAYINDA!",
+      message: "Harika bir After Effects kurgu paketi arşive eklendi! Hemen aşağı kaydırarak 'Odalar & Dosyalar' kısmından indir.",
+      type: "success" as const,
+      linkText: "Paketleri İncele",
+      linkUrl: ""
+    },
+    {
+      title: "⚡ KISA SÜRELİ %50 İNDİRİM KAMPANYASI!",
+      message: "Tüm özel After Effects şablonları ve premium paketlerde geçerli indirim kodu: 'KREATIF50'. Fırsatı kaçırma!",
+      type: "warning" as const,
+      linkText: "Instagram Detay",
+      linkUrl: "https://instagram.com"
+    },
+    {
+      title: "💬 RESMİ DISCORD SUNUCUMUZA KATILIN!",
+      message: "Diğer video editörleri ve kurgucularla tanışmak, tasarımlarını paylaşmak ve anında destek almak için Discord'a gel.",
+      type: "info" as const,
+      linkText: "Sunucuya Katıl",
+      linkUrl: "https://discord.gg"
+    },
+    {
+      title: "📺 AFTER EFFECTS KURULUM REHBERİ YAYINDA!",
+      message: "Sitedeki paketlerin ve pluginlerin bilgisayarınıza nasıl kurulacağını adım adım anlattığım yeni YouTube videomu izleyin!",
+      type: "announcement" as const,
+      linkText: "Eğitimi İzle",
+      linkUrl: "https://youtube.com"
+    },
+    {
+      title: "🛠️ KISA SÜRELİ SİSTEM GÜNCELLEMESİ",
+      message: "Arşiv altyapımızı güçlendiriyoruz. Bazı indirme linkleri kısa süreliğine güncellenebilir. Sabrınız için teşekkürler!",
+      type: "danger" as const,
+      linkText: "Sorun Bildir",
+      linkUrl: "https://instagram.com"
+    }
+  ];
+
+  // Announcement Form State
+  const [annForm, setAnnForm] = useState({
+    title: "",
+    message: "",
+    type: "announcement" as "info" | "warning" | "success" | "danger" | "announcement",
+    linkText: "",
+    linkUrl: "",
+    active: true
+  });
+  const [editingAnnId, setEditingAnnId] = useState<string | null>(null);
+
+  // 1-Click publish template directly
+  const handlePublishTemplate = (tpl: typeof DUYURU_TEMPLATES[0]) => {
+    const newAnn = {
+      id: "ann-" + Math.random().toString(36).substring(2, 9),
+      title: tpl.title,
+      message: tpl.message,
+      type: tpl.type,
+      linkText: tpl.linkText,
+      linkUrl: tpl.linkUrl,
+      active: true,
+      createdAt: new Date().toISOString()
+    };
+    const current = editedContent.announcements || [];
+    setEditedContent({
+      ...editedContent,
+      announcements: [newAnn, ...current]
+    });
+    setSaveStatus({ type: "success", msg: "Şablon yayına eklendi! Kaydet butonuna tıklayarak kalıcı hale getirin." });
+    setTimeout(() => setSaveStatus({ type: null, msg: "" }), 5000);
+  };
+
+  // Load template details into editor for editing
+  const handleLoadTemplate = (tpl: typeof DUYURU_TEMPLATES[0]) => {
+    setAnnForm({
+      title: tpl.title,
+      message: tpl.message,
+      type: tpl.type,
+      linkText: tpl.linkText,
+      linkUrl: tpl.linkUrl,
+      active: true
+    });
+    setEditingAnnId(null);
+  };
+
+  // Save the custom composed announcement form
+  const handleSaveAnnForm = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!annForm.title.trim() || !annForm.message.trim()) {
+      alert("Lütfen başlık ve mesaj alanlarını doldurun!");
+      return;
+    }
+
+    const currentAnns = [...(editedContent.announcements || [])];
+
+    if (editingAnnId) {
+      // Edit Mode
+      const idx = currentAnns.findIndex(a => a.id === editingAnnId);
+      if (idx !== -1) {
+        currentAnns[idx] = {
+          ...currentAnns[idx],
+          title: annForm.title,
+          message: annForm.message,
+          type: annForm.type,
+          linkText: annForm.linkText,
+          linkUrl: annForm.linkUrl,
+          active: annForm.active
+        };
+      }
+      setEditingAnnId(null);
+    } else {
+      // Create Mode
+      const newAnn = {
+        id: "ann-" + Math.random().toString(36).substring(2, 9),
+        title: annForm.title,
+        message: annForm.message,
+        type: annForm.type,
+        linkText: annForm.linkText,
+        linkUrl: annForm.linkUrl,
+        active: annForm.active,
+        createdAt: new Date().toISOString()
+      };
+      currentAnns.unshift(newAnn);
+    }
+
+    setEditedContent({
+      ...editedContent,
+      announcements: currentAnns
+    });
+
+    // Reset Form
+    setAnnForm({
+      title: "",
+      message: "",
+      type: "announcement",
+      linkText: "",
+      linkUrl: "",
+      active: true
+    });
+
+    setSaveStatus({ type: "success", msg: "Duyuru listeye eklendi! Değişiklikleri kaydetmeyi unutmayın." });
+    setTimeout(() => setSaveStatus({ type: null, msg: "" }), 5000);
+  };
+
+  // Delete announcement from list
+  const handleDeleteAnn = (id: string) => {
+    const currentAnns = (editedContent.announcements || []).filter(a => a.id !== id);
+    setEditedContent({
+      ...editedContent,
+      announcements: currentAnns
+    });
+    if (editingAnnId === id) {
+      setEditingAnnId(null);
+    }
+  };
+
+  // Toggle active status in list
+  const handleToggleAnnActive = (id: string) => {
+    const currentAnns = (editedContent.announcements || []).map(a => {
+      if (a.id === id) {
+        return { ...a, active: !a.active };
+      }
+      return a;
+    });
+    setEditedContent({
+      ...editedContent,
+      announcements: currentAnns
+    });
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -365,7 +534,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                     ADMINATOR KONSOLU
                   </h3>
                   <p className="text-xs text-zinc-400 text-center mb-8 leading-relaxed max-w-sm mx-auto">
-                    Pars Mazi Edit Pack sitesinin tüm odalarını, presetlerini ve biyografi detaylarını yönetmek için kimlik doğrulaması gerekiyor.
+                    Kreatif Edit Arşivi sitesinin tüm odalarını, presetlerini ve biyografi detaylarını yönetmek için kimlik doğrulaması gerekiyor.
                   </p>
                   
                   <form onSubmit={handleLogin} className="w-full space-y-4">
@@ -433,8 +602,8 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                       
                       {/* Compact avatar for mobile only */}
                       <img 
-                        src={editedContent.settings.bioImage || parsMaziProfile} 
-                        alt="Pars Mazi Profile" 
+                        src={editedContent.settings.bioImage || defaultProfileImg} 
+                        alt="Profil Resmi" 
                         className="md:hidden w-7 h-7 rounded-lg object-cover grayscale border border-zinc-800"
                       />
                     </div>
@@ -444,8 +613,8 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                       <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-500/[0.02] rounded-full filter blur-md" />
                       <div className="relative shrink-0">
                         <img 
-                          src={editedContent.settings.bioImage || parsMaziProfile} 
-                          alt="Pars Mazi Profile" 
+                          src={editedContent.settings.bioImage || defaultProfileImg} 
+                          alt="Profil Resmi" 
                           className="w-11 h-11 rounded-xl object-cover grayscale brightness-95 border border-zinc-800"
                         />
                         <span className="absolute bottom-[-2px] right-[-2px] w-3 h-3 bg-indigo-500 rounded-full border-2 border-[#0a0b0f] flex items-center justify-center">
@@ -454,7 +623,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                       </div>
                       <div className="flex flex-col min-w-0">
                         <span className="text-xs font-black text-white truncate uppercase tracking-wide">
-                          {editedContent.settings.bioName || "Pars Mazi"}
+                          {editedContent.settings.bioName || "Kreatif Editör"}
                         </span>
                         <span className="text-[9px] text-zinc-500 font-mono font-bold truncate tracking-wider uppercase">
                           {editedContent.settings.bioRole || "Video Editor"}
@@ -501,6 +670,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         >
                           <FolderOpen size={13} className={activeTab === "categories" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
                           <span className="tracking-wide">Odalar & Dosyalar</span>
+                        </button>
+
+                        <button
+                          onClick={() => setActiveTab("announcements")}
+                          className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:px-3.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold transition-all shrink-0 cursor-pointer group ${
+                            activeTab === "announcements" 
+                              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" 
+                              : "text-zinc-400 hover:text-white hover:bg-zinc-900/40 border border-transparent"
+                          }`}
+                        >
+                          <Megaphone size={13} className={activeTab === "announcements" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
+                          <span className="tracking-wide">Duyuru Yönetimi</span>
                         </button>
 
                         <button
@@ -557,6 +738,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         {activeTab === "dashboard" && "Genel İstatistikler & Özet"}
                         {activeTab === "general" && "Site Genel Ayarları"}
                         {activeTab === "categories" && "Oda & Dosya Konfigürasyonu"}
+                        {activeTab === "announcements" && "Duyurular & Tek Tıkla Hazır Taslaklar"}
                         {activeTab === "bio" && "Kişisel Biyografi & Linkler"}
                         {activeTab === "system" && "Sayaçlar & Güvenlik Şifresi"}
                       </span>
@@ -902,7 +1084,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             <input
                               type="text"
                               value={editedContent.settings.topBarText || ""}
-                              placeholder="PARS MAZI PACK"
+                              placeholder="KREATİF EDİT PACK"
                               onChange={(e) => setEditedContent({
                                 ...editedContent,
                                 settings: { ...editedContent.settings, topBarText: e.target.value }
@@ -919,7 +1101,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             <input
                               type="text"
                               value={editedContent.settings.loadingText || ""}
-                              placeholder="PARS MAZI EDIT PACK yükleniyor..."
+                              placeholder="KREATİF EDİT PACK yükleniyor..."
                               onChange={(e) => setEditedContent({
                                 ...editedContent,
                                 settings: { ...editedContent.settings, loadingText: e.target.value }
@@ -1311,7 +1493,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                           <label className="text-xs font-mono text-zinc-400 block">DOSYA/EFEKT ADI</label>
                                           <input
                                             type="text"
-                                            placeholder="örn: Pars Shake Mazi.ffx"
+                                            placeholder="örn: Kreatif Shake Efekti.ffx"
                                             value={newItem.name}
                                             onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
                                             className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500/50 transition-colors"
@@ -1553,6 +1735,288 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                       </motion.div>
                     )}
 
+                    {/* TAB: ANNOUNCEMENTS & SINGLE CLICK TEMPLATES */}
+                    {activeTab === "announcements" && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-6"
+                      >
+                        <div className="flex items-center justify-between border-b border-zinc-900 pb-3 flex-wrap gap-2">
+                          <div className="flex items-center gap-2">
+                            <Megaphone size={18} className="text-indigo-400" />
+                            <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">Duyuru Yönetimi & Taslaklar</h3>
+                          </div>
+                          <span className="text-[10px] font-mono text-zinc-500 bg-zinc-900 px-2.5 py-1 rounded-md border border-zinc-850">
+                            Aktif Duyuru Sayısı: {(editedContent.announcements || []).filter(a => a.active).length}
+                          </span>
+                        </div>
+
+                        {/* 1. PREMADE PREMIUM TEMPLATES (TEK TIKLA ATILAN DUYURULAR) */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Sparkles size={14} className="text-indigo-400 animate-pulse" />
+                            <h4 className="text-xs font-mono font-extrabold text-zinc-400 uppercase tracking-widest">Hızlı Yayın: Tek Tıkla Hazır Taslaklar</h4>
+                          </div>
+                          <p className="text-[11px] text-zinc-500">
+                            Aşağıdaki hazır şablonları tek bir tıklama ile anında yayına alabilir veya düzenleyiciye yükleyip özelleştirebilirsiniz.
+                          </p>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {DUYURU_TEMPLATES.map((tpl, i) => {
+                              const borderMap = {
+                                success: "hover:border-emerald-500/30 border-zinc-900 bg-emerald-950/[0.03]",
+                                warning: "hover:border-amber-500/30 border-zinc-900 bg-amber-950/[0.03]",
+                                info: "hover:border-blue-500/30 border-zinc-900 bg-blue-950/[0.03]",
+                                danger: "hover:border-red-500/30 border-zinc-900 bg-red-950/[0.03]",
+                                announcement: "hover:border-rose-500/30 border-zinc-900 bg-rose-950/[0.03]"
+                              };
+                              const badgeMap = {
+                                success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                                warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                                info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                                danger: "bg-red-500/10 text-red-400 border-red-500/20",
+                                announcement: "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                              };
+                              return (
+                                <div 
+                                  key={i} 
+                                  className={`p-4 bg-zinc-950/80 border rounded-2xl flex flex-col justify-between gap-3 transition-all ${borderMap[tpl.type] || borderMap.announcement}`}
+                                >
+                                  <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                      <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 border rounded ${badgeMap[tpl.type]}`}>
+                                        {tpl.type.toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <h5 className="text-xs font-display font-black text-white uppercase tracking-tight line-clamp-1">{tpl.title}</h5>
+                                    <p className="text-[10px] text-zinc-400 leading-normal line-clamp-2">{tpl.message}</p>
+                                  </div>
+
+                                  <div className="flex items-center gap-1.5 pt-2 border-t border-zinc-900/60">
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePublishTemplate(tpl)}
+                                      className="flex-1 py-1.5 bg-indigo-600/10 hover:bg-indigo-600 text-indigo-400 hover:text-white border border-indigo-500/20 hover:border-indigo-500 rounded-lg text-[10px] font-bold transition-all text-center select-none cursor-pointer"
+                                    >
+                                      Hemen Yayınla
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleLoadTemplate(tpl)}
+                                      className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-lg text-[10px] font-bold transition-all text-center select-none cursor-pointer"
+                                      title="Düzenleyiciye Aktar"
+                                    >
+                                      Özelleştir
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* 2. COMPOSE / EDIT ANNOUNCEMENT FORM */}
+                        <form onSubmit={handleSaveAnnForm} className="p-5 md:p-6 bg-[#0a0b0f] border border-zinc-900 rounded-[24px] space-y-4">
+                          <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+                            <span className="text-xs font-mono font-extrabold text-indigo-400 uppercase tracking-widest block">
+                              {editingAnnId ? "📝 DUYURUYU DÜZENLE" : "✍️ ÖZEL DUYURU OLUŞTUR"}
+                            </span>
+                            {editingAnnId && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingAnnId(null);
+                                  setAnnForm({
+                                    title: "",
+                                    message: "",
+                                    type: "announcement",
+                                    linkText: "",
+                                    linkUrl: "",
+                                    active: true
+                                  });
+                                }}
+                                className="text-[10px] font-mono text-rose-400 hover:underline"
+                              >
+                                Düzenlemeyi İptal Et
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="md:col-span-2 space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">DUYURU BAŞLIĞI</label>
+                              <input
+                                type="text"
+                                value={annForm.title}
+                                onChange={(e) => setAnnForm({ ...annForm, title: e.target.value })}
+                                placeholder="Örn: 🎬 YENİ AE EDİT PAKETİ V1 ÇIKTI!"
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-sans transition-colors"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">TEMA / TÜR</label>
+                              <select
+                                value={annForm.type}
+                                onChange={(e) => setAnnForm({ ...annForm, type: e.target.value as any })}
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none transition-colors"
+                              >
+                                <option value="announcement">Mega Duyuru (Kırmızı)</option>
+                                <option value="success">Başarı / Yeni Paket (Yeşil)</option>
+                                <option value="warning">Kampanya / Uyarı (Sarı)</option>
+                                <option value="info">Bilgi / Sosyal Medya (Mavi)</option>
+                                <option value="danger">Sistem / Kritik Durum (Kırmızı)</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[10px] font-mono font-bold text-zinc-400">DUYURU MESAJI / DETAYI</label>
+                            <textarea
+                              rows={3}
+                              value={annForm.message}
+                              onChange={(e) => setAnnForm({ ...annForm, message: e.target.value })}
+                              placeholder="Kullanıcılarınıza göstermek istediğiniz duyuru detaylarını buraya yazın..."
+                              className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-sans transition-colors resize-none"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">BUTON METNİ (OPSİYONEL)</label>
+                              <input
+                                type="text"
+                                value={annForm.linkText}
+                                onChange={(e) => setAnnForm({ ...annForm, linkText: e.target.value })}
+                                placeholder="Örn: YouTube Kanalıma Git"
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-sans transition-colors"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">YÖNLENDİRME URL'Sİ (OPSİYONEL)</label>
+                              <input
+                                type="text"
+                                value={annForm.linkUrl}
+                                onChange={(e) => setAnnForm({ ...annForm, linkUrl: e.target.value })}
+                                placeholder="Örn: https://youtube.com/..."
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-mono transition-colors"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2">
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={annForm.active}
+                                onChange={(e) => setAnnForm({ ...annForm, active: e.target.checked })}
+                                className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-indigo-600 focus:ring-0 cursor-pointer"
+                              />
+                              <span className="text-xs font-mono font-bold text-zinc-400">ANINDA AKTİF ET</span>
+                            </label>
+
+                            <button
+                              type="submit"
+                              className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-500/15 hover:shadow-indigo-600/20 transition-all select-none cursor-pointer"
+                            >
+                              {editingAnnId ? "Duyuruyu Güncelle" : "Duyuruyu Listeye Ekle"}
+                            </button>
+                          </div>
+                        </form>
+
+                        {/* 3. CURRENT ANNOUNCEMENTS LIST */}
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Bell size={14} className="text-indigo-400" />
+                            <h4 className="text-xs font-mono font-extrabold text-zinc-400 uppercase tracking-widest">Yayındaki & Arşivlenmiş Duyurular</h4>
+                          </div>
+
+                          {(!editedContent.announcements || editedContent.announcements.length === 0) ? (
+                            <div className="p-8 bg-zinc-950/40 border border-zinc-900 border-dashed rounded-2xl text-center text-zinc-500 text-xs">
+                              Yayında veya taslakta herhangi bir duyuru bulunmuyor. Şablonlardan birini ekleyin veya üstteki formdan yeni bir tane yazın!
+                            </div>
+                          ) : (
+                            <div className="space-y-2.5">
+                              {editedContent.announcements.map((ann) => {
+                                const badgeMap = {
+                                  success: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+                                  warning: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+                                  info: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                                  danger: "bg-red-500/10 text-red-400 border-red-500/20",
+                                  announcement: "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                };
+                                return (
+                                  <div 
+                                    key={ann.id} 
+                                    className={`p-3 bg-[#0a0b0f] border rounded-xl flex items-center justify-between gap-4 transition-all ${
+                                      ann.active ? "border-zinc-800" : "border-zinc-900 opacity-60"
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                                      <span className={`text-[8px] font-mono font-bold px-1.5 py-0.5 border rounded shrink-0 ${badgeMap[ann.type] || badgeMap.announcement}`}>
+                                        {ann.type.toUpperCase()}
+                                      </span>
+                                      <div className="space-y-0.5 min-w-0 flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <h5 className="text-xs font-bold text-white uppercase tracking-tight truncate">{ann.title}</h5>
+                                          <span className="text-[8px] text-zinc-600 shrink-0">
+                                            {new Date(ann.createdAt).toLocaleDateString("tr-TR")}
+                                          </span>
+                                        </div>
+                                        <p className="text-[10px] text-zinc-400 truncate">{ann.message}</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleToggleAnnActive(ann.id)}
+                                        className={`px-2 py-1 border rounded-lg text-[9px] font-bold transition-all select-none cursor-pointer ${
+                                          ann.active 
+                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20" 
+                                            : "bg-zinc-900 text-zinc-500 border-zinc-850 hover:bg-zinc-800 hover:text-zinc-300"
+                                        }`}
+                                      >
+                                        {ann.active ? "Aktif" : "Pasif"}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setAnnForm({
+                                            title: ann.title,
+                                            message: ann.message,
+                                            type: ann.type,
+                                            linkText: ann.linkText || "",
+                                            linkUrl: ann.linkUrl || "",
+                                            active: ann.active
+                                          });
+                                          setEditingAnnId(ann.id);
+                                        }}
+                                        className="p-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all cursor-pointer"
+                                        title="Düzenle"
+                                      >
+                                        <FileEdit size={12} />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleDeleteAnn(ann.id)}
+                                        className="p-1.5 bg-zinc-900 hover:bg-red-900/20 border border-zinc-800 hover:border-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-all cursor-pointer"
+                                        title="Sil"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+
                     {/* TAB: PROFILE & SOCIAL */}
                     {activeTab === "bio" && (
                       <motion.div 
@@ -1622,7 +2086,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             <input
                               type="text"
                               value={editedContent.settings.bioName || ""}
-                              placeholder="PARS MAZI"
+                              placeholder="KREATİF EDİTÖR"
                               onChange={(e) => setEditedContent({
                                 ...editedContent,
                                 settings: { ...editedContent.settings, bioName: e.target.value }
@@ -1764,10 +2228,10 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
                               const handleValue = editedContent.settings.socialHandles?.[platform] ?? "";
                               let handlePlaceholder = "";
-                              if (platformStr === "youtube") handlePlaceholder = "PARS MAZI";
-                              else if (platformStr === "instagram") handlePlaceholder = "@parsmazi";
+                              if (platformStr === "youtube") handlePlaceholder = "KREATİF EDİTÖR";
+                              else if (platformStr === "instagram") handlePlaceholder = "@kreatifeditor";
                               else if (platformStr === "discord") handlePlaceholder = "SUNUCUYA KATIL";
-                              else if (platformStr === "tiktok") handlePlaceholder = "@parsmazi";
+                              else if (platformStr === "tiktok") handlePlaceholder = "@kreatifeditor";
 
                               return (
                                 <div key={platformStr} className="space-y-2 bg-zinc-950 p-4 rounded-2xl border border-zinc-900 shadow-inner">

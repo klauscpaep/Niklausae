@@ -60,8 +60,20 @@ export interface Category {
   items: EditPackItem[];
 }
 
+export interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "success" | "danger" | "announcement";
+  active: boolean;
+  createdAt: string;
+  linkText?: string;
+  linkUrl?: string;
+}
+
 export interface SiteContent {
   visitorCount: number;
   settings: SiteSettings;
   categories: Category[];
+  announcements?: Announcement[];
 }
