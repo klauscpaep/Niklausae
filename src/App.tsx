@@ -145,359 +145,408 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#07070a] text-zinc-300 font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[#060608] text-zinc-300 font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden">
       
-      {/* Background Decorative Gradients */}
-      <div className="absolute top-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-red-900/10 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-amber-900/5 blur-[120px] pointer-events-none" />
+      {/* Cyberpunk Grid Overlay */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.06] pointer-events-none" />
+
+      {/* Ambient Decorative Lighting Gradients */}
+      <div className="absolute top-[-10%] left-[5%] w-[600px] h-[600px] rounded-full bg-red-950/15 blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[15%] right-[-5%] w-[500px] h-[500px] rounded-full bg-amber-950/10 blur-[130px] pointer-events-none" />
+      <div className="absolute top-[35%] left-[50%] -translate-x-1/2 w-[450px] h-[450px] rounded-full bg-purple-950/5 blur-[140px] pointer-events-none" />
 
       {/* Main Container */}
-      <div className="max-w-md mx-auto px-4 pt-8 pb-12 space-y-6 relative z-10">
+      <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-8 relative z-10">
         
-        {/* Visitor Counter Header Block */}
-        <div className="flex flex-col items-center">
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="px-6 py-2 bg-zinc-950/80 border border-zinc-900 rounded-2xl flex flex-col items-center justify-center shadow-lg shadow-black/40 min-w-[160px] text-center"
+        {/* Top Brand & Visitor Counter Header Bar */}
+        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-zinc-950/55 backdrop-blur-md border border-zinc-900/80 rounded-3xl shadow-xl shadow-black/40">
+          {/* Brand Logo Trigger */}
+          <div 
+            onDoubleClick={() => setIsAdminOpen(true)}
+            className="flex items-center gap-3 group cursor-pointer"
+            title="Yönetici paneli için çift tıklayın!"
           >
-            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-widest uppercase">TOPLAM ZİYARET</span>
-            <span className="text-2xl font-mono font-bold text-white tracking-tight mt-0.5 glow-text-red">
-              {content.visitorCount}
-            </span>
-          </motion.div>
-        </div>
-
-        {/* Brand Block */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.98 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-          onDoubleClick={() => setIsAdminOpen(true)}
-          className="p-3 bg-zinc-950/60 border border-zinc-900 rounded-2xl flex items-center justify-center text-center shadow-md relative group cursor-pointer"
-          title="Yönetici paneli için çift tıklayın!"
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/0 via-red-500/5 to-red-500/0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-          <h1 className="text-sm font-mono font-bold text-zinc-400 tracking-[0.25em] uppercase">
-            {(() => {
-              const text = content.settings.topBarText || "PARS MAZI PACK";
-              const words = text.split(" ");
-              if (words.length > 1) {
-                const lastWord = words.pop();
-                return (
-                  <>
-                    {words.join(" ")}{" "}
-                    <span className="text-red-500">{lastWord}</span>
-                  </>
-                );
-              }
-              return text;
-            })()}
-          </h1>
-          <Sparkles size={12} className="absolute right-4 text-zinc-700 group-hover:text-red-500 transition-colors" />
-        </motion.div>
-
-        {/* Hero Edit Pack Card */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="relative p-8 bg-gradient-to-b from-zinc-900/80 to-zinc-950/90 border border-zinc-850 rounded-3xl shadow-xl shadow-black/50 overflow-hidden"
-        >
-          {/* Internal Glow Effects */}
-          <div className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-red-600/10 blur-3xl pointer-events-none" />
-          <div className="absolute -left-24 -bottom-24 w-48 h-48 rounded-full bg-amber-600/5 blur-3xl pointer-events-none" />
-
-          {/* Badge */}
-          <div className="flex justify-center mb-6">
-            <span className="px-3.5 py-1.5 bg-zinc-950 border border-zinc-850 text-[10px] font-mono text-zinc-400 font-bold rounded-full flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-              {content.settings.heroBadge || "AFTER EFFECTS PACKS"}
-            </span>
-          </div>
-
-          {/* Title */}
-          <h2 className="text-3xl font-display font-extrabold text-white text-center tracking-tight uppercase leading-tight">
-            {content.settings.heroTitle || "PARS MAZI EDIT PACK"}
-          </h2>
-
-          {/* Premium Accent Line and Nodes */}
-          <div className="flex items-center justify-center mt-8 px-4">
-            <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-red-500/60" />
-            <div className="flex items-center gap-2 px-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-              <div className="w-2.5 h-2.5 border border-red-500 rotate-45 flex items-center justify-center">
-                <div className="w-1 h-1 bg-red-500 rounded-full" />
-              </div>
-              <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-            </div>
-            <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-red-500/60" />
-          </div>
-        </motion.div>
-
-        {/* Required Plugins Button (Interactive Module) */}
-        <motion.a 
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          href={content.settings.pluginUrl}
-          target="_blank"
-          referrerPolicy="no-referrer"
-          className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-red-950/25 to-zinc-950 border-l-[3px] border-l-red-600 border-y border-r border-zinc-900 hover:border-zinc-800 hover:border-l-red-500 rounded-2xl shadow-lg transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
-        >
-          {/* Background overlay on hover */}
-          <div className="absolute inset-0 bg-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-          
-          <div className="flex items-center gap-4">
-            {/* Play Button Icon */}
-            <div className="p-3 bg-red-600 text-white rounded-xl shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform">
-              <Play size={18} fill="currentColor" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-red-600 to-amber-600 flex items-center justify-center text-white font-display font-black text-lg shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300">
+              P
             </div>
             <div>
-              <h3 className="text-sm font-display font-bold text-white group-hover:text-red-400 transition-colors">
-                {content.settings.pluginTitle || "Gerekli Pluginler"}
-              </h3>
-              <p className="text-xs text-zinc-400 mt-0.5">
-                {content.settings.pluginDesc || "Kurulum videosunu izle"}
-              </p>
+              <h1 className="text-sm font-mono font-bold text-zinc-300 tracking-[0.2em] uppercase flex items-center gap-1.5">
+                {(() => {
+                  const text = content.settings.topBarText || "PARS MAZI PACK";
+                  const words = text.split(" ");
+                  if (words.length > 1) {
+                    const lastWord = words.pop();
+                    return (
+                      <>
+                        {words.join(" ")}{" "}
+                        <span className="text-red-500 font-extrabold glow-text-red">{lastWord}</span>
+                      </>
+                    );
+                  }
+                  return text;
+                })()}
+              </h1>
+              <span className="text-[9px] font-mono font-medium text-zinc-500 tracking-wider">CREATIVE RESOURCE ARCHIVE</span>
             </div>
           </div>
+
+          {/* Visitor Counter */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex items-center gap-3 px-5 py-2 bg-zinc-900/40 border border-zinc-850/60 rounded-2xl shadow-inner"
+          >
+            <div className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </div>
+            <div className="text-left leading-none">
+              <span className="text-[8px] font-mono font-bold text-zinc-500 tracking-widest uppercase block">ZİYARETÇİ</span>
+              <span className="text-base font-mono font-black text-white mt-0.5 block tracking-tight">
+                {content.visitorCount}
+              </span>
+            </div>
+          </motion.div>
+        </header>
+
+        {/* Dashboard Responsive Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          <ExternalLink size={14} className="text-zinc-600 group-hover:text-red-500 transition-colors mr-1" />
-        </motion.a>
-
-        {/* Categories (Paket Kütüphanesi) Title Header */}
-        <div className="pt-4 text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-            <span className="text-[10px] font-mono font-bold text-emerald-500 tracking-wider uppercase">CANLI EFEKT ARŞİVİ</span>
-          </div>
-          <div className="inline-block px-3 py-1 bg-zinc-950 border border-zinc-900 rounded-full">
-            <span className="text-[9px] font-mono text-zinc-500 font-bold tracking-widest uppercase">PAKET KÜTÜPHANESİ</span>
-          </div>
-          <h2 className="text-2xl font-display font-extrabold text-white tracking-tight">Kategoriler</h2>
-          <p className="text-xs text-zinc-500 max-w-xs mx-auto leading-relaxed">
-            {content.settings.heroSub || "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır."}
-          </p>
-          <div className="w-24 h-[1px] bg-gradient-to-r from-transparent via-red-500/40 to-transparent mx-auto mt-3" />
-        </div>
-
-        {/* Categories Grid (Main List) */}
-        <div className="space-y-3 pt-2">
-          {content.categories.map((category, idx) => (
-            <motion.div
-              key={category.id}
+          {/* Left Column (Hero Card, Creator Profile, Stats, Social Channels) */}
+          <div className="lg:col-span-5 space-y-6">
+            
+            {/* Hero Card */}
+            <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 + idx * 0.05 }}
-              onClick={() => setSelectedCategory(category)}
-              className={`group relative p-5 bg-gradient-to-r ${category.gradient} border border-zinc-900 hover:scale-[1.01] rounded-2xl shadow-lg transition-all duration-300 cursor-pointer overflow-hidden`}
+              transition={{ delay: 0.1 }}
+              className="relative p-8 bg-gradient-to-b from-zinc-900/90 to-zinc-950/95 border border-zinc-850/80 rounded-3xl shadow-2xl overflow-hidden group sweep-effect"
             >
-              {/* Corner Ambient Glow */}
-              <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none" />
+              {/* Internal Glow Effects */}
+              <div className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-red-600/10 blur-3xl pointer-events-none" />
+              <div className="absolute -left-24 -bottom-24 w-48 h-48 rounded-full bg-amber-600/5 blur-3xl pointer-events-none" />
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  {/* Number Index */}
-                  <span className="font-mono text-zinc-600 font-bold text-sm bg-zinc-950/60 border border-zinc-900 px-2.5 py-1 rounded-xl">
-                    {category.index}
-                  </span>
-                  
-                  <div className="space-y-1">
-                    {/* Badge Pill */}
-                    <span className="inline-block font-mono text-[9px] text-zinc-400 font-bold tracking-wider bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-900">
-                      {category.badge}
-                    </span>
-                    {/* Title */}
-                    <h3 className="text-base font-display font-bold text-white group-hover:text-red-400 transition-colors">
-                      {category.title}
-                    </h3>
+              {/* Badge */}
+              <div className="flex justify-center mb-6">
+                <span className="px-3.5 py-1.5 bg-zinc-950/80 border border-zinc-850 text-[10px] font-mono text-zinc-400 font-bold rounded-full flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  {content.settings.heroBadge || "AFTER EFFECTS PACKS"}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-3xl font-display font-extrabold text-white text-center tracking-tight uppercase leading-tight">
+                {content.settings.heroTitle || "PARS MAZI EDIT PACK"}
+              </h2>
+
+              {/* Premium Accent Line and Nodes */}
+              <div className="flex items-center justify-center mt-8 px-4">
+                <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-red-500/60" />
+                <div className="flex items-center gap-2 px-3">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  <div className="w-2.5 h-2.5 border border-red-500 rotate-45 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                   </div>
+                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                 </div>
-
-                {/* Arrow Action Button */}
-                <div className="p-2 bg-zinc-950/80 group-hover:bg-red-600/10 border border-zinc-900 group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 rounded-xl transition-all">
-                  <ChevronRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                </div>
+                <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-red-500/60" />
               </div>
             </motion.div>
-          ))}
+
+            {/* Biography & Creator Profile */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="relative p-6 bg-zinc-950/90 border border-zinc-900 rounded-3xl shadow-2xl space-y-6 overflow-hidden"
+            >
+              {/* Subtle Decorative Light Leak */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-2xl rounded-full pointer-events-none" />
+
+              {/* Header */}
+              <div className="flex items-center gap-2 border-b border-zinc-900 pb-3 justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">
+                    {content.settings.bioSub || "PARSMAZI / CREATIVE PROFILE"}
+                  </span>
+                </div>
+                <span className="text-[9px] font-mono text-zinc-600">ID: #01</span>
+              </div>
+
+              {/* Profile Picture with high-fidelity effects */}
+              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-2xl group cursor-pointer">
+                <img 
+                  src={content.settings.bioImage || parsMaziProfile} 
+                  alt="Pars Mazi Portrait" 
+                  className="w-full h-full object-cover grayscale brightness-90 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700 ease-out"
+                />
+                {/* Sleek shadow overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
+                
+                {/* Floating text badge */}
+                <div className="absolute bottom-4 left-4">
+                  <span className="text-[9px] font-mono font-black text-red-500 tracking-widest block uppercase">
+                    {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
+                  </span>
+                  <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5 block glow-text-red">
+                    {content.settings.bioName || "PARS MAZI"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Bio Description */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-display font-black text-white tracking-wider uppercase leading-none flex items-center gap-2">
+                  <Sparkles size={14} className="text-red-500" />
+                  {content.settings.bioTitle || "BEN KİMİM?"}
+                </h3>
+                <div className="w-10 h-[1.5px] bg-red-600 rounded-full" />
+                {content.settings.bioDescription && (
+                  <p className="text-xs text-zinc-400 mt-3 leading-relaxed whitespace-pre-line bg-zinc-900/20 p-3.5 rounded-xl border border-zinc-900/50">
+                    {content.settings.bioDescription}
+                  </p>
+                )}
+              </div>
+
+              {/* Bento Stats Grid */}
+              <div className="grid grid-cols-3 gap-2.5">
+                {content.settings.stats.map((stat, idx) => (
+                  <div key={idx} className="p-3 bg-zinc-900/40 border border-zinc-900 rounded-xl text-center space-y-1 hover:border-red-950/50 transition-colors">
+                    <span className="text-lg font-mono font-extrabold text-white block glow-text-red">
+                      {stat.value}
+                    </span>
+                    <span className="text-[8px] font-mono text-zinc-500 tracking-widest block uppercase font-bold leading-tight">
+                      {stat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Portfolio Main Action Button */}
+              <a
+                href={content.settings.portfolioUrl}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-display font-extrabold text-xs tracking-widest text-center uppercase rounded-xl border border-red-500 transition-all active:scale-98 shadow-lg shadow-red-600/10 block cursor-pointer"
+              >
+                PORTFÖYÜ İNCELE
+              </a>
+            </motion.div>
+
+            {/* Social Channels Panel */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="relative p-5 bg-zinc-950/90 border border-zinc-900 rounded-3xl shadow-xl space-y-4"
+            >
+              <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-widest uppercase block">SOSYAL MEDYA KANALLARI</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* YouTube Card */}
+                <a 
+                  href={content.settings.socialLinks.youtube} 
+                  target="_blank" 
+                  referrerPolicy="no-referrer"
+                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-red-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="p-1.5 bg-red-600/10 group-hover:bg-red-600 text-red-500 group-hover:text-white rounded-lg transition-all duration-300">
+                    <Youtube size={14} fill="currentColor" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
+                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                      {content.settings.socialHandles?.youtube || "PARS MAZI"}
+                    </span>
+                  </div>
+                </a>
+
+                {/* Instagram Card */}
+                <a 
+                  href={content.settings.socialLinks.instagram} 
+                  target="_blank" 
+                  referrerPolicy="no-referrer"
+                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-pink-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="p-1.5 bg-pink-600/10 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-pink-600 text-pink-500 group-hover:text-white rounded-lg transition-all duration-300">
+                    <Instagram size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
+                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                      {content.settings.socialHandles?.instagram || "@parsmazi"}
+                    </span>
+                  </div>
+                </a>
+
+                {/* Discord Card */}
+                <a 
+                  href={content.settings.socialLinks.discord} 
+                  target="_blank" 
+                  referrerPolicy="no-referrer"
+                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-blue-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="p-1.5 bg-blue-600/10 group-hover:bg-[#5865F2] text-blue-400 group-hover:text-white rounded-lg transition-all duration-300">
+                    <Disc size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-white block group-hover:text-blue-400 transition-colors">Discord</span>
+                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                      {content.settings.socialHandles?.discord || "KATIL"}
+                    </span>
+                  </div>
+                </a>
+
+                {/* TikTok Card */}
+                <a 
+                  href={content.settings.socialLinks.tiktok} 
+                  target="_blank" 
+                  referrerPolicy="no-referrer"
+                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-cyan-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/0 via-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="p-1.5 bg-cyan-600/10 group-hover:bg-zinc-900 text-cyan-400 group-hover:text-pink-500 rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <TikTokIcon size={14} />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
+                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                      {content.settings.socialHandles?.tiktok || "@parsmazi"}
+                    </span>
+                  </div>
+                </a>
+              </div>
+            </motion.div>
+
+          </div>
+
+          {/* Right Column (Plugins, Categories Library) */}
+          <div className="lg:col-span-7 space-y-6">
+            
+            {/* Required Plugins Button */}
+            <motion.a 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.22 }}
+              href={content.settings.pluginUrl}
+              target="_blank"
+              referrerPolicy="no-referrer"
+              className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-red-950/20 to-zinc-950 border-l-[3px] border-l-red-600 border-y border-r border-zinc-900/80 hover:border-zinc-800 hover:border-l-red-500 rounded-2xl shadow-lg transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
+            >
+              {/* Background overlay on hover */}
+              <div className="absolute inset-0 bg-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+              
+              <div className="flex items-center gap-4">
+                {/* Play Button Icon */}
+                <div className="p-3.5 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300">
+                  <Play size={18} fill="currentColor" />
+                </div>
+                <div>
+                  <span className="text-[9px] font-mono text-red-500 tracking-widest font-bold block uppercase mb-0.5">SİSTEM GEREKSİNİMLERİ</span>
+                  <h3 className="text-sm font-display font-bold text-white group-hover:text-red-400 transition-colors">
+                    {content.settings.pluginTitle || "Gerekli Pluginler"}
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    {content.settings.pluginDesc || "Kurulum videosunu izle"}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-colors">
+                <ExternalLink size={13} />
+              </div>
+            </motion.a>
+
+            {/* Categories Section Header */}
+            <div className="space-y-2 pt-2">
+              <div className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-[10px] font-mono font-bold text-emerald-500 tracking-wider uppercase">CANLI ARŞİV KÜTÜPHANESİ</span>
+              </div>
+              <h2 className="text-2xl font-display font-extrabold text-white tracking-tight uppercase">Kategoriler / Odalar</h2>
+              <p className="text-xs text-zinc-500 leading-relaxed">
+                {content.settings.heroSub || "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır."}
+              </p>
+            </div>
+
+            {/* Categories Grid */}
+            <div className="grid grid-cols-1 gap-3.5">
+              {content.categories.map((category, idx) => {
+                const itemCount = category.items?.length || 0;
+                return (
+                  <motion.div
+                    key={category.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 + idx * 0.05 }}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`group relative p-5 bg-gradient-to-r ${category.gradient} border border-zinc-900/80 hover:border-zinc-800 hover:scale-[1.01] rounded-2xl shadow-xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                  >
+                    {/* Decorative Corner Glow */}
+                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none" />
+                    
+                    <div className="flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-4">
+                        {/* Number Index */}
+                        <span className="font-mono text-zinc-400 font-bold text-xs bg-zinc-950/85 border border-zinc-900 px-3 py-1.5 rounded-xl group-hover:border-red-500/25 group-hover:text-red-400 transition-colors">
+                          {category.index}
+                        </span>
+                        
+                        <div className="space-y-1">
+                          {/* Badge Pill Row */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="inline-block font-mono text-[9px] text-zinc-400 font-bold tracking-wider bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-900">
+                              {category.badge}
+                            </span>
+                            
+                            {/* Dynamic Item/File count Badge */}
+                            <span className="inline-block font-mono text-[9px] text-red-400 font-extrabold tracking-wider bg-red-950/20 px-2 py-0.5 rounded border border-red-950/30">
+                              {itemCount} PAKET
+                            </span>
+                          </div>
+                          {/* Title */}
+                          <h3 className="text-base font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase tracking-tight">
+                            {category.title}
+                          </h3>
+                        </div>
+                      </div>
+
+                      {/* Arrow Action Button */}
+                      <div className="p-2.5 bg-zinc-950/80 group-hover:bg-red-600 text-zinc-500 group-hover:text-white border border-zinc-900 group-hover:border-red-500/30 rounded-xl transition-all duration-300">
+                        <ChevronRight size={15} className="transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+          </div>
+
         </div>
 
-        {/* Biography Block (Creative Profile) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="relative mt-8 p-6 bg-zinc-950 border border-zinc-900 rounded-3xl shadow-xl shadow-black/80 space-y-6"
-        >
-          {/* Header */}
-          <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
-            <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">
-              {content.settings.bioSub || "PARSMAZI / CREATIVE PROFILE"}
-            </span>
-          </div>
-
-          {/* Profile Picture */}
-          <div className="relative aspect-square w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-inner group">
-            <img 
-              src={content.settings.bioImage || parsMaziProfile} 
-              alt="Pars Mazi Portrait" 
-              className="w-full h-full object-cover grayscale brightness-95 group-hover:grayscale-0 transition-all duration-700"
-            />
-            {/* Subtle Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/10 to-transparent" />
-            <div className="absolute bottom-4 left-4">
-              <span className="text-[10px] font-mono text-zinc-500 tracking-widest block">
-                {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
-              </span>
-              <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5">
-                {content.settings.bioName || "PARS MAZI"}
-              </span>
-            </div>
-          </div>
-
-          {/* Bio Description / Title */}
-          <div className="space-y-2">
-            <span className="text-[10px] font-mono text-zinc-600 block">01 / CREATOR</span>
-            <h3 className="text-2xl font-display font-black text-white tracking-tight uppercase leading-none">
-              {content.settings.bioTitle || "BEN KİMİM?"}
-            </h3>
-            <div className="w-12 h-1 bg-red-600 rounded-full" />
-            {content.settings.bioDescription && (
-              <p className="text-xs text-zinc-400 mt-3 leading-relaxed whitespace-pre-line">
-                {content.settings.bioDescription}
-              </p>
-            )}
-          </div>
-
-          {/* Bento Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {content.settings.stats.map((stat, idx) => (
-              <div key={idx} className="p-3.5 bg-zinc-900/40 border border-zinc-900 rounded-xl text-center space-y-1">
-                <span className="text-xl font-mono font-bold text-white block glow-text-red">
-                  {stat.value}
-                </span>
-                <span className="text-[8px] font-mono text-zinc-500 tracking-widest block uppercase font-bold leading-tight">
-                  {stat.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* Portfolio Main Action Button */}
-          <a
-            href={content.settings.portfolioUrl}
-            target="_blank"
-            referrerPolicy="no-referrer"
-            className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-display font-extrabold text-xs tracking-widest text-center uppercase rounded-xl border border-red-500 transition-all active:scale-98 shadow-lg shadow-red-600/10 block cursor-pointer"
-          >
-            PORTFÖYÜ İNCELE
-          </a>
-
-          {/* Social Icons Footer - High Fidelity Design */}
-          <div className="pt-4 border-t border-zinc-900">
-            <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-widest uppercase block text-center mb-4">SOSYAL MEDYA KANALLARI</span>
-            <div className="grid grid-cols-2 gap-3">
-              {/* YouTube Card */}
-              <a 
-                href={content.settings.socialLinks.youtube} 
-                target="_blank" 
-                referrerPolicy="no-referrer"
-                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-red-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="p-2 bg-red-600/10 group-hover:bg-red-600 text-red-500 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-red-600/0 group-hover:shadow-red-600/20">
-                  <Youtube size={16} fill="currentColor" />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
-                    {content.settings.socialHandles?.youtube || "PARS MAZI"}
-                  </span>
-                </div>
-                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-red-500 group-hover:translate-x-0.5 transition-all" />
-              </a>
-
-              {/* Instagram Card */}
-              <a 
-                href={content.settings.socialLinks.instagram} 
-                target="_blank" 
-                referrerPolicy="no-referrer"
-                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-pink-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="p-2 bg-pink-600/10 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-pink-600 text-pink-500 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-pink-600/0 group-hover:shadow-pink-600/20">
-                  <Instagram size={16} />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
-                    {content.settings.socialHandles?.instagram || "@parsmazi"}
-                  </span>
-                </div>
-                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-pink-500 group-hover:translate-x-0.5 transition-all" />
-              </a>
-
-              {/* Discord Card */}
-              <a 
-                href={content.settings.socialLinks.discord} 
-                target="_blank" 
-                referrerPolicy="no-referrer"
-                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-blue-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="p-2 bg-blue-600/10 group-hover:bg-[#5865F2] text-blue-400 group-hover:text-white rounded-xl transition-all duration-300 shadow-md shadow-blue-600/0 group-hover:shadow-blue-600/20">
-                  <Disc size={16} />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-white block group-hover:text-blue-400 transition-colors">Discord</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider">
-                    {content.settings.socialHandles?.discord || "SUNUCUYA KATIL"}
-                  </span>
-                </div>
-                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
-              </a>
-
-              {/* TikTok Card */}
-              <a 
-                href={content.settings.socialLinks.tiktok} 
-                target="_blank" 
-                referrerPolicy="no-referrer"
-                className="group relative flex items-center gap-3 p-3 bg-zinc-900/40 border border-zinc-850 hover:border-cyan-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/0 via-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="p-2 bg-cyan-600/10 group-hover:bg-zinc-900 text-cyan-400 group-hover:text-pink-500 rounded-xl transition-all duration-300 shadow-md shadow-cyan-600/0 group-hover:shadow-cyan-600/20 flex items-center justify-center">
-                  <TikTokIcon size={16} />
-                </div>
-                <div>
-                  <span className="text-xs font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
-                  <span className="text-[9px] text-zinc-500 font-mono tracking-wider font-mono">
-                    {content.settings.socialHandles?.tiktok || "@parsmazi"}
-                  </span>
-                </div>
-                <ChevronRight size={12} className="absolute right-3 text-zinc-700 group-hover:text-cyan-500 group-hover:translate-x-0.5 transition-all" />
-              </a>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Footer info & Admin Hidden Portal Trigger */}
-        <div className="pt-8 flex flex-col items-center gap-2">
+        {/* Footer */}
+        <footer className="pt-8 flex flex-col items-center gap-2 border-t border-zinc-900/60 mt-12">
           <p className="text-[10px] text-zinc-600 font-mono text-center">
             © 2026 NIKLAUSAE EDIT PACK. Tüm Hakları Saklıdır.
           </p>
           <button
             onClick={() => setIsAdminOpen(true)}
-            className="text-[9px] text-zinc-700 hover:text-red-500 transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer bg-zinc-950/40 border border-zinc-900/60 px-2 py-1 rounded"
+            className="text-[9px] text-zinc-700 hover:text-red-500 transition-colors font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer bg-zinc-950/40 border border-zinc-900/60 px-2.5 py-1.5 rounded-lg"
           >
             <ShieldAlert size={10} />
             Yönetici Girişi
           </button>
-        </div>
+        </footer>
 
       </div>
 
