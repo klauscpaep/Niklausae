@@ -473,7 +473,7 @@ export default function App() {
         {/* Footer info & Admin Hidden Portal Trigger */}
         <div className="pt-8 flex flex-col items-center gap-2">
           <p className="text-[10px] text-zinc-600 font-mono text-center">
-            © 2026 PARS MAZI EDIT PACK. Tüm Hakları Saklıdır.
+            © 2026 NIKLAUSAE EDIT PACK. Tüm Hakları Saklıdır.
           </p>
           <button
             onClick={() => setIsAdminOpen(true)}

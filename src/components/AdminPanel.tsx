@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, Edit3, Eye, Link2, FileText, CheckCircle, AlertTriangle 
+  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, 
+  Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
+  TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 
@@ -18,6 +20,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [authError, setAuthError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Form states copied from content
   const [activeTab, setActiveTab] = useState<TabType>("general");
@@ -28,7 +31,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   // Temp states for adding category/item
   const [selectedCatId, setSelectedCatId] = useState<string>("");
   const [newItem, setNewItem] = useState<Partial<EditPackItem>>({ name: "", size: "15 KB", downloadUrl: "", description: "" });
-  const [newCategory, setNewCategory] = useState<Partial<Category>>({ title: "", badge: "", description: "", gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40" });
+  const [newCategory, setNewCategory] = useState<Partial<Category>>({ 
+    title: "", 
+    badge: "", 
+    description: "", 
+    gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40" 
+  });
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,15 +76,15 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     try {
       const res = await onSave(editedContent, passwordInput);
       if (res.success) {
-        setSaveStatus({ type: "success", msg: "Tüm değişiklikler başarıyla kaydedildi!" });
+        setSaveStatus({ type: "success", msg: "Değişiklikleriniz başarıyla kaydedildi ve tüm kullanıcılara yansıtıldı!" });
         setTimeout(() => {
           setSaveStatus({ type: null, msg: "" });
-        }, 3000);
+        }, 3500);
       } else {
         setSaveStatus({ type: "error", msg: res.error || "Kaydedilirken bir hata oluştu." });
       }
     } catch (err) {
-      setSaveStatus({ type: "error", msg: "Sunucu hatası oluştu." });
+      setSaveStatus({ type: "error", msg: "Sunucu bağlantı hatası oluştu." });
     } finally {
       setIsSaving(false);
     }
@@ -104,6 +112,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   };
 
   const handleRemoveCategory = (catId: string) => {
+    if (!confirm("Bu odayı/kategoriyi ve içindeki tüm dosyaları silmek istediğinizden emin misiniz?")) return;
     const updated = editedContent.categories.filter(c => c.id !== catId).map((c, i) => {
       const idx = i + 1;
       return { ...c, index: idx < 10 ? `0${idx}` : `${idx}` };
@@ -186,30 +195,39 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-xl">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.97, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className="relative w-full max-w-5xl bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+            exit={{ opacity: 0, scale: 0.97, y: 15 }}
+            transition={{ type: "spring", damping: 25, stiffness: 350 }}
+            className="relative w-full max-w-5xl bg-zinc-950/95 border border-zinc-800/80 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]"
           >
+            {/* Soft Ambient Background Glows */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-red-600/5 rounded-full filter blur-[100px] pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-600/5 rounded-full filter blur-[100px] pointer-events-none" />
+
             {/* Header */}
-            <div className="flex items-center justify-between p-6 bg-zinc-900/50 border-b border-zinc-800">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-red-500/10 text-red-500 rounded-xl border border-red-500/20">
-                  <Shield size={20} />
+            <div className="relative z-10 flex items-center justify-between p-5 sm:p-6 bg-zinc-900/30 border-b border-zinc-900 backdrop-blur-md">
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 bg-red-600/10 text-red-500 rounded-2xl border border-red-500/20 shadow-inner">
+                  <Shield size={22} className="animate-pulse" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-display font-bold text-white tracking-tight">
-                    Pars Mazi Yönetici Paneli
-                  </h2>
-                  <p className="text-xs text-zinc-400">Gizli Panel • Sitenin tüm içeriklerini anında düzenleyin</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-display font-black text-white tracking-tight uppercase">
+                      Niklausae Yönetici Paneli
+                    </h2>
+                    <span className="hidden sm:inline-flex px-2 py-0.5 text-[9px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 rounded">
+                      YAYINDA
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-400 font-mono mt-0.5">Sitenin tüm içeriklerini, odalarını ve indirme linklerini anında yönetin.</p>
                 </div>
               </div>
               <button 
                 onClick={onClose}
-                className="p-2 text-zinc-400 hover:text-white bg-zinc-900 hover:bg-zinc-800 rounded-xl border border-zinc-800 transition-colors cursor-pointer"
+                className="p-2 text-zinc-400 hover:text-white bg-zinc-900/80 hover:bg-zinc-800/80 rounded-xl border border-zinc-800/60 transition-all cursor-pointer active:scale-95"
               >
                 <X size={18} />
               </button>
@@ -217,101 +235,159 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
             {/* Login screen if not authenticated */}
             {!isAuthenticated ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-12 max-w-md mx-auto text-center">
-                <div className="p-4 bg-zinc-900 border border-zinc-800 rounded-2xl mb-4 text-red-500">
-                  <Lock size={32} />
-                </div>
-                <h3 className="text-lg font-display font-semibold text-white mb-1">Kimlik Doğrulama</h3>
-                <p className="text-sm text-zinc-400 mb-6">Bu alana erişmek için yönetici şifresini girmelisiniz.</p>
-                
-                <form onSubmit={handleLogin} className="w-full space-y-4">
-                  <div>
-                    <input
-                      type="password"
-                      placeholder="Yönetici Şifresi"
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white text-center font-mono placeholder:text-zinc-600 focus:outline-none focus:border-red-500 transition-colors"
-                      autoFocus
-                    />
-                    {authError && (
-                      <p className="text-xs text-red-500 mt-2 flex items-center justify-center gap-1">
-                        <AlertTriangle size={12} /> {authError}
-                      </p>
-                    )}
+              <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 sm:p-12 max-w-md mx-auto text-center w-full">
+                <motion.div 
+                  initial={{ transform: "translateY(10px) scale(0.95)" }}
+                  animate={{ transform: "translateY(0) scale(1)" }}
+                  className="w-full p-8 bg-zinc-900/40 border border-zinc-900 rounded-3xl backdrop-blur-md"
+                >
+                  <div className="w-16 h-16 mx-auto flex items-center justify-center bg-zinc-950 border border-zinc-850 rounded-2xl mb-6 text-red-500 shadow-xl shadow-red-500/5">
+                    <Lock size={28} />
                   </div>
-                  <button
-                    type="submit"
-                    className="w-full py-3 bg-red-600 hover:bg-red-500 active:scale-98 text-white font-semibold rounded-xl border border-red-500 transition-all cursor-pointer shadow-lg shadow-red-600/10"
-                  >
-                    Giriş Yap
-                  </button>
-                </form>
-                <p className="text-[10px] text-zinc-600 mt-8">Varsayılan şifre: <code className="bg-zinc-900 px-1 py-0.5 rounded text-zinc-500">admin</code></p>
+                  <h3 className="text-xl font-display font-black text-white mb-2 uppercase tracking-tight">KİMLİK DOĞRULAMA</h3>
+                  <p className="text-xs text-zinc-400 mb-6 leading-relaxed">
+                    Yönetim paneline erişmek ve verileri güncellemek için güvenlik şifresini girmelisiniz.
+                  </p>
+                  
+                  <form onSubmit={handleLogin} className="w-full space-y-4">
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Yönetici Şifresi"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        className="w-full pl-4 pr-11 py-3 bg-zinc-950 border border-zinc-850 rounded-xl text-white text-center font-mono text-sm placeholder:text-zinc-600 focus:outline-none focus:border-red-500/80 focus:ring-1 focus:ring-red-500/20 transition-all shadow-inner"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                    
+                    {authError && (
+                      <motion.p 
+                        initial={{ opacity: 0, y: -5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-xs text-red-500 flex items-center justify-center gap-1.5 font-medium bg-red-950/25 py-2 px-3 rounded-lg border border-red-900/30"
+                      >
+                        <AlertTriangle size={13} /> {authError}
+                      </motion.p>
+                    )}
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 bg-red-600 hover:bg-red-500 active:scale-[0.98] text-white font-bold rounded-xl border border-red-500 transition-all cursor-pointer shadow-lg shadow-red-600/15"
+                    >
+                      Panele Giriş Yap
+                    </button>
+                  </form>
+                  <p className="text-[10px] text-zinc-600 mt-6 font-mono">Varsayılan şifre: <code className="bg-zinc-950 px-1.5 py-0.5 rounded text-zinc-500 border border-zinc-850/60">admin</code></p>
+                </motion.div>
               </div>
             ) : (
               // Authenticated Admin Dashboard Layout
-              <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-[500px]">
+              <div className="relative z-10 flex-1 flex flex-col md:flex-row overflow-hidden">
                 
                 {/* Sidebar Navigation */}
-                <div className="w-full md:w-64 bg-zinc-900/20 border-r border-zinc-800 p-4 space-y-1 flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible">
+                <div className="w-full md:w-72 bg-zinc-900/10 border-b md:border-b-0 md:border-r border-zinc-900 p-4 space-y-1.5 flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible shrink-0 scrollbar-none">
+                  <div className="hidden md:block px-3 pb-3">
+                    <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">MENÜLER</span>
+                  </div>
+
                   <button
                     onClick={() => setActiveTab("general")}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer ${
+                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer group ${
                       activeTab === "general" 
-                        ? "bg-red-500/10 text-red-500 border border-red-500/20" 
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                        ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-md shadow-red-500/2" 
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
-                    <Settings size={16} />
-                    <span>Genel Ayarlar</span>
+                    <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "general" ? "bg-red-500/10 text-red-400" : "bg-zinc-900 text-zinc-500 group-hover:text-zinc-300"}`}>
+                      <Settings size={15} />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold tracking-wide">Genel Ayarlar</span>
+                      <span className="hidden md:inline text-[10px] text-zinc-500 font-mono mt-0.5">Logo, başlıklar & pluginler</span>
+                    </div>
                   </button>
+
                   <button
                     onClick={() => setActiveTab("categories")}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer ${
+                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer group ${
                       activeTab === "categories" 
-                        ? "bg-red-500/10 text-red-500 border border-red-500/20" 
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                        ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-md shadow-red-500/2" 
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
-                    <FolderOpen size={16} />
-                    <span>Paketler & Odalar</span>
+                    <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "categories" ? "bg-red-500/10 text-red-400" : "bg-zinc-900 text-zinc-500 group-hover:text-zinc-300"}`}>
+                      <FolderOpen size={15} />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold tracking-wide">Odalar & Paketler</span>
+                      <span className="hidden md:inline text-[10px] text-zinc-500 font-mono mt-0.5">Kategori ve preset linkleri</span>
+                    </div>
                   </button>
+
                   <button
                     onClick={() => setActiveTab("bio")}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer ${
+                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer group ${
                       activeTab === "bio" 
-                        ? "bg-red-500/10 text-red-500 border border-red-500/20" 
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                        ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-md shadow-red-500/2" 
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
-                    <User size={16} />
-                    <span>Profil & Sosyal</span>
+                    <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "bio" ? "bg-red-500/10 text-red-400" : "bg-zinc-900 text-zinc-500 group-hover:text-zinc-300"}`}>
+                      <User size={15} />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold tracking-wide">Profil & Sosyal Medya</span>
+                      <span className="hidden md:inline text-[10px] text-zinc-500 font-mono mt-0.5">Hakkımda kartı, görsel & stats</span>
+                    </div>
                   </button>
+
                   <button
                     onClick={() => setActiveTab("system")}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer ${
+                    className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-sm font-medium transition-all w-full text-left whitespace-nowrap cursor-pointer group ${
                       activeTab === "system" 
-                        ? "bg-red-500/10 text-red-500 border border-red-500/20" 
-                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/50"
+                        ? "bg-red-500/10 text-red-500 border border-red-500/20 shadow-md shadow-red-500/2" 
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-900/40"
                     }`}
                   >
-                    <Lock size={16} />
-                    <span>Sistem & Güvenlik</span>
+                    <div className={`p-1.5 rounded-lg transition-colors ${activeTab === "system" ? "bg-red-500/10 text-red-400" : "bg-zinc-900 text-zinc-500 group-hover:text-zinc-300"}`}>
+                      <Lock size={15} />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="font-bold tracking-wide">Sistem & Şifre</span>
+                      <span className="hidden md:inline text-[10px] text-zinc-500 font-mono mt-0.5">Sayac, güvenlik & koruma</span>
+                    </div>
                   </button>
                 </div>
 
-                {/* Content Area */}
-                <div className="flex-1 p-6 overflow-y-auto space-y-6">
+                {/* Main Tab Content */}
+                <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6 max-h-[50vh] md:max-h-[70vh] bg-zinc-950/20 scrollbar-thin">
                   
                   {/* TAB 1: GENERAL SETTINGS */}
                   {activeTab === "general" && (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Ana Sayfa Başlıkları & Kimlik</h3>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
+                        <Globe size={18} className="text-red-500" />
+                        <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Ana Sayfa Başlıkları & Kimlik</h3>
+                      </div>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Üst Logo Yazısı (Sol Üst Logo)</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold flex items-center gap-1.5">
+                            <span>ÜST LOGO YAZISI</span>
+                            <span className="text-[9px] text-zinc-600">(Sol Üst Köşe)</span>
+                          </label>
                           <input
                             type="text"
                             value={editedContent.settings.topBarText || ""}
@@ -320,11 +396,15 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, topBarText: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono"
                           />
                         </div>
+
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium font-bold text-red-400">Sayfa Yenilenirken Yükleniyor Yazısı</label>
+                          <label className="text-[11px] text-red-400 font-mono tracking-wide uppercase font-bold flex items-center gap-1.5">
+                            <span>SAYFA YÜKLENİYOR YAZISI</span>
+                            <span className="text-[9px] text-red-500/50">(Loader)</span>
+                          </label>
                           <input
                             type="text"
                             value={editedContent.settings.loadingText || ""}
@@ -333,14 +413,14 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, loadingText: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors font-mono"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-red-950/50 focus:border-red-500 rounded-xl text-sm text-red-200 focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono"
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Hero Üst Rozet</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">HERO ÜST ROZET</label>
                           <input
                             type="text"
                             value={editedContent.settings.heroBadge}
@@ -348,11 +428,11 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, heroBadge: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Ana Başlık</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">ANA BAŞLIK (BÜYÜK YAZI)</label>
                           <input
                             type="text"
                             value={editedContent.settings.heroTitle}
@@ -360,13 +440,13 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, heroTitle: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">Kategori Açıklama Yazısı</label>
+                        <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">KATEGORİ AÇIKLAMA YAZISI</label>
                         <textarea
                           rows={2}
                           value={editedContent.settings.heroSub}
@@ -374,14 +454,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             ...editedContent,
                             settings: { ...editedContent.settings, heroSub: e.target.value }
                           })}
-                          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
+                          className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all resize-none leading-relaxed"
                         />
                       </div>
 
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pt-4 pb-2">Gerekli Pluginler Modülü</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center gap-2 border-b border-zinc-900 pt-5 pb-3">
+                        <Sparkles size={18} className="text-red-500" />
+                        <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Kurulum & Pluginler Modülü</h3>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Plugin Kart Başlığı</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">PLUGİN KART BAŞLIĞI</label>
                           <input
                             type="text"
                             value={editedContent.settings.pluginTitle}
@@ -389,11 +473,11 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, pluginTitle: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Plugin Kart Açıklaması</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">PLUGİN KART AÇIKLAMASI</label>
                           <input
                             type="text"
                             value={editedContent.settings.pluginDesc}
@@ -401,14 +485,15 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, pluginDesc: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                       </div>
+
                       <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">YouTube Kurulum Videosu URL</label>
+                        <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">KURULUM VİDEOSU URL (YOUTUBE)</label>
                         <div className="relative">
-                          <span className="absolute left-3.5 top-3 text-zinc-500"><Link2 size={16} /></span>
+                          <span className="absolute left-4 top-3.5 text-zinc-500"><Link2 size={16} /></span>
                           <input
                             type="text"
                             value={editedContent.settings.pluginUrl}
@@ -416,248 +501,353 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, pluginUrl: e.target.value }
                             })}
-                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full pl-11 pr-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono"
                           />
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* TAB 2: CATEGORIES & DOWNLOADABLE ITEMS */}
                   {activeTab === "categories" && (
-                    <div className="space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-display font-semibold text-white">Kategoriler (Odalar) ve Dosyalar</h3>
-                        <p className="text-xs text-zinc-500">Toplam {editedContent.categories.length} Kategori</p>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center justify-between border-b border-zinc-900 pb-3">
+                        <div className="flex items-center gap-2">
+                          <FolderOpen size={18} className="text-red-500" />
+                          <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Odalar (Kategoriler) ve Dosyalar</h3>
+                        </div>
+                        <span className="text-xs text-zinc-500 font-mono px-2 py-0.5 bg-zinc-900 rounded-full border border-zinc-850">
+                          {editedContent.categories.length} ODA MEVCUT
+                        </span>
                       </div>
 
                       {/* Add New Category Card */}
-                      <div className="p-4 bg-zinc-900/40 border border-zinc-800 rounded-2xl space-y-3">
-                        <span className="text-xs font-semibold text-red-500 uppercase tracking-wider flex items-center gap-1.5">
-                          <Plus size={14} /> Yeni Kategori (Oda) Ekle
-                        </span>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <input
-                            type="text"
-                            placeholder="Kategori Adı (örn: Color Grading)"
-                            value={newCategory.title}
-                            onChange={(e) => setNewCategory({ ...newCategory, title: e.target.value })}
-                            className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Alt Rozet (örn: 5 LUT EFEKTİ)"
-                            value={newCategory.badge}
-                            onChange={(e) => setNewCategory({ ...newCategory, badge: e.target.value })}
-                            className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                          />
-                          <select
-                            value={newCategory.gradient}
-                            onChange={(e) => setNewCategory({ ...newCategory, gradient: e.target.value })}
-                            className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                          >
-                            <option value="from-amber-500/20 to-red-600/10 hover:border-amber-500/40">Turuncu-Kırmızı Işıma</option>
-                            <option value="from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40">Mavi-Çivit Işıma</option>
-                            <option value="from-teal-500/20 to-emerald-600/10 hover:border-teal-500/40">Zümrüt Yeşili Işıma</option>
-                            <option value="from-purple-500/20 to-fuchsia-600/10 hover:border-purple-500/40">Mor-Fuşya Işıma</option>
-                            <option value="from-pink-500/20 to-rose-600/10 hover:border-pink-500/40">Pembe Işıma</option>
-                            <option value="from-cyan-500/20 to-sky-600/10 hover:border-cyan-500/40">Turkuaz Işıma</option>
-                          </select>
+                      <div className="relative p-5 sm:p-6 bg-gradient-to-br from-zinc-900/40 to-zinc-950 border border-zinc-900 rounded-3xl space-y-4 shadow-xl">
+                        <div className="flex items-center gap-2">
+                          <div className="p-1.5 bg-red-600/10 text-red-500 rounded-lg">
+                            <Plus size={14} />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-red-400 uppercase tracking-widest">
+                            YENİ KATEGORİ (ODA) OLUŞTUR
+                          </span>
                         </div>
-                        <input
-                          type="text"
-                          placeholder="Kategori Açıklaması"
-                          value={newCategory.description}
-                          onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                        />
-                        <button
-                          onClick={handleAddCategory}
-                          disabled={!newCategory.title}
-                          className="px-4 py-2 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                        >
-                          <Plus size={14} /> Kategoriyi Listeye Ekle
-                        </button>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                            <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">ODA ADI</label>
+                            <input
+                              type="text"
+                              placeholder="örn: Shake Effects, Luts"
+                              value={newCategory.title}
+                              onChange={(e) => setNewCategory({ ...newCategory, title: e.target.value })}
+                              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">ROZET METNİ</label>
+                            <input
+                              type="text"
+                              placeholder="örn: 5 ADET DETAY"
+                              value={newCategory.badge}
+                              onChange={(e) => setNewCategory({ ...newCategory, badge: e.target.value })}
+                              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">RENGİ VE IŞIMASI</label>
+                            <select
+                              value={newCategory.gradient}
+                              onChange={(e) => setNewCategory({ ...newCategory, gradient: e.target.value })}
+                              className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-xl text-xs text-zinc-300 focus:outline-none"
+                            >
+                              <option value="from-amber-500/20 to-red-600/10 hover:border-amber-500/40">Kırmızı - Turuncu Enerji</option>
+                              <option value="from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40">Mavi - Çivit Derinlik</option>
+                              <option value="from-teal-500/20 to-emerald-600/10 hover:border-teal-500/40">Zümrüt - Su Yeşili</option>
+                              <option value="from-purple-500/20 to-fuchsia-600/10 hover:border-purple-500/40">Mor - Fuşya Kreatif</option>
+                              <option value="from-pink-500/20 to-rose-600/10 hover:border-pink-500/40">Pembe - Gül Rüyası</option>
+                              <option value="from-cyan-500/20 to-sky-600/10 hover:border-cyan-500/40">Turkuaz - Gökyüzü Esintisi</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider">AÇIKLAMA METNİ</label>
+                          <input
+                            type="text"
+                            placeholder="Kategori altında listelenecek açıklama yazısı..."
+                            value={newCategory.description}
+                            onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                            className="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <button
+                            onClick={handleAddCategory}
+                            disabled={!newCategory.title}
+                            className="px-5 py-2.5 bg-zinc-900 border border-zinc-850 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                          >
+                            <Plus size={14} className="text-red-500" />
+                            <span>Kategoriyi Ekle</span>
+                          </button>
+                        </div>
                       </div>
 
-                      {/* Manage Existing Categories */}
+                      {/* Manage Existing Categories list */}
                       <div className="space-y-4">
-                        {editedContent.categories.map((cat) => (
-                          <div key={cat.id} className="border border-zinc-850 bg-zinc-950 rounded-2xl overflow-hidden">
-                            {/* Category Header */}
-                            <div className="p-4 bg-zinc-900/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-zinc-850">
-                              <div className="flex items-center gap-3 w-full sm:w-auto">
-                                <span className="font-mono text-zinc-600 font-bold text-sm bg-zinc-950 border border-zinc-850 px-2 py-0.5 rounded-lg">{cat.index}</span>
-                                <div className="flex-1">
-                                  <input
-                                    type="text"
-                                    value={cat.title}
-                                    onChange={(e) => handleUpdateCategoryField(cat.id, "title", e.target.value)}
-                                    className="font-display font-bold text-white bg-transparent border-b border-transparent focus:border-red-500/50 outline-none text-sm w-full py-0.5"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={cat.badge}
-                                    onChange={(e) => handleUpdateCategoryField(cat.id, "badge", e.target.value)}
-                                    className="text-[10px] text-zinc-400 font-mono tracking-wider bg-transparent border-b border-transparent focus:border-red-500/50 outline-none w-full"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="flex items-center gap-2 self-end sm:self-auto">
-                                <button
-                                  onClick={() => setSelectedCatId(selectedCatId === cat.id ? "" : cat.id)}
-                                  className="px-3 py-1.5 bg-zinc-950 border border-zinc-850 hover:bg-zinc-900 rounded-lg text-xs text-zinc-400 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
-                                >
-                                  <FileText size={12} />
-                                  <span>Dosyaları Yönet ({cat.items.length})</span>
-                                </button>
-                                <button
-                                  onClick={() => handleRemoveCategory(cat.id)}
-                                  className="p-1.5 hover:bg-red-950/30 text-zinc-600 hover:text-red-500 rounded-lg transition-colors cursor-pointer"
-                                  title="Kategoriyi Sil"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Category Item Management (Conditional Drawer) */}
-                            {selectedCatId === cat.id && (
-                              <div className="p-4 bg-zinc-900/15 space-y-4">
-                                <div className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                                  <FolderOpen size={12} className="text-red-500" /> "{cat.title}" İçindeki Edit Paketleri
-                                </div>
-
-                                {/* Add New Item to this category */}
-                                <div className="p-3 bg-zinc-950 border border-zinc-850 rounded-xl space-y-3">
-                                  <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider block">Yeni Paket/Preset Ekle</span>
-                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-wider block">KATEGORİ LİSTESİ & DOSYALAR</span>
+                        
+                        {editedContent.categories.map((cat) => {
+                          const isOpenDrawer = selectedCatId === cat.id;
+                          return (
+                            <div 
+                              key={cat.id} 
+                              className={`border rounded-2xl overflow-hidden transition-all duration-300 ${
+                                isOpenDrawer 
+                                  ? "border-red-500/30 bg-zinc-950 shadow-lg shadow-red-500/2" 
+                                  : "border-zinc-900 bg-zinc-900/10 hover:border-zinc-800"
+                              }`}
+                            >
+                              {/* Category Card Header */}
+                              <div className="p-4 sm:px-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                <div className="flex items-center gap-3 w-full sm:w-auto">
+                                  <div className="font-mono text-[11px] text-zinc-400 font-black bg-zinc-950 border border-zinc-850 px-2.5 py-1 rounded-lg">
+                                    {cat.index}
+                                  </div>
+                                  <div className="flex-1 space-y-1">
                                     <input
                                       type="text"
-                                      placeholder="Dosya Adı (örn: Deep Blue CC)"
-                                      value={newItem.name}
-                                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                                      className="px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[11px] text-white focus:outline-none focus:border-red-500"
+                                      value={cat.title}
+                                      onChange={(e) => handleUpdateCategoryField(cat.id, "title", e.target.value)}
+                                      className="font-display font-black text-white bg-transparent border-b border-transparent hover:border-zinc-800 focus:border-red-500/50 outline-none text-sm w-full py-0.5 transition-all uppercase tracking-wide"
                                     />
                                     <input
                                       type="text"
-                                      placeholder="Boyut (örn: 15 KB veya 2.4 MB)"
-                                      value={newItem.size}
-                                      onChange={(e) => setNewItem({ ...newItem, size: e.target.value })}
-                                      className="px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[11px] text-white focus:outline-none focus:border-red-500"
-                                    />
-                                    <input
-                                      type="text"
-                                      placeholder="İndirme Linki (Gofile, Drive vb.)"
-                                      value={newItem.downloadUrl}
-                                      onChange={(e) => setNewItem({ ...newItem, downloadUrl: e.target.value })}
-                                      className="px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[11px] text-white focus:outline-none focus:border-red-500"
+                                      value={cat.badge}
+                                      onChange={(e) => handleUpdateCategoryField(cat.id, "badge", e.target.value)}
+                                      className="text-[10px] text-zinc-400 font-mono tracking-wider bg-transparent border-b border-transparent hover:border-zinc-800 focus:border-red-500/50 outline-none w-full py-0.5"
                                     />
                                   </div>
-                                  <input
-                                    type="text"
-                                    placeholder="Kısa Açıklama (Opsiyonel)"
-                                    value={newItem.description}
-                                    onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
-                                    className="w-full px-2 py-1.5 bg-zinc-900 border border-zinc-800 rounded-lg text-[11px] text-white focus:outline-none focus:border-red-500"
-                                  />
+                                </div>
+
+                                <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-end">
                                   <button
-                                    onClick={() => handleAddItem(cat.id)}
-                                    disabled={!newItem.name || !newItem.downloadUrl}
-                                    className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                    onClick={() => setSelectedCatId(isOpenDrawer ? "" : cat.id)}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border transition-all cursor-pointer ${
+                                      isOpenDrawer 
+                                        ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                                        : "bg-zinc-950 border-zinc-850 hover:bg-zinc-900 text-zinc-400 hover:text-white"
+                                    }`}
                                   >
-                                    <Plus size={12} /> Dosyayı Kategoriye Ekle
+                                    <FileText size={13} />
+                                    <span>Dosyaları Yönet ({cat.items.length})</span>
+                                    <ChevronRight size={12} className={`transform transition-transform ${isOpenDrawer ? "rotate-90 text-red-400" : "text-zinc-600"}`} />
+                                  </button>
+                                  <button
+                                    onClick={() => handleRemoveCategory(cat.id)}
+                                    className="p-2 hover:bg-red-950/40 text-zinc-500 hover:text-red-500 rounded-xl border border-transparent hover:border-red-950 transition-all cursor-pointer"
+                                    title="Kategoriyi ve Dosyaları Komple Sil"
+                                  >
+                                    <Trash2 size={15} />
                                   </button>
                                 </div>
+                              </div>
 
-                                {/* List existing items */}
-                                {cat.items.length === 0 ? (
-                                  <p className="text-xs text-zinc-500 text-center py-2">Bu kategoride henüz dosya yok. Yukarıdan ekleyebilirsiniz.</p>
-                                ) : (
-                                  <div className="space-y-2">
-                                    {cat.items.map((item) => (
-                                      <div key={item.id} className="p-3 bg-zinc-900/40 border border-zinc-850 rounded-xl space-y-2">
-                                        <div className="flex justify-between items-center">
-                                          <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2 mr-2">
-                                            <input
-                                              type="text"
-                                              value={item.name}
-                                              placeholder="Dosya Adı"
-                                              onChange={(e) => handleUpdateItemField(cat.id, item.id, "name", e.target.value)}
-                                              className="px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-xs text-white outline-none focus:border-red-500"
-                                            />
-                                            <input
-                                              type="text"
-                                              value={item.size}
-                                              placeholder="Boyut"
-                                              onChange={(e) => handleUpdateItemField(cat.id, item.id, "size", e.target.value)}
-                                              className="px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-xs text-white outline-none focus:border-red-500"
-                                            />
-                                            <input
-                                              type="text"
-                                              value={item.downloadUrl}
-                                              placeholder="Link"
-                                              onChange={(e) => handleUpdateItemField(cat.id, item.id, "downloadUrl", e.target.value)}
-                                              className="px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-xs text-white outline-none focus:border-red-500 font-mono text-xs"
-                                            />
-                                          </div>
-                                          <button
-                                            onClick={() => handleRemoveItem(cat.id, item.id)}
-                                            className="p-1 text-zinc-600 hover:text-red-500 transition-colors cursor-pointer"
-                                            title="Dosyayı Sil"
-                                          >
-                                            <Trash2 size={12} />
-                                          </button>
-                                        </div>
+                              {/* Category Item Management (Slide out Drawer style) */}
+                              {isOpenDrawer && (
+                                <motion.div 
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  className="border-t border-zinc-900 p-4 sm:p-5 bg-zinc-950 space-y-4"
+                                >
+                                  {/* SubHeader */}
+                                  <div className="flex items-center gap-2 text-xs text-zinc-400 font-bold font-mono tracking-wider">
+                                    <FolderOpen size={13} className="text-red-500" />
+                                    <span>"{cat.title.toUpperCase()}" DOSYALARI</span>
+                                  </div>
+
+                                  {/* Inner form to add a file */}
+                                  <div className="p-4 bg-zinc-900/30 border border-zinc-900 rounded-2xl space-y-3">
+                                    <span className="text-[10px] text-zinc-500 font-mono font-bold uppercase tracking-widest block">BU ODAYA DOSYA/PRESET EKLE</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">DOSYA/EFEKT ADI</label>
                                         <input
                                           type="text"
-                                          value={item.description}
-                                          placeholder="Açıklama"
-                                          onChange={(e) => handleUpdateItemField(cat.id, item.id, "description", e.target.value)}
-                                          className="w-full px-2 py-1 bg-zinc-950 border border-zinc-850 rounded text-xs text-white outline-none focus:border-red-500"
+                                          placeholder="örn: Pars Cinematic CC"
+                                          value={newItem.name}
+                                          onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
                                         />
                                       </div>
-                                    ))}
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">DOSYA BOYUTU</label>
+                                        <input
+                                          type="text"
+                                          placeholder="örn: 12 KB, 3.2 MB"
+                                          value={newItem.size}
+                                          onChange={(e) => setNewItem({ ...newItem, size: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
+                                        />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">İNDİRME BAĞLANTISI (URL)</label>
+                                        <input
+                                          type="text"
+                                          placeholder="https://drive.google.com/..."
+                                          value={newItem.downloadUrl}
+                                          onChange={(e) => setNewItem({ ...newItem, downloadUrl: e.target.value })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50 font-mono"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="text-[9px] text-zinc-500 font-mono">KISACIK AÇIKLAMA (OPSİYONEL)</label>
+                                      <input
+                                        type="text"
+                                        placeholder="Dosya hakkında kısa bir not..."
+                                        value={newItem.description}
+                                        onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
+                                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
+                                      />
+                                    </div>
+                                    <div className="flex justify-end">
+                                      <button
+                                        onClick={() => handleAddItem(cat.id)}
+                                        disabled={!newItem.name || !newItem.downloadUrl}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                      >
+                                        <Plus size={13} />
+                                        <span>Dosyayı Ekle</span>
+                                      </button>
+                                    </div>
                                   </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        ))}
+
+                                  {/* List items inside this category */}
+                                  {cat.items.length === 0 ? (
+                                    <div className="text-center py-6 px-4 bg-zinc-900/10 border border-zinc-900 rounded-2xl">
+                                      <p className="text-xs text-zinc-500">Bu odada henüz yüklü dosya bulunmuyor. Üstteki formdan anında ekleyin!</p>
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-2.5">
+                                      <span className="text-[9px] font-mono text-zinc-500 tracking-wider block">YÜKLENMİŞ {cat.items.length} DOSYA</span>
+                                      {cat.items.map((item) => (
+                                        <div key={item.id} className="p-3.5 bg-zinc-900/30 border border-zinc-900 rounded-2xl space-y-3 hover:border-zinc-850/60 transition-all">
+                                          <div className="flex justify-between items-center gap-3">
+                                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                              <div className="space-y-1">
+                                                <span className="text-[8px] text-zinc-500 font-mono">DOSYA ADI</span>
+                                                <input
+                                                  type="text"
+                                                  value={item.name}
+                                                  placeholder="Dosya Adı"
+                                                  onChange={(e) => handleUpdateItemField(cat.id, item.id, "name", e.target.value)}
+                                                  className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
+                                                />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <span className="text-[8px] text-zinc-500 font-mono">BOYUTU</span>
+                                                <input
+                                                  type="text"
+                                                  value={item.size}
+                                                  placeholder="Boyut"
+                                                  onChange={(e) => handleUpdateItemField(cat.id, item.id, "size", e.target.value)}
+                                                  className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
+                                                />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <span className="text-[8px] text-zinc-500 font-mono">İNDİRME LİNKİ</span>
+                                                <input
+                                                  type="text"
+                                                  value={item.downloadUrl}
+                                                  placeholder="Bağlantı URL"
+                                                  onChange={(e) => handleUpdateItemField(cat.id, item.id, "downloadUrl", e.target.value)}
+                                                  className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-zinc-300 font-mono outline-none"
+                                                />
+                                              </div>
+                                            </div>
+                                            <button
+                                              onClick={() => handleRemoveItem(cat.id, item.id)}
+                                              className="p-2 hover:bg-red-950/50 text-zinc-600 hover:text-red-500 rounded-lg transition-colors cursor-pointer self-end mb-0.5"
+                                              title="Dosyayı Kaldır"
+                                            >
+                                              <Trash2 size={13} />
+                                            </button>
+                                          </div>
+                                          <div className="space-y-1">
+                                            <span className="text-[8px] text-zinc-500 font-mono">DOSYA AÇIKLAMASI</span>
+                                            <input
+                                              type="text"
+                                              value={item.description}
+                                              placeholder="Ek açıklama..."
+                                              onChange={(e) => handleUpdateItemField(cat.id, item.id, "description", e.target.value)}
+                                              className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
+                                            />
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </motion.div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* TAB 3: PROFILE & SOCIAL */}
                   {activeTab === "bio" && (
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Hakkımda & Kreatif Profil</h3>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
+                        <User size={18} className="text-red-500" />
+                        <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Hakkımda & Kreatif Profil Kartı</h3>
+                      </div>
                       
                       {/* Interactive Image Upload Section */}
-                      <div className="p-5 bg-zinc-900/40 border border-zinc-800 rounded-2xl space-y-4">
-                        <label className="text-xs font-bold text-red-500 uppercase tracking-wider block">TELEFONDAN / BİLGİSAYARDAN RESİM YÜKLE</label>
-                        <div className="flex flex-col sm:flex-row items-center gap-5">
-                          {/* Image Preview */}
-                          <div className="w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 flex-shrink-0">
+                      <div className="p-5 sm:p-6 bg-gradient-to-br from-zinc-900/20 to-zinc-950 border border-zinc-900 rounded-3xl space-y-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <UploadCloud size={14} className="text-red-500" />
+                          <label className="text-xs font-mono font-bold text-red-400 uppercase tracking-widest block">TELEFONDAN / BİLGİSAYARDAN RESİM YÜKLE</label>
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center gap-6">
+                          {/* Image Preview Card */}
+                          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-950 flex-shrink-0 group shadow-lg">
                             {editedContent.settings.bioImage ? (
-                              <img src={editedContent.settings.bioImage} alt="Profile Preview" className="w-full h-full object-cover" />
+                              <>
+                                <img src={editedContent.settings.bioImage} alt="Profile Preview" className="w-full h-full object-cover grayscale brightness-90 group-hover:grayscale-0 transition-all duration-300" />
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <span className="text-[9px] font-mono text-white">YÜKLENDİ</span>
+                                </div>
+                              </>
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 text-[10px] text-center p-2">
-                                <span>Varsayılan Resim</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600 text-[10px] text-center p-3">
+                                <span className="font-bold">VARSAYILAN</span>
+                                <span className="text-[8px] text-zinc-700 mt-1">Yükleme yapılmadı</span>
                               </div>
                             )}
                           </div>
                           
                           {/* Upload Controls */}
-                          <div className="space-y-2 flex-1 w-full">
+                          <div className="space-y-3 flex-1 w-full text-center sm:text-left">
                             <input 
                               type="file" 
                               accept="image/*" 
                               onChange={handleImageUpload}
-                              className="block w-full text-xs text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-red-600/10 file:text-red-500 hover:file:bg-red-600/20 cursor-pointer"
+                              className="block w-full text-xs text-zinc-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border file:border-red-500/20 file:text-xs file:font-bold file:bg-red-600/10 file:text-red-500 hover:file:bg-red-600/20 cursor-pointer"
                             />
-                            <p className="text-[10px] text-zinc-500">Önerilen boyut kare (1:1 aspect ratio), maks. 2MB. Mobil cihazınızın galerisinden veya kamerasından doğrudan fotoğraf seçebilirsiniz.</p>
+                            <p className="text-[10px] text-zinc-500 leading-relaxed max-w-md">Önerilen boyut kare (1:1), maksimum 2MB. Telefon galerinizden, kamerasından veya bilgisayarınızdan doğrudan bir fotoğraf seçip yükleyebilirsiniz.</p>
                             
                             {editedContent.settings.bioImage && (
                               <button
@@ -666,7 +856,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                   ...editedContent,
                                   settings: { ...editedContent.settings, bioImage: "" }
                                 })}
-                                className="px-3 py-1 bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 hover:border-red-500/20 text-zinc-400 hover:text-red-400 text-[10px] rounded-lg transition-all"
+                                className="px-3.5 py-1.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-850 hover:border-red-500/20 text-zinc-400 hover:text-red-400 text-[10px] font-bold rounded-xl transition-all cursor-pointer"
                               >
                                 Varsayılan Resme Geri Dön
                               </button>
@@ -676,9 +866,9 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                       </div>
 
                       {/* Bio Core Texts */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Kreatif Profil Ad Soyad</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">KREATİF PROFİL AD SOYAD</label>
                           <input
                             type="text"
                             value={editedContent.settings.bioName || ""}
@@ -687,11 +877,11 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, bioName: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Kreatif Profil Ünvan/Rol</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">KREATİF PROFİL ÜNVAN/ROL</label>
                           <input
                             type="text"
                             value={editedContent.settings.bioRole || ""}
@@ -700,14 +890,14 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, bioRole: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Biyografi Kart Başlığı</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">BİYOGRAFİ KART BAŞLIĞI</label>
                           <input
                             type="text"
                             value={editedContent.settings.bioTitle}
@@ -715,11 +905,11 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, bioTitle: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs text-zinc-400 font-medium">Biyografi Kart Altbaşlığı</label>
+                          <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">BİYOGRAFİ KART ALTBASLIGI (ROZET)</label>
                           <input
                             type="text"
                             value={editedContent.settings.bioSub}
@@ -727,13 +917,13 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, bioSub: e.target.value }
                             })}
-                            className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono text-xs"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">Biyografi Açıklama Metni (Hakkında Paragrafı)</label>
+                        <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">BİYOGRAFİ AÇIKLAMA METNİ (HAKKIMDA PARAGRAFI)</label>
                         <textarea
                           rows={3}
                           value={editedContent.settings.bioDescription || ""}
@@ -742,14 +932,14 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             ...editedContent,
                             settings: { ...editedContent.settings, bioDescription: e.target.value }
                           })}
-                          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
+                          className="w-full px-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all resize-none leading-relaxed"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs text-zinc-400 font-medium">Portföy İncele Butonu URL</label>
+                        <label className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">PORTFÖY İNCELE BUTONU URL</label>
                         <div className="relative">
-                          <span className="absolute left-3.5 top-3 text-zinc-500"><Link2 size={16} /></span>
+                          <span className="absolute left-4 top-3.5 text-zinc-500"><Link2 size={16} /></span>
                           <input
                             type="text"
                             value={editedContent.settings.portfolioUrl}
@@ -757,81 +947,111 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               ...editedContent,
                               settings: { ...editedContent.settings, portfolioUrl: e.target.value }
                             })}
-                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white focus:outline-none focus:border-red-500 transition-colors"
+                            className="w-full pl-11 pr-4 py-3 bg-zinc-900/60 border border-zinc-850 focus:border-red-500 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500/20 transition-all font-mono"
                           />
                         </div>
                       </div>
 
-                      <h4 className="text-sm font-semibold text-zinc-300">Bento İstatistik Kutuları</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {editedContent.settings.stats.map((st, idx) => (
-                          <div key={idx} className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-xl space-y-2">
-                            <span className="text-[10px] text-zinc-500 font-mono">İSTATİSTİK {idx + 1}</span>
-                            <input
-                              type="text"
-                              value={st.value}
-                              onChange={(e) => {
-                                const newStats = [...editedContent.settings.stats];
-                                newStats[idx].value = e.target.value;
-                                setEditedContent({
-                                  ...editedContent,
-                                  settings: { ...editedContent.settings, stats: newStats }
-                                });
-                              }}
-                              placeholder="Değer (örn: 6+)"
-                              className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                            />
-                            <input
-                              type="text"
-                              value={st.label}
-                              onChange={(e) => {
-                                const newStats = [...editedContent.settings.stats];
-                                newStats[idx].label = e.target.value;
-                                setEditedContent({
-                                  ...editedContent,
-                                  settings: { ...editedContent.settings, stats: newStats }
-                                });
-                              }}
-                              placeholder="Etiket (örn: DENEYİM)"
-                              className="w-full px-3 py-1.5 bg-zinc-950 border border-zinc-850 rounded-lg text-xs text-white focus:outline-none focus:border-red-500"
-                            />
-                          </div>
-                        ))}
+                      {/* Bento Stat widgets */}
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <TrendingUp size={14} className="text-red-500" />
+                          <span className="text-[11px] text-zinc-400 font-mono tracking-wide uppercase font-bold">Bento İstatistik Sayaç Kutuları</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          {editedContent.settings.stats.map((st, idx) => (
+                            <div key={idx} className="p-4 bg-zinc-900/30 border border-zinc-900 rounded-2xl space-y-2">
+                              <span className="text-[9px] text-zinc-500 font-mono font-bold uppercase block tracking-wider">KUTU {idx + 1}</span>
+                              <div className="space-y-1.5">
+                                <input
+                                  type="text"
+                                  value={st.value}
+                                  onChange={(e) => {
+                                    const newStats = [...editedContent.settings.stats];
+                                    newStats[idx].value = e.target.value;
+                                    setEditedContent({
+                                      ...editedContent,
+                                      settings: { ...editedContent.settings, stats: newStats }
+                                    });
+                                  }}
+                                  placeholder="Değer (örn: 10K+)"
+                                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs font-bold text-red-400 text-center focus:outline-none focus:border-red-500/50"
+                                />
+                                <input
+                                  type="text"
+                                  value={st.label}
+                                  onChange={(e) => {
+                                    const newStats = [...editedContent.settings.stats];
+                                    newStats[idx].label = e.target.value;
+                                    setEditedContent({
+                                      ...editedContent,
+                                      settings: { ...editedContent.settings, stats: newStats }
+                                    });
+                                  }}
+                                  placeholder="Etiket (örn: ABONE)"
+                                  className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-[10px] text-zinc-400 text-center focus:outline-none focus:border-red-500/50 uppercase"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
 
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pt-4 pb-2">Sosyal Medya Bağlantıları</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {(Object.keys(editedContent.settings.socialLinks) as Array<keyof typeof editedContent.settings.socialLinks>).map((platform) => (
-                          <div key={platform} className="space-y-1.5">
-                            <label className="text-xs text-zinc-400 capitalize font-medium">{platform}</label>
-                            <input
-                              type="text"
-                              value={editedContent.settings.socialLinks[platform]}
-                              onChange={(e) => setEditedContent({
-                                ...editedContent,
-                                settings: {
-                                  ...editedContent.settings,
-                                  socialLinks: {
-                                    ...editedContent.settings.socialLinks,
-                                    [platform]: e.target.value
-                                  }
-                                }
-                              })}
-                              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-red-500 transition-colors font-mono"
-                            />
-                          </div>
-                        ))}
+                      {/* Social Channels view */}
+                      <div className="space-y-3 pt-3">
+                        <div className="flex items-center gap-1.5 border-b border-zinc-900 pb-2">
+                          <Globe size={14} className="text-red-500" />
+                          <span className="text-xs font-mono font-bold text-zinc-400 tracking-wider uppercase">SOSYAL MEDYA LİNKLERİ</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {(Object.keys(editedContent.settings.socialLinks) as Array<keyof typeof editedContent.settings.socialLinks>).map((platform) => {
+                            const platformStr = String(platform);
+                            let colorClass = "focus:border-red-500";
+                            if (platformStr === "youtube") colorClass = "focus:border-red-500";
+                            else if (platformStr === "instagram") colorClass = "focus:border-pink-500";
+                            else if (platformStr === "discord") colorClass = "focus:border-blue-500";
+                            else if (platformStr === "tiktok") colorClass = "focus:border-cyan-500";
+
+                            return (
+                              <div key={platformStr} className="space-y-1">
+                                <label className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">{platformStr.toUpperCase()} KANALI URL</label>
+                                <input
+                                  type="text"
+                                  value={editedContent.settings.socialLinks[platform]}
+                                  onChange={(e) => setEditedContent({
+                                    ...editedContent,
+                                    settings: {
+                                      ...editedContent.settings,
+                                      socialLinks: {
+                                        ...editedContent.settings.socialLinks,
+                                        [platform]: e.target.value
+                                      }
+                                    }
+                                  })}
+                                  className={`w-full px-4 py-2.5 bg-zinc-900/60 border border-zinc-850 rounded-xl text-xs text-zinc-300 focus:outline-none ${colorClass} transition-colors font-mono`}
+                                />
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                   {/* TAB 4: SYSTEM & SECURITY */}
                   {activeTab === "system" && (
-                    <div className="space-y-6">
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pb-2">Ziyaretçi Sayacı</h3>
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6"
+                    >
+                      <div className="flex items-center gap-2 border-b border-zinc-900 pb-3">
+                        <Hash size={18} className="text-red-500" />
+                        <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Ziyaretçi Sayacı ve Sayaç Kontrolü</h3>
+                      </div>
                       
-                      <div className="space-y-1.5 max-w-sm">
-                        <label className="text-xs text-zinc-400 font-medium">Toplam Ziyaretçi Sayısı</label>
+                      <div className="space-y-2 p-5 bg-zinc-900/30 border border-zinc-900 rounded-3xl max-w-md">
+                        <label className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest block">TOPLAM SİTE ZİYARETÇİSİ</label>
                         <input
                           type="number"
                           value={editedContent.visitorCount}
@@ -839,28 +1059,40 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             ...editedContent,
                             visitorCount: parseInt(e.target.value) || 0
                           })}
-                          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-red-500 transition-colors"
+                          className="w-full px-4 py-3 bg-zinc-950 border border-zinc-850 rounded-xl text-base text-red-500 font-mono font-bold focus:outline-none focus:border-red-500 transition-all"
                         />
-                        <p className="text-[11px] text-zinc-500">Ana sayfa her açıldığında bu değer otomatik olarak artar. Buradan sıfırlayabilir veya değiştirebilirsiniz.</p>
+                        <p className="text-[10px] text-zinc-500 leading-relaxed">Ana sayfa her ziyaret edildiğinde bu sayaç otomatik olarak artış gösterir. Buradan istediğiniz bir sayı ile sıfırlayabilir veya değiştirebilirsiniz.</p>
                       </div>
 
-                      <h3 className="text-lg font-display font-semibold text-white border-b border-zinc-900 pt-4 pb-2">Yönetici Paneli Şifresi</h3>
-                      
-                      <div className="space-y-1.5 max-w-sm">
-                        <label className="text-xs text-zinc-400 font-medium">Yeni Şifre</label>
-                        <input
-                          type="text"
-                          placeholder="Yönetici Şifresi"
-                          value={editedContent.settings.adminPassword || ""}
-                          onChange={(e) => setEditedContent({
-                            ...editedContent,
-                            settings: { ...editedContent.settings, adminPassword: e.target.value }
-                          })}
-                          className="w-full px-4 py-2.5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-red-500 transition-colors"
-                        />
-                        <p className="text-[11px] text-zinc-500">Yönetici paneline erişirken sorulan gizli şifreyi buradan değiştirin. Kaydetmeyi unutmayın.</p>
+                      <div className="flex items-center gap-2 border-b border-zinc-900 pt-4 pb-3">
+                        <Lock size={18} className="text-red-500" />
+                        <h3 className="text-base font-display font-black text-white uppercase tracking-wider">Panel Güvenliği & Şifre Değiştir</h3>
                       </div>
-                    </div>
+                      
+                      <div className="space-y-2.5 p-5 bg-zinc-900/30 border border-zinc-900 rounded-3xl max-w-md">
+                        <label className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest block">GÜVENLİK GEÇİŞ ŞİFRESİ</label>
+                        <div className="relative">
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Yeni Panel Şifresi"
+                            value={editedContent.settings.adminPassword || ""}
+                            onChange={(e) => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, adminPassword: e.target.value }
+                            })}
+                            className="w-full pl-4 pr-11 py-3 bg-zinc-950 border border-zinc-850 rounded-xl text-sm text-white font-mono focus:outline-none focus:border-red-500 transition-all"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-3.5 text-zinc-500 hover:text-zinc-300 transition-colors"
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 leading-relaxed">Yönetici paneline giriş yaparken koruma sağlayan şifre. Değiştirdikten sonra kaydet butonuna tıklayarak güncelleyebilirsiniz.</p>
+                      </div>
+                    </motion.div>
                   )}
 
                 </div>
@@ -869,37 +1101,50 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
             {/* Bottom Footer Actions (Active if Authenticated) */}
             {isAuthenticated && (
-              <div className="p-4 bg-zinc-900 border-t border-zinc-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div>
+              <div className="relative z-10 p-4 sm:p-5 bg-zinc-900 border-t border-zinc-900 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="text-center sm:text-left">
                   {saveStatus.type === "success" && (
-                    <span className="text-xs text-emerald-500 flex items-center gap-1.5">
-                      <CheckCircle size={14} /> {saveStatus.msg}
-                    </span>
+                    <motion.span 
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-xs text-emerald-400 font-bold flex items-center justify-center sm:justify-start gap-1.5"
+                    >
+                      <CheckCircle size={15} /> <span>{saveStatus.msg}</span>
+                    </motion.span>
                   )}
                   {saveStatus.type === "error" && (
-                    <span className="text-xs text-red-500 flex items-center gap-1.5">
-                      <AlertTriangle size={14} /> {saveStatus.msg}
-                    </span>
+                    <motion.span 
+                      initial={{ opacity: 0, x: -10 }} 
+                      animate={{ opacity: 1, x: 0 }}
+                      className="text-xs text-red-500 font-bold flex items-center justify-center sm:justify-start gap-1.5"
+                    >
+                      <AlertTriangle size={15} /> <span>{saveStatus.msg}</span>
+                    </motion.span>
+                  )}
+                  {!saveStatus.type && (
+                    <span className="text-[10px] text-zinc-500 font-mono uppercase tracking-wider block">KAYDEDİLMEMİŞ DEĞİŞİKLİKLER BULUNABİLİR</span>
                   )}
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-3 w-full sm:w-auto">
                   <button
+                    type="button"
                     onClick={() => {
                       setIsAuthenticated(false);
                       setPasswordInput("");
                     }}
-                    className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold cursor-pointer border border-zinc-800 transition-colors"
+                    className="flex-1 sm:flex-none px-5 py-2.5 bg-zinc-950 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-xl text-xs font-bold cursor-pointer border border-zinc-850/60 transition-colors"
                   >
                     Çıkış Yap
                   </button>
                   <button
+                    type="button"
                     onClick={handleSaveAll}
                     disabled={isSaving}
-                    className="px-5 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold cursor-pointer border border-red-500 transition-all flex items-center gap-2 shadow-lg shadow-red-600/10 active:scale-98 disabled:opacity-50"
+                    className="flex-1 sm:flex-none px-6 py-2.5 bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white rounded-xl text-xs font-black cursor-pointer border border-red-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-600/15 active:scale-98"
                   >
                     <Save size={14} />
-                    <span>{isSaving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}</span>
+                    <span>{isSaving ? "KAYDEDİLİYOR..." : "DEĞİŞİKLİKLERİ KAYDET"}</span>
                   </button>
                 </div>
               </div>
