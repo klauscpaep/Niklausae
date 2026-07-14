@@ -8,6 +8,7 @@ import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import parsMaziProfile from "./assets/images/pars_mazi_profile_1784000260155.jpg";
+import goldenPolyBg from "./assets/images/golden_poly_bg_1784006785795.jpg";
 import { fetchSiteContent, saveSiteContent, incrementVisitorCount, subscribeToSiteContent } from "./firebase";
 
 const TikTokIcon = ({ size = 16 }: { size?: number }) => (
@@ -145,15 +146,28 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#060608] text-zinc-300 font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-[#0e0e12] text-zinc-200 font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden">
       
-      {/* Cyberpunk Grid Overlay */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-[0.06] pointer-events-none" />
+      {/* Cinematic Golden Geometric Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <img
+          src={goldenPolyBg}
+          alt="Golden Poly Background"
+          className="w-full h-full object-cover opacity-[0.38] filter blur-[0.5px] transition-all duration-1000"
+          referrerPolicy="no-referrer"
+        />
+        {/* Subtle dark vignette overlay to keep text ultra-readable */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0e0e12]/50 via-transparent to-[#0e0e12]/75" />
+      </div>
 
-      {/* Ambient Decorative Lighting Gradients */}
-      <div className="absolute top-[-10%] left-[5%] w-[600px] h-[600px] rounded-full bg-red-950/15 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[15%] right-[-5%] w-[500px] h-[500px] rounded-full bg-amber-950/10 blur-[130px] pointer-events-none" />
-      <div className="absolute top-[35%] left-[50%] -translate-x-1/2 w-[450px] h-[450px] rounded-full bg-purple-950/5 blur-[140px] pointer-events-none" />
+      {/* Cyberpunk Grid Overlay */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] pointer-events-none" />
+
+      {/* Ambient Decorative Lighting Gradients - Brighter and warmer */}
+      <div className="absolute top-[-10%] left-[5%] w-[600px] h-[600px] rounded-full bg-red-500/[0.04] blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-[15%] right-[-5%] w-[500px] h-[500px] rounded-full bg-amber-500/[0.12] blur-[130px] pointer-events-none" />
+      <div className="absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-amber-500/[0.09] blur-[160px] pointer-events-none" />
+      <div className="absolute top-[50%] left-[10%] w-[500px] h-[500px] rounded-full bg-yellow-500/[0.06] blur-[140px] pointer-events-none" />
 
       {/* Main Container */}
       <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-8 relative z-10">

@@ -179,10 +179,22 @@ export default function CategoryDetailModal({ category, onClose }: CategoryDetai
                         {/* Bottom Information and Controls */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                           <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <h4 className="text-base font-display font-black text-white group-hover:text-red-400 transition-colors uppercase">
                                 {item.name}
                               </h4>
+                              {item.status === "new" && (
+                                <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-2 py-0.5 rounded-full text-[9px] font-mono font-extrabold uppercase tracking-widest shadow-[0_0_12px_rgba(16,185,129,0.15)] select-none animate-pulse">
+                                  <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" />
+                                  <span>YENİ</span>
+                                </span>
+                              )}
+                              {item.status === "updated" && (
+                                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-full text-[9px] font-mono font-extrabold uppercase tracking-widest shadow-[0_0_12px_rgba(245,158,11,0.15)] select-none animate-pulse">
+                                  <span className="w-1 h-1 rounded-full bg-amber-400 animate-ping" />
+                                  <span>GÜNCELLENDİ</span>
+                                </span>
+                              )}
                               <span className="font-mono text-[9px] font-bold text-zinc-400 bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded-lg">
                                 {item.size}
                               </span>
@@ -230,13 +242,25 @@ export default function CategoryDetailModal({ category, onClose }: CategoryDetai
                       className="group relative p-4 bg-zinc-900/30 border border-zinc-900 hover:border-zinc-850 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="p-1.5 bg-zinc-900 text-red-500 rounded-lg group-hover:bg-red-500/10 group-hover:text-red-400 transition-colors">
                             <FileArchive size={14} />
                           </span>
                           <h4 className="text-sm font-display font-bold text-white group-hover:text-red-400 transition-colors uppercase">
                             {item.name}
                           </h4>
+                          {item.status === "new" && (
+                            <span className="inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 px-1.5 py-0.5 rounded-full text-[8px] font-mono font-extrabold uppercase tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.12)] select-none animate-pulse">
+                              <span className="w-1 h-1 rounded-full bg-emerald-400 animate-ping" />
+                              <span>YENİ</span>
+                            </span>
+                          )}
+                          {item.status === "updated" && (
+                            <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 border border-amber-500/25 px-1.5 py-0.5 rounded-full text-[8px] font-mono font-extrabold uppercase tracking-wider shadow-[0_0_10px_rgba(245,158,11,0.12)] select-none animate-pulse">
+                              <span className="w-1 h-1 rounded-full bg-amber-400 animate-ping" />
+                              <span>GÜNCELLENDİ</span>
+                            </span>
+                          )}
                           <span className="font-mono text-[10px] text-zinc-500 bg-zinc-900 border border-zinc-850 px-1.5 py-0.5 rounded">
                             {item.size}
                           </span>

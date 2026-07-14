@@ -241,7 +241,8 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       description: newItem.description || "",
       previewBefore: newItem.previewBefore || "",
       previewAfter: newItem.previewAfter || "",
-      previewVideo: newItem.previewVideo || ""
+      previewVideo: newItem.previewVideo || "",
+      status: newItem.status || "none"
     };
 
     const updatedCategories = editedContent.categories.map(c => {
@@ -256,7 +257,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     });
 
     setEditedContent({ ...editedContent, categories: updatedCategories });
-    setNewItem({ name: "", size: "15 KB", downloadUrl: "", description: "", previewBefore: "", previewAfter: "", previewVideo: "" });
+    setNewItem({ name: "", size: "15 KB", downloadUrl: "", description: "", previewBefore: "", previewAfter: "", previewVideo: "", status: "none" });
   };
 
   const handleRemoveItem = (catId: string, itemId: string) => {
@@ -904,7 +905,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                   {/* Inner form to add a file */}
                                   <div className="p-4 bg-zinc-900/30 border border-zinc-900 rounded-2xl space-y-3">
                                     <span className="text-[10px] text-zinc-500 font-mono font-bold uppercase tracking-widest block">BU ODAYA DOSYA/PRESET EKLE</span>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                                       <div className="space-y-1">
                                         <label className="text-[9px] text-zinc-500 font-mono">DOSYA/EFEKT ADI</label>
                                         <input
@@ -924,6 +925,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                           onChange={(e) => setNewItem({ ...newItem, size: e.target.value })}
                                           className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
                                         />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] text-zinc-500 font-mono">ETİKET/DURUM</label>
+                                        <select
+                                          value={newItem.status || "none"}
+                                          onChange={(e) => setNewItem({ ...newItem, status: e.target.value as any })}
+                                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-850 rounded-xl text-xs text-white focus:outline-none focus:border-red-500/50"
+                                        >
+                                          <option value="none">Normal (Etiketsiz)</option>
+                                          <option value="new">YENİ</option>
+                                          <option value="updated">GÜNCELLENDİ</option>
+                                        </select>
                                       </div>
                                       <div className="space-y-1">
                                         <label className="text-[9px] text-zinc-500 font-mono">İNDİRME BAĞLANTISI (URL)</label>
@@ -1016,7 +1029,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                       {cat.items.map((item) => (
                                         <div key={item.id} className="p-3.5 bg-zinc-900/30 border border-zinc-900 rounded-2xl space-y-3 hover:border-zinc-850/60 transition-all">
                                           <div className="flex justify-between items-center gap-3">
-                                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                            <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-3">
                                               <div className="space-y-1">
                                                 <span className="text-[8px] text-zinc-500 font-mono">DOSYA ADI</span>
                                                 <input
@@ -1036,6 +1049,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                                   onChange={(e) => handleUpdateItemField(cat.id, item.id, "size", e.target.value)}
                                                   className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
                                                 />
+                                              </div>
+                                              <div className="space-y-1">
+                                                <span className="text-[8px] text-zinc-500 font-mono">ETİKET/DURUM</span>
+                                                <select
+                                                  value={item.status || "none"}
+                                                  onChange={(e) => handleUpdateItemField(cat.id, item.id, "status", e.target.value)}
+                                                  className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-850 focus:border-red-500/50 rounded-lg text-xs text-white outline-none"
+                                                >
+                                                  <option value="none">Normal (Etiketsiz)</option>
+                                                  <option value="new">YENİ</option>
+                                                  <option value="updated">GÜNCELLENDİ</option>
+                                                </select>
                                               </div>
                                               <div className="space-y-1">
                                                 <span className="text-[8px] text-zinc-500 font-mono">İNDİRME LİNKİ</span>

@@ -47,6 +47,7 @@ export interface EditPackItem {
   previewBefore?: string;
   previewAfter?: string;
   previewVideo?: string;
+  status?: "none" | "new" | "updated";
 }
 
 export interface Category {
