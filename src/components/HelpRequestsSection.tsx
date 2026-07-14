@@ -43,6 +43,7 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
     formData.append("file", file);
 
     try {
+      // 1. Try local server upload first
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
@@ -52,15 +53,51 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
         const data = await res.json();
         if (data.success && data.url) {
           setReferenceUrl(data.url);
+          setIsUploading(false);
+          return;
+        }
+      }
+      
+      // 2. If local server upload fails or is blocked by size limits, fall back to high-speed anonymous cloud host tmpfiles.org
+      console.log("Local upload failed or was rejected. Falling back to tmpfiles.org direct upload...");
+      const extRes = await fetch("https://tmpfiles.org/api/v1/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (extRes.ok) {
+        const extData = await extRes.json();
+        if (extData.status === "success" && extData.data?.url) {
+          // Convert to direct download link: e.g. https://tmpfiles.org/dl/w5wn1svzaBre/sample.txt
+          const directUrl = extData.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+          setReferenceUrl(directUrl);
         } else {
-          alert(data.error || "Yükleme başarısız oldu.");
+          alert("Dosya yüklenemedi. Lütfen Google Drive veya Mega linki bırakmayı deneyin.");
         }
       } else {
-        alert("Yükleme sırasında sunucu hatası oluştu.");
+        alert("Dosya yükleme sunucusu yanıt vermedi. Lütfen Google Drive veya Mega linki bırakmayı deneyin.");
       }
     } catch (err) {
       console.error("File upload error:", err);
-      alert("Dosya yüklenemedi, lütfen tekrar deneyin.");
+      // Double fallback check: try tmpfiles.org directly if there was a network/cors issue with local server
+      try {
+        const extRes = await fetch("https://tmpfiles.org/api/v1/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (extRes.ok) {
+          const extData = await extRes.json();
+          if (extData.status === "success" && extData.data?.url) {
+            const directUrl = extData.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+            setReferenceUrl(directUrl);
+            setIsUploading(false);
+            return;
+          }
+        }
+      } catch (extErr) {
+        console.error("External upload error:", extErr);
+      }
+      alert("Bağlantı hatası oluştu. Lütfen Google Drive veya Mega linki bırakmayı deneyin.");
     } finally {
       setIsUploading(false);
     }

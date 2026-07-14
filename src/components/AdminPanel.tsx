@@ -38,35 +38,58 @@ function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" 
     formData.append("file", file);
 
     try {
+      // 1. Try local server upload first
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
       
-      let errorMessage = "Yükleme başarısız.";
       if (res.ok) {
-        try {
-          const data = await res.json();
-          if (data.success && data.url) {
-            onUploadSuccess(data.url);
-            return;
-          } else {
-            errorMessage = data.error || errorMessage;
-          }
-        } catch (jsonErr) {
-          errorMessage = "Sunucudan geçersiz yanıt alındı.";
-        }
-      } else {
-        try {
-          const data = await res.json();
-          errorMessage = data.error || `Sunucu hatası: ${res.status}`;
-        } catch (jsonErr) {
-          const text = await res.text().catch(() => "");
-          errorMessage = text ? `Hata (${res.status}): ${text.substring(0, 100)}` : `Sunucu hatası (${res.status})`;
+        const data = await res.json();
+        if (data.success && data.url) {
+          onUploadSuccess(data.url);
+          setUploading(false);
+          return;
         }
       }
-      setError(errorMessage);
+
+      // 2. Local upload failed or was rejected, fall back to high-speed tmpfiles.org
+      console.log("Local media upload failed. Falling back to tmpfiles.org...");
+      const extRes = await fetch("https://tmpfiles.org/api/v1/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (extRes.ok) {
+        const extData = await extRes.json();
+        if (extData.status === "success" && extData.data?.url) {
+          const directUrl = extData.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+          onUploadSuccess(directUrl);
+          setUploading(false);
+          return;
+        }
+      }
+      
+      setError("Dosya yüklenemedi. Sunucu limiti aşılmış olabilir. Lütfen daha küçük bir dosya seçin.");
     } catch (err: any) {
+      // Try direct external upload if there is a network issue with local server
+      try {
+        const extRes = await fetch("https://tmpfiles.org/api/v1/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (extRes.ok) {
+          const extData = await extRes.json();
+          if (extData.status === "success" && extData.data?.url) {
+            const directUrl = extData.data.url.replace("tmpfiles.org/", "tmpfiles.org/dl/");
+            onUploadSuccess(directUrl);
+            setUploading(false);
+            return;
+          }
+        }
+      } catch (extErr) {
+        console.error("External upload error:", extErr);
+      }
       setError(`Bağlantı hatası: ${err.message || err}`);
     } finally {
       setUploading(false);
@@ -158,25 +181,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     if (content) {
       setEditedContent(prev => {
         if (!prev) return JSON.parse(JSON.stringify(content));
-        
-        const localRequests = prev.requests || [];
-        const remoteRequests = content.requests || [];
-        
-        const mergedRequests = remoteRequests.map(remoteReq => {
-          const localMatch = localRequests.find(l => l.id === remoteReq.id);
-          return localMatch ? localMatch : remoteReq;
-        });
-
-        localRequests.forEach(localReq => {
-          if (!mergedRequests.some(m => m.id === localReq.id)) {
-            mergedRequests.push(localReq);
-          }
-        });
-
         return {
           ...prev,
-          requests: mergedRequests,
-          visitorCount: content.visitorCount || 0
+          requests: content.requests || [],
+          visitorCount: content.visitorCount || 0,
+          faqs: content.faqs || prev.faqs,
+          categories: prev.categories // Preserve active category edits in progress
         };
       });
     }
