@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, doc, getDoc, setDoc, runTransaction } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc, runTransaction } from "firebase/firestore";
 import firebaseConfig from "../firebase-applet-config.json";
 
 const firebaseApp = initializeApp(firebaseConfig);
 
 export const db = firebaseConfig.firestoreDatabaseId
-  ? initializeFirestore(firebaseApp, {}, firebaseConfig.firestoreDatabaseId)
-  : initializeFirestore(firebaseApp, {});
+  ? getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId)
+  : getFirestore(firebaseApp);
 
 const DEFAULT_CONTENT = {
   visitorCount: 0,

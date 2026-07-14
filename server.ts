@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
-import { initializeFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 
 const app = express();
 const PORT = 3000;
@@ -19,8 +19,8 @@ try {
     const firebaseConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf-8"));
     firebaseApp = initializeApp(firebaseConfig);
     db = firebaseConfig.firestoreDatabaseId
-      ? initializeFirestore(firebaseApp, {}, firebaseConfig.firestoreDatabaseId)
-      : initializeFirestore(firebaseApp, {});
+      ? getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId)
+      : getFirestore(firebaseApp);
     console.log("Firebase initialized successfully with project ID:", firebaseConfig.projectId);
   } else {
     console.warn("firebase-applet-config.json not found. Offline fallback mode.");
