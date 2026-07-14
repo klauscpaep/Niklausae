@@ -8,6 +8,7 @@ import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import parsMaziProfile from "./assets/images/pars_mazi_profile_1784000260155.jpg";
+import { fetchSiteContent, saveSiteContent, incrementVisitorCount } from "./firebase";
 
 export default function App() {
   const [content, setContent] = useState<SiteContent | null>(null);
@@ -24,26 +25,20 @@ export default function App() {
     async function initApp() {
       try {
         setIsLoading(true);
-        // Fetch content first
-        const contentRes = await fetch("/api/content");
-        if (!contentRes.ok) throw new Error("İçerikler yüklenemedi.");
-        const data: SiteContent = await contentRes.ok ? await contentRes.json() : null;
         
-        // Track unique visit in session to avoid double counting
+        // Track unique visit first (run transaction)
         const hasVisited = sessionStorage.getItem("has_visited_pars_mazi");
         if (!hasVisited) {
-          const visitRes = await fetch("/api/visit", { method: "POST" });
-          if (visitRes.ok) {
-            const visitData = await visitRes.json();
-            data.visitorCount = visitData.visitorCount;
-          }
+          await incrementVisitorCount();
           sessionStorage.setItem("has_visited_pars_mazi", "true");
         }
         
-        setContent(data);
+        // Fetch content directly from Firestore
+        const data = await fetchSiteContent();
+        setContent(data as SiteContent);
       } catch (err) {
         console.error(err);
-        setError("Sunucu bağlantısı kurulamadı. Lütfen sayfayı yenileyin.");
+        setError("Veritabanı bağlantısı kurulamadı. Lütfen internetinizi kontrol edin.");
       } finally {
         setIsLoading(false);
       }
@@ -68,24 +63,22 @@ export default function App() {
   // Save changes from Admin Panel
   const handleSaveContent = async (updatedContent: SiteContent, passwordToVerify: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      const res = await fetch("/api/content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          password: passwordToVerify,
-          content: updatedContent
-        })
-      });
-
-      const responseData = await res.json();
-      if (res.ok && responseData.success) {
-        setContent(responseData.content);
-        return { success: true };
-      } else {
-        return { success: false, error: responseData.error || "Güncelleme başarısız." };
+      if (passwordToVerify !== content?.settings.adminPassword) {
+        return { success: false, error: "Hatalı yönetici şifresi!" };
       }
+
+      // Preserve visitorCount if not explicitly provided
+      const finalContent = {
+        ...updatedContent,
+        visitorCount: updatedContent.visitorCount !== undefined ? updatedContent.visitorCount : content.visitorCount
+      };
+
+      await saveSiteContent(finalContent);
+      setContent(finalContent);
+      return { success: true };
     } catch (err) {
-      return { success: false, error: "Sunucu hatası oluştu." };
+      console.error(err);
+      return { success: false, error: "Veritabanına kaydedilirken hata oluştu." };
     }
   };
 
