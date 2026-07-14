@@ -5,6 +5,7 @@ import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import multer from "multer";
+import { Blob } from "buffer";
 
 const app = express();
 const PORT = 3000;
@@ -532,14 +533,59 @@ app.post("/api/visit", async (req, res) => {
   }
 });
 
+// Helper to upload a file to Catbox (free, permanent, high-speed CDN with streaming / partial content support)
+async function uploadToCatbox(filePath: string, originalName: string, mimeType: string): Promise<string> {
+  const fileBuffer = fs.readFileSync(filePath);
+  const blob = new Blob([fileBuffer], { type: mimeType });
+  const formData = new (globalThis as any).FormData();
+  formData.append("reqtype", "fileupload");
+  formData.append("fileToUpload", blob, originalName);
+
+  console.log(`[Catbox] Uploading ${originalName} (${mimeType}, size: ${fileBuffer.length} bytes)...`);
+  const response = await fetch("https://catbox.moe/user/api.php", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Catbox HTTP error! Status: ${response.status}`);
+  }
+
+  const resultUrl = await response.text();
+  if (!resultUrl || !resultUrl.startsWith("http")) {
+    throw new Error(`Invalid Catbox response: ${resultUrl}`);
+  }
+
+  console.log(`[Catbox] Upload success! Permanent URL: ${resultUrl}`);
+  return resultUrl.trim();
+}
+
 // File upload API endpoint
-app.post("/api/upload", upload.single("file"), (req, res) => {
+app.post("/api/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: "Dosya gönderilmedi veya yüklenirken bir hata oluştu." });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    res.json({ success: true, url: fileUrl });
+    
+    const localUrl = `/uploads/${req.file.filename}`;
+    
+    try {
+      // Attempt permanent upload to Catbox
+      const catboxUrl = await uploadToCatbox(req.file.path, req.file.originalname, req.file.mimetype);
+      
+      // Clean up the local file after successful Catbox upload to save disk space
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {
+        console.warn("Could not delete local temp upload file:", unlinkErr);
+      }
+      
+      return res.json({ success: true, url: catboxUrl });
+    } catch (catboxErr) {
+      console.error("Catbox upload failed, falling back to local storage:", catboxErr);
+      // Fallback to local URL if Catbox fails
+      return res.json({ success: true, url: localUrl });
+    }
   } catch (err: any) {
     console.error("Upload handler error:", err);
     res.status(500).json({ error: err.message || "Dosya sunucuya yazılırken hata oluştu." });
