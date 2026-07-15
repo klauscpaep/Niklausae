@@ -609,6 +609,33 @@ async function uploadToFirebaseStorage(filePath: string, originalName: string, m
   }
 }
 
+// Helper to upload a file to Pixeldrain (free, high-speed CDN, unblocked in Turkey, supports streaming/Range headers)
+async function uploadToPixeldrain(filePath: string, originalName: string, mimeType: string): Promise<string> {
+  const fileBuffer = fs.readFileSync(filePath);
+  const blob = new Blob([fileBuffer], { type: mimeType });
+  const formData = new (globalThis as any).FormData();
+  formData.append("file", blob, originalName);
+
+  console.log(`[Pixeldrain] Uploading ${originalName} (${mimeType}, size: ${fileBuffer.length} bytes)...`);
+  const response = await fetch("https://pixeldrain.com/api/file", {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Pixeldrain HTTP error! Status: ${response.status}`);
+  }
+
+  const data = await response.json();
+  if (!data.success || !data.id) {
+    throw new Error(`Pixeldrain upload failed: ${JSON.stringify(data)}`);
+  }
+
+  const directUrl = `https://pixeldrain.com/api/file/${data.id}`;
+  console.log(`[Pixeldrain] Upload success! Permanent URL: ${directUrl}`);
+  return directUrl;
+}
+
 // Helper to upload a file to Catbox (free, permanent, high-speed CDN with streaming / partial content support)
 async function uploadToCatbox(filePath: string, originalName: string, mimeType: string): Promise<string> {
   const fileBuffer = fs.readFileSync(filePath);
@@ -659,11 +686,39 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
         
         return res.json({ success: true, url: firebaseUrl });
       } catch (fbErr: any) {
-        console.error("Firebase Storage upload failed, trying local storage:", fbErr);
+        console.error("Firebase Storage upload failed, trying next fallback:", fbErr);
       }
     }
 
-    // 2. Fallback to local server static storage (fully functional, extremely fast, completely unblocked)
+    // 2. Try Pixeldrain as the highly durable, permanent second option (unblocked in Turkey, supports fast streaming/range headers)
+    try {
+      const pixeldrainUrl = await uploadToPixeldrain(req.file.path, req.file.originalname, req.file.mimetype);
+      
+      // Clean up local temp file
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {}
+
+      return res.json({ success: true, url: pixeldrainUrl });
+    } catch (pdErr) {
+      console.error("Pixeldrain upload failed, trying next fallback:", pdErr);
+    }
+
+    // 3. Try Catbox as a third option
+    try {
+      const catboxUrl = await uploadToCatbox(req.file.path, req.file.originalname, req.file.mimetype);
+      
+      // Clean up local temp file
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (unlinkErr) {}
+
+      return res.json({ success: true, url: catboxUrl });
+    } catch (cbErr) {
+      console.error("Catbox upload failed, falling back to local storage:", cbErr);
+    }
+
+    // 4. Fallback to local server static storage (fully functional, extremely fast, completely unblocked)
     console.log("Using local storage fallback for upload:", localUrl);
     return res.json({ success: true, url: localUrl });
   } catch (err: any) {
@@ -794,19 +849,34 @@ async function migrateCatboxUrls() {
               let finalUrl = localUrl;
 
               // 4. Try uploading to Firebase Storage if available
+              let uploadedToCloud = false;
               if (storageBucketName) {
                 try {
                   finalUrl = await uploadToFirebaseStorage(localFilePath, originalName, contentType);
                   console.log(`[Migration] Successfully uploaded to Firebase Storage: ${finalUrl}`);
+                  uploadedToCloud = true;
                   // delete local temp file if uploaded to Firebase
                   try {
                     fs.unlinkSync(localFilePath);
                   } catch (e) {}
                 } catch (fbErr) {
-                  console.error("[Migration] Failed to upload to Firebase Storage, keeping local fallback:", fbErr);
+                  console.error("[Migration] Failed to upload to Firebase Storage, trying Pixeldrain fallback:", fbErr);
                 }
-              } else {
-                console.log(`[Migration] Firebase Storage not initialized. Using local fallback: ${localUrl}`);
+              }
+
+              // Try Pixeldrain as secondary cloud fallback
+              if (!uploadedToCloud) {
+                try {
+                  finalUrl = await uploadToPixeldrain(localFilePath, originalName, contentType);
+                  console.log(`[Migration] Successfully uploaded to Pixeldrain: ${finalUrl}`);
+                  uploadedToCloud = true;
+                  // delete local temp file if uploaded
+                  try {
+                    fs.unlinkSync(localFilePath);
+                  } catch (e) {}
+                } catch (pdErr) {
+                  console.error("[Migration] Failed to upload to Pixeldrain, using local fallback:", pdErr);
+                }
               }
 
               // 5. Update item
