@@ -10,6 +10,7 @@ import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import AnnouncementsList from "./components/AnnouncementsList";
 import HelpRequestsSection from "./components/HelpRequestsSection";
+import NewsletterForm from "./components/NewsletterForm";
 import MiniPlayer from "./components/MiniPlayer";
 import defaultProfileImg from "./assets/images/pars_mazi_profile_1784000260155.jpg";
 import goldenPolyBg from "./assets/images/golden_poly_bg_1784006785795.jpg";
@@ -888,7 +889,12 @@ export default function App() {
 
         </div>
 
-
+        {/* Newsletter Subscription Form */}
+        <NewsletterForm 
+          content={content} 
+          onSaveContent={handleSaveUserContent} 
+          onShowToast={showToast} 
+        />
 
         {/* User Requests & FAQ Section */}
         <HelpRequestsSection content={content} onSaveContent={handleSaveUserContent} />

@@ -16,6 +16,10 @@
         "categories": {
           "type": "array",
           "description": "List of all download categories (rooms) and their respective package items"
+        },
+        "subscribers": {
+          "type": "array",
+          "description": "List of subscribers signed up for the newsletter notifications"
         }
       },
       "required": ["visitorCount", "settings", "categories"]

@@ -90,6 +90,12 @@ export interface FAQItem {
   active: boolean;
 }
 
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  subscribedAt: string;
+}
+
 export interface SiteContent {
   visitorCount: number;
   settings: SiteSettings;
@@ -97,4 +103,5 @@ export interface SiteContent {
   announcements?: Announcement[];
   requests?: SuggestionRequest[];
   faqs?: FAQItem[];
+  subscribers?: NewsletterSubscriber[];
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, 
+  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, Mail, 
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
@@ -202,7 +202,7 @@ interface AdminPanelProps {
   onSave: (updatedContent: SiteContent, passwordToVerify: string) => Promise<{ success: boolean; error?: string }>;
 }
 
-type TabType = "dashboard" | "general" | "categories" | "announcements" | "bio" | "system" | "requests";
+type TabType = "dashboard" | "general" | "categories" | "announcements" | "bio" | "system" | "requests" | "subscribers";
 
 export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPanelProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -222,6 +222,9 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
   // FAQ Admin state
   const [newFaq, setNewFaq] = useState({ question: "", answer: "", active: true });
   const [editingFaqId, setEditingFaqId] = useState<string | null>(null);
+
+  // Subscriber search state
+  const [subscriberSearchQuery, setSubscriberSearchQuery] = useState("");
 
   // Temp states for adding category/item
   const [selectedCatId, setSelectedCatId] = useState<string>("");
@@ -258,6 +261,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
           requests: content.requests || [],
           visitorCount: content.visitorCount || 0,
           faqs: content.faqs || prev.faqs,
+          subscribers: content.subscribers || [],
           categories: prev.categories // Preserve active category edits in progress
         };
       });
@@ -834,6 +838,18 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                           <HelpCircle size={13} className={activeTab === "requests" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
                           <span className="tracking-wide">İstek & SSS</span>
                         </button>
+
+                        <button
+                          onClick={() => setActiveTab("subscribers")}
+                          className={`flex items-center gap-2 md:gap-3 px-3 py-2 md:px-3.5 md:py-3 rounded-lg md:rounded-xl text-[11px] md:text-xs font-bold transition-all shrink-0 cursor-pointer group ${
+                            activeTab === "subscribers" 
+                              ? "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20" 
+                              : "text-zinc-400 hover:text-white hover:bg-zinc-900/40 border border-transparent"
+                          }`}
+                        >
+                          <Mail size={13} className={activeTab === "subscribers" ? "text-indigo-400" : "text-zinc-500 group-hover:text-zinc-300"} />
+                          <span className="tracking-wide">Bülten Aboneleri</span>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -869,6 +885,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                         {activeTab === "bio" && "Kişisel Biyografi & Linkler"}
                         {activeTab === "system" && "Sayaçlar & Güvenlik Şifresi"}
                         {activeTab === "requests" && "Kullanıcı İstekleri & SSS Yönetimi"}
+                        {activeTab === "subscribers" && "Bülten Abone Listesi"}
                       </span>
                     </div>
 
@@ -2795,6 +2812,94 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                     </div>
                                   </div>
                                 ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {activeTab === "subscribers" && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex-1 overflow-y-auto p-6 space-y-6"
+                      >
+                        <div className="bg-[#10121a] border border-zinc-900 rounded-2xl p-5 space-y-6">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                              <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">BÜLTEN ABONE LİSTESİ</h3>
+                              <p className="text-[10px] text-zinc-400 font-mono">
+                                Yeni paket yayınlandığında bilgilendirilmeyi bekleyen kullanıcıların e-posta listesi.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-xs font-mono bg-indigo-500/10 text-indigo-400 px-3 py-1.5 rounded-lg border border-indigo-500/20">
+                                Toplam Abone: {(editedContent.subscribers || []).length}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const emails = (editedContent.subscribers || []).map(s => s.email).join("\n");
+                                  navigator.clipboard.writeText(emails);
+                                  alert("Tüm e-postalar panoya kopyalandı! (Satır satır)");
+                                }}
+                                className="px-3 py-1.5 bg-[#141620] hover:bg-zinc-800 text-[10px] font-mono text-zinc-300 hover:text-white rounded-lg border border-zinc-800 transition-all cursor-pointer"
+                              >
+                                E-Postaları Kopyala
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Search Input */}
+                          <div className="relative">
+                            <input
+                              type="text"
+                              placeholder="E-posta adreslerinde ara..."
+                              value={subscriberSearchQuery}
+                              onChange={(e) => setSubscriberSearchQuery(e.target.value)}
+                              className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                            />
+                          </div>
+
+                          {/* Subscribers List Table */}
+                          <div className="border border-zinc-900/80 rounded-xl overflow-hidden bg-[#090a0f]">
+                            {(editedContent.subscribers || []).length === 0 ? (
+                              <div className="p-8 text-center text-zinc-500 font-mono text-xs">
+                                Henüz bültene kayıtlı abone bulunmuyor.
+                              </div>
+                            ) : (
+                              <div className="divide-y divide-zinc-900">
+                                {(editedContent.subscribers || [])
+                                  .filter(sub => sub.email.toLowerCase().includes(subscriberSearchQuery.toLowerCase()))
+                                  .map((sub, index) => (
+                                    <div key={sub.id} className="p-4 flex items-center justify-between hover:bg-[#10121a]/50 transition-colors gap-4">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <span className="text-[10px] font-mono text-zinc-500 bg-zinc-900 border border-zinc-850 w-6 h-6 rounded flex items-center justify-center shrink-0">
+                                          {index + 1}
+                                        </span>
+                                        <div className="min-w-0">
+                                          <p className="text-xs font-mono font-bold text-white truncate">{sub.email}</p>
+                                          <p className="text-[9px] font-mono text-zinc-500">
+                                            Kayıt Tarihi: {new Date(sub.subscribedAt).toLocaleString("tr-TR")}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (confirm(`${sub.email} adresini bültenden silmek istediğinize emin misiniz?`)) {
+                                            const filtered = (editedContent.subscribers || []).filter(s => s.id !== sub.id);
+                                            setEditedContent({ ...editedContent, subscribers: filtered });
+                                          }
+                                        }}
+                                        className="p-1.5 bg-red-600/5 hover:bg-red-600 border border-red-500/10 hover:border-red-500 text-red-500 hover:text-white rounded cursor-pointer transition-all"
+                                        title="Aboneyi Sil"
+                                      >
+                                        <Trash2 size={12} />
+                                      </button>
+                                    </div>
+                                  ))}
                               </div>
                             )}
                           </div>
