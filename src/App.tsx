@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, ExternalLink, ArrowUp, Mail,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
-  FolderOpen, FileCheck
+  FolderOpen, FileCheck, X, Lock, Unlock
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
@@ -40,6 +40,76 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeVideo, setActiveVideo] = useState<{ id: string; name: string; url: string } | null>(null);
+
+  // Maintenance Bypass States
+  const [isBypassed, setIsBypassed] = useState(() => sessionStorage.getItem("admin_maintenance_bypass") === "true");
+  const [maintenancePassword, setMaintenancePassword] = useState("");
+  const [maintenanceError, setMaintenanceError] = useState("");
+  const [showMaintenanceAuth, setShowMaintenanceAuth] = useState(false);
+
+  // Toast notifications state
+  interface ToastMessage {
+    id: string;
+    title: string;
+    message: string;
+    type: "success" | "info" | "new_package";
+  }
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const showToast = (title: string, message: string, type: "success" | "info" | "new_package") => {
+    const id = Date.now().toString() + Math.random().toString();
+    setToasts((prev) => [...prev, { id, title, message, type }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 6000);
+  };
+
+  const prevContentRef = useRef<SiteContent | null>(null);
+
+  // Compare database updates in real-time to alert user about new files/packages
+  useEffect(() => {
+    if (!content) return;
+
+    if (!prevContentRef.current) {
+      // First load: initialize reference to current categories/items and do not trigger toast
+      prevContentRef.current = content;
+      return;
+    }
+
+    const prevContent = prevContentRef.current;
+    prevContentRef.current = content;
+
+    // Check for newly added categories (packages)
+    const prevCategoryIds = new Set(prevContent.categories.map(c => c.id));
+    const currentCategories = content.categories;
+
+    currentCategories.forEach(category => {
+      if (!prevCategoryIds.has(category.id)) {
+        // A brand new category (package) was added!
+        showToast(
+          "Yeni Paket Eklendi! 🎉",
+          `"${category.title}" isimli yeni paket yayında. Hemen göz atın!`,
+          "new_package"
+        );
+      } else {
+        // Check if any new item was added to this existing category
+        const prevCategory = prevContent.categories.find(c => c.id === category.id);
+        if (prevCategory && prevCategory.items && category.items) {
+          const prevItemIds = new Set((prevCategory.items || []).map(item => item.id));
+          category.items.forEach(item => {
+            if (!prevItemIds.has(item.id)) {
+              // A brand new item was added inside this category!
+              showToast(
+                "Yeni Dosya Eklendi! 📂",
+                `"${category.title}" paketine "${item.name}" dosyası eklendi.`,
+                "success"
+              );
+            }
+          });
+        }
+      }
+    });
+  }, [content]);
 
   // Fetch site content & increment visitor count with real-time sync
   useEffect(() => {
@@ -169,6 +239,191 @@ export default function App() {
         >
           Yeniden Dene
         </button>
+      </div>
+    );
+  }
+
+  // Maintenance Mode Guard
+  if (content.settings.maintenanceMode && !isBypassed) {
+    const handleBypassSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const adminPass = content.settings.adminPassword || "admin";
+      if (maintenancePassword === adminPass) {
+        setIsBypassed(true);
+        sessionStorage.setItem("admin_maintenance_bypass", "true");
+        setMaintenanceError("");
+      } else {
+        setMaintenanceError("Hatalı yönetici şifresi girdiniz.");
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white font-sans p-6 text-center relative overflow-hidden">
+        {/* Futuristic background lighting */}
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-red-600/[0.05] blur-[140px] pointer-events-none" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-amber-600/[0.05] blur-[140px] pointer-events-none" />
+        <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] pointer-events-none" />
+
+        <div className="max-w-md w-full space-y-8 relative z-10">
+          {/* Animated Header Logo / Icon */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, type: "spring" }}
+            className="flex flex-col items-center"
+          >
+            <div className="p-5 bg-gradient-to-br from-red-600/10 to-amber-600/5 text-red-500 rounded-3xl border border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.06)] relative group">
+              <AlertTriangle size={48} className="animate-pulse" />
+              <div className="absolute -inset-1 rounded-3xl bg-red-500/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            </div>
+            
+            <div className="mt-6 space-y-1.5">
+              <span className="text-[10px] font-mono tracking-[0.25em] text-red-500 font-extrabold uppercase bg-red-500/5 px-3 py-1 rounded-full border border-red-500/10">
+                SİTEMİZ GEÇİCİ OLARAK KAPALIDIR
+              </span>
+              <h2 className="text-2xl font-display font-black text-white tracking-tight uppercase pt-2">
+                SİTEMİZ BAKIMDADIR
+              </h2>
+            </div>
+          </motion.div>
+
+          {/* Description Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="bg-zinc-900/40 border border-zinc-900/80 p-6 rounded-2xl space-y-4 backdrop-blur-md"
+          >
+            <p className="text-xs text-zinc-400 font-medium leading-relaxed font-mono">
+              Sizlere daha profesyonel ve daha hızlı bir deneyim sunabilmek için şu anda web sitemizi güncelliyoruz. Muhteşem yenilikler ve yeni edit paketleriyle çok yakında hizmetinizde olacağız!
+            </p>
+            <div className="w-12 h-[1px] bg-red-600/50 mx-auto" />
+            <p className="text-[10px] text-zinc-500 font-mono tracking-wider uppercase">
+              DESTEK VE SOSYAL MEDYA HESAPLARIMIZI TAKİP EDEBİLİRSİNİZ.
+            </p>
+          </motion.div>
+
+          {/* Social Icons inside Maintenance screen */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center items-center gap-4"
+          >
+            {content.settings.socialLinks.youtube && (
+              <a 
+                href={content.settings.socialLinks.youtube}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="p-3 bg-zinc-900/60 border border-zinc-850 hover:border-red-600/30 text-zinc-400 hover:text-white rounded-xl transition-all hover:-translate-y-0.5 cursor-pointer"
+                title="YouTube"
+              >
+                <Youtube size={18} fill="currentColor" />
+              </a>
+            )}
+            {content.settings.socialLinks.instagram && (
+              <a 
+                href={content.settings.socialLinks.instagram}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="p-3 bg-zinc-900/60 border border-zinc-850 hover:border-pink-600/30 text-zinc-400 hover:text-white rounded-xl transition-all hover:-translate-y-0.5 cursor-pointer"
+                title="Instagram"
+              >
+                <Instagram size={18} />
+              </a>
+            )}
+            {content.settings.socialLinks.discord && (
+              <a 
+                href={content.settings.socialLinks.discord}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="p-3 bg-zinc-900/60 border border-zinc-850 hover:border-blue-600/30 text-zinc-400 hover:text-white rounded-xl transition-all hover:-translate-y-0.5 cursor-pointer"
+                title="Discord"
+              >
+                <Disc size={18} />
+              </a>
+            )}
+            {content.settings.socialLinks.tiktok && (
+              <a 
+                href={content.settings.socialLinks.tiktok}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="p-3 bg-zinc-900/60 border border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-xl transition-all hover:-translate-y-0.5 cursor-pointer"
+                title="TikTok"
+              >
+                <TikTokIcon size={18} />
+              </a>
+            )}
+          </motion.div>
+
+          {/* Admin Bypass Module */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+            className="pt-4 border-t border-zinc-900/40"
+          >
+            {!showMaintenanceAuth ? (
+              <button
+                onClick={() => setShowMaintenanceAuth(true)}
+                className="px-4 py-2 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-850 text-[10px] text-zinc-500 hover:text-zinc-300 rounded-xl font-mono uppercase tracking-widest transition-all cursor-pointer flex items-center gap-1.5 mx-auto"
+              >
+                <Lock size={12} /> Yönetici Girişi
+              </button>
+            ) : (
+              <motion.form 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                onSubmit={handleBypassSubmit}
+                className="max-w-xs mx-auto space-y-3 bg-zinc-900/20 p-4 rounded-2xl border border-zinc-900/80 backdrop-blur-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-1">
+                    <Lock size={10} /> ADMİN PANEL ŞİFRESİ
+                  </span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowMaintenanceAuth(false);
+                      setMaintenancePassword("");
+                      setMaintenanceError("");
+                    }}
+                    className="text-[9px] font-mono text-zinc-500 hover:text-white transition-colors cursor-pointer"
+                  >
+                    KAPAT
+                  </button>
+                </div>
+                
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    placeholder="Şifreyi yazın..."
+                    value={maintenancePassword}
+                    onChange={(e) => setMaintenancePassword(e.target.value)}
+                    className="flex-1 px-3 py-2 bg-[#08090d] border border-zinc-850 focus:border-red-500/50 rounded-xl text-xs text-white focus:outline-none transition-all font-mono"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="px-4 bg-red-600 hover:bg-red-500 text-white text-xs font-mono font-bold rounded-xl border border-red-500 transition-all cursor-pointer shadow-md shadow-red-600/10"
+                  >
+                    GİRİŞ
+                  </button>
+                </div>
+                
+                {maintenanceError && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[9px] font-mono text-red-500 text-left"
+                  >
+                    {maintenanceError}
+                  </motion.p>
+                )}
+              </motion.form>
+            )}
+          </motion.div>
+        </div>
       </div>
     );
   }
@@ -681,6 +936,49 @@ export default function App() {
         onClose={() => setIsAdminOpen(false)} 
         onSave={handleSaveContent}
       />
+
+      {/* Toast Notification Container */}
+      <div className="fixed bottom-6 left-6 z-50 flex flex-col gap-3.5 max-w-sm w-[calc(100vw-3rem)] sm:w-[360px] pointer-events-none">
+        <AnimatePresence>
+          {toasts.map((toast) => (
+            <motion.div
+              key={toast.id}
+              initial={{ opacity: 0, x: -30, scale: 0.9 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -20, scale: 0.95, transition: { duration: 0.18 } }}
+              className="pointer-events-auto w-full p-4 bg-zinc-950/95 backdrop-blur-md border border-zinc-900/90 hover:border-red-500/30 rounded-2xl shadow-2xl flex items-start gap-3.5 overflow-hidden relative group transition-all duration-300"
+            >
+              {/* Left Accent Neon Strip */}
+              <div className="absolute left-0 inset-y-0 w-[4px] bg-gradient-to-b from-red-600 to-amber-500 rounded-l-2xl" />
+
+              {/* Glowing Background Glow (Subtle) */}
+              <div className="absolute -right-16 -top-16 w-32 h-32 bg-gradient-to-br from-red-500/10 to-transparent blur-xl pointer-events-none" />
+
+              <div className="p-2 bg-zinc-900 border border-zinc-800 text-red-500 rounded-xl relative shrink-0">
+                <Sparkles size={16} className="animate-pulse" />
+              </div>
+
+              <div className="flex-1 space-y-1 pr-1">
+                <h4 className="text-xs font-mono font-black text-white uppercase tracking-wider flex items-center gap-2">
+                  {toast.title}
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                </h4>
+                <p className="text-[11px] text-zinc-400 font-medium leading-relaxed">
+                  {toast.message}
+                </p>
+              </div>
+
+              {/* Close Button */}
+              <button 
+                onClick={() => setToasts((prev) => prev.filter((t) => t.id !== toast.id))}
+                className="p-1 hover:bg-zinc-900 rounded-lg text-zinc-500 hover:text-white transition-colors cursor-pointer shrink-0"
+              >
+                <X size={14} />
+              </button>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
 
     </div>
   );

@@ -1202,6 +1202,33 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                           <Globe size={18} className="text-indigo-400" />
                           <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">Ana Sayfa Başlıkları & Kimlik</h3>
                         </div>
+
+                        {/* Maintenance Mode Toggle */}
+                        <div className="p-4 bg-red-950/5 border border-red-950/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-mono font-black text-red-400 uppercase tracking-wider flex items-center gap-2">
+                              <AlertTriangle size={14} className="text-red-500 animate-pulse" />
+                              SİTE BAKIM MODU (MAINTENANCE MODE)
+                            </h4>
+                            <p className="text-[10px] text-zinc-400 font-mono leading-relaxed max-w-xl">
+                              Bakım modu aktif olduğunda, giriş yapmamış normal ziyaretçiler sadece şık bir "Sitemiz Bakımdadır" ekranı görür. Admin girişiniz açık olduğu sürece siz siteyi normal görmeye ve yönetmeye devam edersiniz.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, maintenanceMode: !editedContent.settings.maintenanceMode }
+                            })}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider border transition-all duration-300 shrink-0 ${
+                              editedContent.settings.maintenanceMode
+                                ? "bg-red-500/15 border-red-500/30 text-red-400 hover:bg-red-500/25 shadow-[0_0_15px_rgba(239,68,68,0.08)] cursor-pointer"
+                                : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white cursor-pointer"
+                            }`}
+                          >
+                            {editedContent.settings.maintenanceMode ? "● BAKIMDA (AKTİF)" : "○ YAYINDA (PASİF)"}
+                          </button>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="space-y-1.5">

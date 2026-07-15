@@ -1,23 +1,80 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Minimize2, Maximize2, Play, Pause, Volume2, VolumeX, Sparkles, Tv, Move } from "lucide-react";
+import { 
+  X, Minimize2, Maximize2, Play, Pause, Volume2, VolumeX, 
+  Sparkles, Tv, Move, Loader2, AlertTriangle 
+} from "lucide-react";
 
 interface MiniPlayerProps {
   video: { id: string; name: string; url: string } | null;
   onClose: () => void;
 }
 
+// Helper function to validate video URLs
+export function validateVideoUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  const cleanUrl = url.trim();
+  if (cleanUrl.startsWith("/") || cleanUrl.startsWith("data:")) return true;
+  
+  try {
+    const parsed = new URL(cleanUrl);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+    
+    // YouTube hostnames
+    if (parsed.hostname.includes("youtube.com") || parsed.hostname.includes("youtu.be")) {
+      return true;
+    }
+    
+    // Check path for typical video extensions or upload structure
+    const pathname = parsed.pathname.toLowerCase();
+    if (
+      pathname.endsWith(".mp4") ||
+      pathname.endsWith(".webm") ||
+      pathname.endsWith(".ogg") ||
+      pathname.endsWith(".mov") ||
+      pathname.endsWith(".m4v") ||
+      pathname.includes("/uploads/") ||
+      pathname.includes("/video")
+    ) {
+      return true;
+    }
+    
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 export default function MiniPlayer({ video, onClose }: MiniPlayerProps) {
   const [isMinimized, setIsMinimized] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
+    let timeoutId: any;
     if (video) {
       setIsMinimized(false);
       setIsPlaying(true);
+      
+      if (!validateVideoUrl(video.url)) {
+        setHasError(true);
+        setIsLoading(false);
+      } else {
+        setHasError(false);
+        setIsLoading(true);
+        
+        // Safety timeout to dismiss loading animation if something is slow/blocked
+        timeoutId = setTimeout(() => {
+          setIsLoading(false);
+        }, 12000);
+      }
     }
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [video]);
 
   if (!video) return null;
@@ -117,6 +174,7 @@ export default function MiniPlayer({ video, onClose }: MiniPlayerProps) {
                 className="w-full h-full border-none"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                onLoad={() => setIsLoading(false)}
               />
             ) : (
               <video
@@ -129,11 +187,40 @@ export default function MiniPlayer({ video, onClose }: MiniPlayerProps) {
                 className="w-full h-full object-cover"
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
+                onLoadedData={() => setIsLoading(false)}
+                onCanPlay={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false);
+                  setHasError(true);
+                }}
               />
             )}
 
+            {/* Loading Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center gap-3 z-20">
+                <Loader2 className="w-7 h-7 text-red-500 animate-spin" />
+                <span className="text-[9px] font-mono tracking-widest text-zinc-400 uppercase animate-pulse">
+                  VİDEO YÜKLENİYOR...
+                </span>
+              </div>
+            )}
+
+            {/* Error Overlay */}
+            {hasError && (
+              <div className="absolute inset-0 bg-zinc-950 flex flex-col items-center justify-center gap-2.5 p-4 text-center z-20">
+                <AlertTriangle className="w-7 h-7 text-red-500 animate-bounce" />
+                <div className="space-y-1">
+                  <h4 className="text-[10px] font-mono font-bold text-white uppercase tracking-wider">Hata Oluştu</h4>
+                  <p className="text-[9px] font-mono text-zinc-500 leading-relaxed max-w-[200px] mx-auto">
+                    Video kaynağı oynatılamadı veya adres doğrulanamadı.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Custom On-Hover Controls for direct HTML5 MP4/MOV videos */}
-            {!isYouTube && (
+            {!isYouTube && !isLoading && !hasError && (
               <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between z-10">
                 <button
                   onClick={handlePlayPause}
