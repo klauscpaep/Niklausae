@@ -186,7 +186,7 @@ function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" 
           type="file" 
           accept={accept} 
           onChange={handleFileChange} 
-          className="hidden" 
+          className="sr-only" 
           disabled={uploading}
         />
       </label>

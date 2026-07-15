@@ -6,6 +6,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { getStorage, ref as fbStorageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getAuth, signInAnonymously } from "firebase/auth";
+import { Storage as GCSStorage } from "@google-cloud/storage";
 import multer from "multer";
 import { Blob } from "buffer";
 
@@ -61,6 +62,7 @@ const CONFIG_FILE = path.join(process.cwd(), "firebase-applet-config.json");
 let firebaseApp: any = null;
 let db: any = null;
 let storageBucket: any = null;
+let storageBucketName: string | null = null;
 
 // Anonymous authentication helper to satisfy Firebase security rules
 async function ensureAuthenticated() {
@@ -88,6 +90,7 @@ try {
     
     if (firebaseConfig.storageBucket) {
       storageBucket = getStorage(firebaseApp);
+      storageBucketName = firebaseConfig.storageBucket;
       console.log("Firebase Storage initialized with bucket:", firebaseConfig.storageBucket);
     }
   } else {
@@ -558,27 +561,52 @@ app.post("/api/visit", async (req, res) => {
 
 // Helper to upload a file to Firebase Storage (highly reliable, permanent, unblocked in Turkey)
 async function uploadToFirebaseStorage(filePath: string, originalName: string, mimeType: string): Promise<string> {
-  if (!storageBucket) {
-    throw new Error("Firebase Storage is not initialized.");
+  if (!storageBucketName) {
+    throw new Error("Firebase Storage bucket name is not configured.");
   }
-
-  await ensureAuthenticated();
 
   const fileBuffer = fs.readFileSync(filePath);
   const uniqueId = Date.now() + "_" + Math.round(Math.random() * 1e6);
   const cleanName = originalName.replace(/[^a-zA-Z0-9.]/g, "_");
   const storagePath = `uploads/${uniqueId}_${cleanName}`;
-  const fileRef = fbStorageRef(storageBucket, storagePath);
 
-  console.log(`[Firebase Storage] Uploading ${originalName} to ${storagePath} (${mimeType}, size: ${fileBuffer.length} bytes)...`);
-  
-  await uploadBytes(fileRef, fileBuffer, {
-    contentType: mimeType,
-  });
+  console.log(`[GCS Storage] Attempting direct GCS upload of ${originalName} to ${storagePath} in bucket ${storageBucketName}...`);
 
-  const downloadUrl = await getDownloadURL(fileRef);
-  console.log(`[Firebase Storage] Upload success! Permanent URL: ${downloadUrl}`);
-  return downloadUrl;
+  try {
+    const gcs = new GCSStorage();
+    const bucket = gcs.bucket(storageBucketName);
+    const blob = bucket.file(storagePath);
+    
+    await blob.save(fileBuffer, {
+      metadata: {
+        contentType: mimeType,
+        cacheControl: 'public, max-age=31536000',
+      },
+    });
+
+    // Generate standard public Firebase Storage download URL
+    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${storageBucketName}/o/${encodeURIComponent(storagePath)}?alt=media`;
+    console.log(`[GCS Storage] Upload successful! Permanent URL: ${downloadUrl}`);
+    return downloadUrl;
+  } catch (gcsErr) {
+    console.error("[GCS Storage] Direct GCS upload failed, falling back to Web SDK upload:", gcsErr);
+    
+    // Fallback to Web SDK upload (requires auth/rules)
+    if (!storageBucket) {
+      throw new Error("Firebase Storage is not initialized.");
+    }
+
+    await ensureAuthenticated();
+    const fileRef = fbStorageRef(storageBucket, storagePath);
+    
+    await uploadBytes(fileRef, fileBuffer, {
+      contentType: mimeType,
+    });
+
+    const downloadUrl = await getDownloadURL(fileRef);
+    console.log(`[Firebase Storage Web SDK] Upload success! Permanent URL: ${downloadUrl}`);
+    return downloadUrl;
+  }
 }
 
 // Helper to upload a file to Catbox (free, permanent, high-speed CDN with streaming / partial content support)
@@ -618,7 +646,7 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     const localUrl = `/uploads/${req.file.filename}`;
     
     // 1. Try Firebase Storage first (highly reliable, permanent, 100% unblocked in Turkey)
-    if (storageBucket) {
+    if (storageBucketName) {
       try {
         const firebaseUrl = await uploadToFirebaseStorage(req.file.path, req.file.originalname, req.file.mimetype);
         
@@ -766,12 +794,9 @@ async function migrateCatboxUrls() {
               let finalUrl = localUrl;
 
               // 4. Try uploading to Firebase Storage if available
-              if (storageBucket) {
+              if (storageBucketName) {
                 try {
-                  await ensureAuthenticated();
-                  const fileRef = fbStorageRef(storageBucket, `uploads/${uniqueSuffix}_${originalName}`);
-                  await uploadBytes(fileRef, fileBuffer, { contentType });
-                  finalUrl = await getDownloadURL(fileRef);
+                  finalUrl = await uploadToFirebaseStorage(localFilePath, originalName, contentType);
                   console.log(`[Migration] Successfully uploaded to Firebase Storage: ${finalUrl}`);
                   // delete local temp file if uploaded to Firebase
                   try {

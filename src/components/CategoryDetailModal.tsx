@@ -173,6 +173,11 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                                 <video 
                                   src={item.previewVideo} 
                                   controls 
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  preload="auto"
                                   className="w-full h-full absolute inset-0 object-cover"
                                 />
                               )}
@@ -375,6 +380,11 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                     <video 
                       src={lightboxItem.previewVideo} 
                       controls 
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="auto"
                       className="w-full h-full object-cover"
                     />
                   )}
