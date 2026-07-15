@@ -30,41 +30,39 @@ export default function NewsletterForm({ content, onSaveContent, onShowToast }: 
     setIsSubmitting(true);
 
     try {
-      const currentSubscribers = content.subscribers || [];
       const emailLower = email.trim().toLowerCase();
 
-      // Check if already subscribed in database
-      const alreadyExists = currentSubscribers.some(
-        (sub) => sub.email.toLowerCase() === emailLower
-      );
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: emailLower }),
+      });
 
-      if (alreadyExists) {
-        setIsSubscribed(true);
-        localStorage.setItem("kreatif_newsletter_subscribed", "true");
-        onShowToast("Zaten Abonesiniz! 💌", "Bu e-posta adresi bültenimize zaten kayıtlı.", "info");
-        setIsSubmitting(false);
-        return;
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || "Abonelik işlemi başarısız.");
       }
 
-      const newSubscriber = {
-        id: Date.now().toString(),
-        email: emailLower,
-        subscribedAt: new Date().toISOString(),
-      };
+      const result = await response.json();
 
-      const updatedContent: SiteContent = {
-        ...content,
-        subscribers: [...currentSubscribers, newSubscriber],
-      };
-
-      await onSaveContent(updatedContent);
       setIsSubscribed(true);
       localStorage.setItem("kreatif_newsletter_subscribed", "true");
-      onShowToast("Abonelik Başarılı! 🎉", "Yeni paketler eklendiğinde ilk siz haberdar olacaksınız.", "success");
+
+      if (result.alreadyExists) {
+        onShowToast("Zaten Abonesiniz! 💌", "Bu e-posta adresi bültenimize zaten kayıtlı.", "info");
+      } else {
+        if (result.emailSent) {
+          onShowToast("Abonelik Başarılı! 🎉", "Aboneliğiniz onaylandı ve hoş geldiniz e-postası gönderildi.", "success");
+        } else {
+          onShowToast("Abonelik Başarılı! 🎉", "Yeni paketler eklendiğinde ilk siz haberdar olacaksınız.", "success");
+        }
+      }
       setEmail("");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      onShowToast("Hata ⚠️", "Abonelik gerçekleştirilirken bir hata oluştu.", "info");
+      onShowToast("Hata ⚠️", err.message || "Abonelik gerçekleştirilirken bir hata oluştu.", "info");
     } finally {
       setIsSubmitting(false);
     }

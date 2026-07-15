@@ -11,6 +11,7 @@ import CategoryDetailModal from "./components/CategoryDetailModal";
 import AnnouncementsList from "./components/AnnouncementsList";
 import HelpRequestsSection from "./components/HelpRequestsSection";
 import NewsletterForm from "./components/NewsletterForm";
+import LoadingScreen from "./components/LoadingScreen";
 import MiniPlayer from "./components/MiniPlayer";
 import defaultProfileImg from "./assets/images/pars_mazi_profile_1784000260155.jpg";
 import goldenPolyBg from "./assets/images/golden_poly_bg_1784006785795.jpg";
@@ -31,6 +32,7 @@ const TikTokIcon = ({ size = 16 }: { size?: number }) => (
 export default function App() {
   const [content, setContent] = useState<SiteContent | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoaderFinished, setIsLoaderFinished] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingText, setLoadingText] = useState(() => {
     return localStorage.getItem("kreatif_loading_text") || "KREATİF EDİT PACK yükleniyor...";
@@ -214,19 +216,7 @@ export default function App() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white font-sans gap-4">
-        <div className="relative flex items-center justify-center">
-          <Loader2 size={40} className="text-red-500 animate-spin" />
-          <div className="absolute w-12 h-12 rounded-full border border-red-500/20 animate-ping" />
-        </div>
-        <p className="text-zinc-500 text-xs font-mono tracking-widest uppercase animate-pulse">{loadingText}</p>
-      </div>
-    );
-  }
-
-  if (error || !content) {
+  if (error) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white font-sans p-6 text-center">
         <div className="p-4 bg-red-500/10 text-red-500 rounded-3xl border border-red-500/20 mb-4 animate-bounce">
@@ -240,6 +230,28 @@ export default function App() {
         >
           Yeniden Dene
         </button>
+      </div>
+    );
+  }
+
+  if (!isLoaderFinished) {
+    return (
+      <LoadingScreen 
+        loadingText={loadingText} 
+        isDataReady={!isLoading && !!content} 
+        onFinished={() => setIsLoaderFinished(true)} 
+      />
+    );
+  }
+
+  if (!content) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white font-sans p-6 text-center">
+        <div className="p-4 bg-red-500/10 text-red-500 rounded-3xl border border-red-500/20 mb-4">
+          <AlertTriangle size={32} className="text-red-500 animate-pulse" />
+        </div>
+        <h3 className="text-xl font-display font-bold text-white mb-2">Sistem Hatası</h3>
+        <p className="text-sm text-zinc-400 max-w-sm leading-relaxed mb-6">İçerik yüklenemedi.</p>
       </div>
     );
   }

@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
+import nodemailer from "nodemailer";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
 import { getStorage, ref as fbStorageRef, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -516,7 +517,210 @@ async function writeData(data: any) {
   }
 }
 
+// SMTP Dynamic Email Dispatcher Helper
+async function sendMailHelper(settings: any, to: string, subject: string, html: string) {
+  const host = settings?.smtpHost || process.env.SMTP_HOST;
+  const port = parseInt(settings?.smtpPort || process.env.SMTP_PORT || "587");
+  const user = settings?.smtpUser || process.env.SMTP_USER;
+  const pass = settings?.smtpPass || process.env.SMTP_PASS;
+  const fromEmail = settings?.smtpFrom || process.env.SMTP_FROM || user;
+  const fromName = settings?.smtpFromName || process.env.SMTP_FROM_NAME || "Kreatif Edit Arşivi";
+
+  if (!host || !user || !pass) {
+    console.warn("[SMTP] Mail sending skipped: SMTP configurations are not fully set up.");
+    return { success: false, reason: "SMTP settings incomplete in Admin Panel or .env" };
+  }
+
+  const transporter = nodemailer.createTransport({
+    host,
+    port,
+    secure: port === 465, // true for 465, false for other ports
+    auth: {
+      user,
+      pass,
+    },
+    tls: {
+      rejectUnauthorized: false // Bypass SSL self-signed certificate issues if any
+    }
+  });
+
+  const mailOptions = {
+    from: `"${fromName}" <${fromEmail}>`,
+    to,
+    subject,
+    html,
+  };
+
+  console.log(`[SMTP] Attempting to send email to ${to} via ${host}:${port}...`);
+  const info = await transporter.sendMail(mailOptions);
+  console.log("[SMTP] Email sent successfully! MessageID:", info.messageId);
+  return { success: true, messageId: info.messageId };
+}
+
 // API Routes
+app.post("/api/subscribe", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "E-posta adresi gereklidir." });
+    }
+
+    const emailLower = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(emailLower)) {
+      return res.status(400).json({ error: "Geçersiz e-posta adresi." });
+    }
+
+    const content = await readData();
+    const currentSubscribers = content.subscribers || [];
+
+    const alreadyExists = currentSubscribers.some(
+      (sub: any) => sub.email.toLowerCase() === emailLower
+    );
+
+    if (alreadyExists) {
+      return res.json({ success: true, alreadyExists: true, message: "Zaten abonesiniz!" });
+    }
+
+    const newSubscriber = {
+      id: "sub_" + Date.now() + "_" + Math.round(Math.random() * 1e6),
+      email: emailLower,
+      subscribedAt: new Date().toISOString(),
+    };
+
+    content.subscribers = [...currentSubscribers, newSubscriber];
+    await writeData(content);
+
+    // Send welcome email if SMTP is configured
+    let emailSent = false;
+    let emailError = null;
+    try {
+      const welcomeSubject = "Bülten Aboneliğiniz Onaylandı! 🎥 - Kreatif Edit Arşivi";
+      const welcomeHtml = `
+        <div style="background-color: #07070a; color: #ffffff; font-family: sans-serif; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 16px; border: 1px solid #1f1f2e;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #ffffff; letter-spacing: 4px; font-weight: 900; margin: 0 0 10px 0;">NIKLAUSAE</h1>
+            <span style="background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); padding: 6px 16px; border-radius: 50px; font-size: 11px; font-weight: bold; letter-spacing: 2px;">KREATİF EDİT ARCHIVE</span>
+          </div>
+          
+          <div style="background-color: #0d0e15; padding: 30px; border-radius: 12px; border: 1px solid #141622; margin-bottom: 30px;">
+            <h2 style="color: #ffffff; font-size: 18px; margin-top: 0; text-transform: uppercase; font-weight: 800; border-bottom: 1px solid #1f1f2e; padding-bottom: 12px;">BÜLTEN ABONELİĞİNİZ BAŞLADI! 🎉</h2>
+            <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6; margin: 15px 0;">
+              Harika bir karar! Kreatif Edit Arşivi bültenine başarıyla katıldınız. 
+            </p>
+            <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6; margin: 15px 0;">
+              Artık arşive eklenen <strong>yeni geçiş efektleri, After Effects presetleri, Premiere Pro şablonları veya yüksek kaliteli SFX kütüphanelerinden</strong> ilk siz haberdar olacaksınız.
+            </p>
+            <p style="color: #a1a1aa; font-size: 13px; line-height: 1.6; margin: 15px 0;">
+              Sistemdeki güncellemeleri kaçırmamak için bu e-postayı güvenli listenize eklemeyi unutmayın!
+            </p>
+          </div>
+          
+          <div style="text-align: center; margin-bottom: 30px;">
+            <a href="https://${req.headers.host || "niklausae-editpack.run.app"}" style="background-color: #dc2626; color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px; font-weight: bold; font-size: 13px; letter-spacing: 1px; display: inline-block; border: 1px solid #ef4444;">ARŞİVİ ZİYARET ET</a>
+          </div>
+          
+          <div style="text-align: center; border-top: 1px solid #1f1f2e; padding-top: 20px; font-size: 11px; color: #52525b;">
+            <p style="margin: 5px 0;">© 2026 NIKLAUSAE EDIT PACK. Tüm hakları saklıdır.</p>
+            <p style="margin: 5px 0;">Reklamsız • Spam içermez • İstediğiniz an ayrılabilirsiniz.</p>
+          </div>
+        </div>
+      `;
+
+      const mailResult = await sendMailHelper(content.settings, emailLower, welcomeSubject, welcomeHtml);
+      if (mailResult.success) {
+        emailSent = true;
+      } else {
+        emailError = mailResult.reason;
+      }
+
+      // Notify admin on new subscriber if enabled
+      if (content.settings.notifyOnNewSubscriber) {
+        const adminEmail = content.settings.smtpFrom || content.settings.smtpUser;
+        if (adminEmail) {
+          const adminSubject = "Yeni Bülten Abonesi Kaydoldu! 📬";
+          const adminHtml = `
+            <div style="background-color: #07070a; color: #ffffff; font-family: sans-serif; padding: 30px 20px; max-width: 500px; margin: 0 auto; border-radius: 12px; border: 1px solid #1f1f2e;">
+              <h2 style="color: #ef4444; border-bottom: 1px solid #1f1f2e; padding-bottom: 10px; margin-top: 0;">YENİ BÜLTEN ABONESİ</h2>
+              <p style="font-size: 13px; color: #a1a1aa;">Sitenizdeki bülten formunu dolduran yeni bir ziyaretçi var:</p>
+              <div style="background-color: #0d0e15; padding: 15px; border-radius: 8px; border: 1px solid #1f1f2e; margin: 20px 0;">
+                <p style="margin: 5px 0; font-size: 12px; color: #ffffff;"><strong>E-posta Adresi:</strong> ${emailLower}</p>
+                <p style="margin: 5px 0; font-size: 12px; color: #ffffff;"><strong>Kayıt Tarihi:</strong> ${new Date().toLocaleString("tr-TR")}</p>
+              </div>
+              <p style="font-size: 11px; color: #52525b; text-align: center;">NIKLAUSAE Admin Panel</p>
+            </div>
+          `;
+          await sendMailHelper(content.settings, adminEmail, adminSubject, adminHtml).catch(() => {});
+        }
+      }
+    } catch (mailErr: any) {
+      console.error("[SMTP Error] Welcome email dispatch failed:", mailErr);
+      emailError = mailErr.message;
+    }
+
+    res.json({ success: true, emailSent, emailError });
+  } catch (err: any) {
+    console.error("Subscribe API error:", err);
+    res.status(500).json({ error: "Abonelik kaydedilirken sunucu hatası oluştu." });
+  }
+});
+
+app.post("/api/test-smtp", async (req, res) => {
+  try {
+    const { password, smtpHost, smtpPort, smtpUser, smtpPass, smtpFrom, smtpFromName, testEmail } = req.body;
+    const currentData = await readData();
+
+    if (password !== currentData.settings.adminPassword) {
+      return res.status(403).json({ error: "Hatalı yönetici şifresi!" });
+    }
+
+    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass || !testEmail) {
+      return res.status(400).json({ error: "Lütfen tüm SMTP bilgilerini ve test alıcı adresini doldurun." });
+    }
+
+    const testSettings = {
+      smtpHost,
+      smtpPort,
+      smtpUser,
+      smtpPass,
+      smtpFrom: smtpFrom || smtpUser,
+      smtpFromName: smtpFromName || "SMTP Test Gönderici",
+    };
+
+    const subject = "SMTP Bağlantı Testi Başarılı! ⚙️";
+    const html = `
+      <div style="background-color: #07070a; color: #ffffff; font-family: sans-serif; padding: 40px 20px; max-width: 600px; margin: 0 auto; border-radius: 16px; border: 1px solid #1f1f2e;">
+        <h2 style="color: #22c55e; margin-top: 0; font-size: 20px; text-transform: uppercase;">SMTP BAĞLANTI TESTİ BAŞARILI! 🎉</h2>
+        <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">
+          Harika haber! Siteniz için girdiğiniz SMTP ayarları sorunsuz bir şekilde bağlandı ve bu test e-postasını başarıyla gönderdi.
+        </p>
+        <div style="background-color: #0d0e15; padding: 20px; border-radius: 8px; border: 1px solid #1f1f2e; margin: 20px 0; font-family: monospace; font-size: 12px; color: #cbd5e1;">
+          <p style="margin: 4px 0;"><strong>Sunucu:</strong> ${smtpHost}:${smtpPort}</p>
+          <p style="margin: 4px 0;"><strong>Kullanıcı:</strong> ${smtpUser}</p>
+          <p style="margin: 4px 0;"><strong>Gönderen Adresi:</strong> ${smtpFrom}</p>
+          <p style="margin: 4px 0;"><strong>Zaman Damgası:</strong> ${new Date().toLocaleString("tr-TR")}</p>
+        </div>
+        <p style="color: #a1a1aa; font-size: 14px; line-height: 1.6;">
+          Artık bülteninize yeni kaydolan ziyaretçiler otomatik olarak hoş geldiniz e-postası alacaklar!
+        </p>
+        <p style="color: #52525b; font-size: 11px; border-top: 1px solid #1f1f2e; padding-top: 15px; margin-top: 25px; text-align: center;">
+          Bu e-posta otomatik olarak gönderilmiştir. Lütfen cevaplamayınız.
+        </p>
+      </div>
+    `;
+
+    const result = await sendMailHelper(testSettings, testEmail, subject, html);
+    if (result.success) {
+      res.json({ success: true, messageId: result.messageId });
+    } else {
+      res.status(500).json({ error: `SMTP gönderme hatası: ${result.reason}` });
+    }
+  } catch (err: any) {
+    console.error("Test SMTP error:", err);
+    res.status(500).json({ error: err.message || "Test e-postası gönderilirken sunucu hatası oluştu." });
+  }
+});
+
 app.get("/api/content", async (req, res) => {
   try {
     const data = await readData();

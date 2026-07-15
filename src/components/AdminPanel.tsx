@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, Mail, 
+  X, Save, Shield, Settings, FolderOpen, User, Lock, Plus, Trash2, Mail, Send,
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
@@ -225,6 +225,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
   // Subscriber search state
   const [subscriberSearchQuery, setSubscriberSearchQuery] = useState("");
+
+  // SMTP Testing states
+  const [isTestingSmtp, setIsTestingSmtp] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState("");
+  const [smtpTestResult, setSmtpTestResult] = useState<string | null>(null);
+  const [smtpTestError, setSmtpTestError] = useState<string | null>(null);
 
   // Temp states for adding category/item
   const [selectedCatId, setSelectedCatId] = useState<string>("");
@@ -466,6 +472,50 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
         });
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleTestSmtp = async () => {
+    if (isTestingSmtp) return;
+    if (!testEmailAddress) {
+      setSmtpTestError("Lütfen test alıcı e-posta adresini girin.");
+      return;
+    }
+
+    setIsTestingSmtp(true);
+    setSmtpTestResult(null);
+    setSmtpTestError(null);
+
+    try {
+      const response = await fetch("/api/test-smtp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password: passwordInput,
+          smtpHost: editedContent.settings.smtpHost || "",
+          smtpPort: editedContent.settings.smtpPort || "",
+          smtpUser: editedContent.settings.smtpUser || "",
+          smtpPass: editedContent.settings.smtpPass || "",
+          smtpFrom: editedContent.settings.smtpFrom || "",
+          smtpFromName: editedContent.settings.smtpFromName || "",
+          testEmail: testEmailAddress,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "E-posta gönderimi başarısız.");
+      }
+
+      setSmtpTestResult(`Başarılı! Test e-postası gönderildi. ID: ${data.messageId}`);
+    } catch (err: any) {
+      console.error(err);
+      setSmtpTestError(err.message || "SMTP bağlantısı kurulurken hata oluştu.");
+    } finally {
+      setIsTestingSmtp(false);
     }
   };
 
@@ -2900,6 +2950,170 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                       </button>
                                     </div>
                                   ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* SMTP CONFIGURATION PANEL */}
+                        <div className="bg-[#10121a] border border-zinc-900 rounded-2xl p-5 space-y-6">
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-display font-black text-white uppercase tracking-wider">⚙️ SMTP E-POSTA SUNUCU AYARLARI</h3>
+                            <p className="text-[10px] text-zinc-400 font-mono">
+                              Bültene yeni kaydolan ziyaretçilere otomatik hoş geldiniz e-postası gitmesi için SMTP ayarlarınızı yapın.
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">SMTP Sunucu Adresi (Host)</label>
+                              <input
+                                type="text"
+                                placeholder="örn: smtp.gmail.com"
+                                value={editedContent.settings.smtpHost || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpHost: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">SMTP Portu</label>
+                              <input
+                                type="text"
+                                placeholder="örn: 587 veya 465"
+                                value={editedContent.settings.smtpPort || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpPort: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">SMTP Kullanıcı Adı (E-posta)</label>
+                              <input
+                                type="text"
+                                placeholder="örn: kullanıcı@gmail.com"
+                                value={editedContent.settings.smtpUser || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpUser: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">SMTP Şifresi (Uygulama Şifresi)</label>
+                              <input
+                                type="password"
+                                placeholder="••••••••••••••••"
+                                value={editedContent.settings.smtpPass || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpPass: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">Gönderen E-posta Adresi (From)</label>
+                              <input
+                                type="text"
+                                placeholder="örn: bulten@alanadiniz.com"
+                                value={editedContent.settings.smtpFrom || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpFrom: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] text-zinc-400 font-mono uppercase tracking-wider">Gönderici Adı (From Name)</label>
+                              <input
+                                type="text"
+                                placeholder="örn: NIKLAUSAE Edit Pack"
+                                value={editedContent.settings.smtpFromName || ""}
+                                onChange={(e) => setEditedContent({
+                                  ...editedContent,
+                                  settings: { ...editedContent.settings, smtpFromName: e.target.value }
+                                })}
+                                className="w-full px-4 py-2.5 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-2">
+                            <input
+                              type="checkbox"
+                              id="notifyOnNewSubscriber"
+                              checked={!!editedContent.settings.notifyOnNewSubscriber}
+                              onChange={(e) => setEditedContent({
+                                ...editedContent,
+                                settings: { ...editedContent.settings, notifyOnNewSubscriber: e.target.checked }
+                              })}
+                              className="w-4 h-4 rounded border-zinc-800 bg-[#0a0b10] text-indigo-500 focus:ring-indigo-500/20"
+                            />
+                            <label htmlFor="notifyOnNewSubscriber" className="text-xs text-zinc-300 font-mono select-none cursor-pointer">
+                              Yeni abone kaydolduğunda bana (gönderici e-postasına) bildirim e-postası yolla.
+                            </label>
+                          </div>
+
+                          {/* SMTP Connection Testing Section */}
+                          <div className="border-t border-zinc-900 pt-5 space-y-4">
+                            <div className="space-y-1">
+                              <h4 className="text-xs font-display font-bold text-white uppercase tracking-wider">SMTP Ayarlarını Test Et</h4>
+                              <p className="text-[10px] text-zinc-500 font-mono">
+                                Ayarlarınızı kaydetmeden önce aşağıdaki kutuya e-postanızı girip test gönderimi yapabilirsiniz.
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-stretch gap-2">
+                              <input
+                                type="email"
+                                placeholder="Test alıcı e-posta adresi..."
+                                value={testEmailAddress}
+                                onChange={(e) => setTestEmailAddress(e.target.value)}
+                                className="flex-1 px-4 py-2 bg-[#0a0b10] border border-zinc-850 focus:border-indigo-500 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none transition-all font-mono"
+                              />
+                              <button
+                                type="button"
+                                onClick={handleTestSmtp}
+                                disabled={isTestingSmtp}
+                                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-850 disabled:text-zinc-500 border border-indigo-500 hover:border-indigo-400 text-xs font-mono font-bold text-white rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shrink-0 animate-pulse hover:animate-none"
+                              >
+                                {isTestingSmtp ? (
+                                  <>
+                                    <Loader2 size={13} className="animate-spin" />
+                                    GÖNDERİLİYOR...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send size={13} />
+                                    TEST ET
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {smtpTestResult && (
+                              <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-[10px] font-mono flex items-start gap-2">
+                                <CheckCircle size={14} className="shrink-0 mt-0.5 text-emerald-500" />
+                                <span>{smtpTestResult}</span>
+                              </div>
+                            )}
+
+                            {smtpTestError && (
+                              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-[10px] font-mono flex items-start gap-2">
+                                <AlertTriangle size={14} className="shrink-0 mt-0.5 text-red-500" />
+                                <span className="break-all">{smtpTestError}</span>
                               </div>
                             )}
                           </div>

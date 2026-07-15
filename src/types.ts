@@ -37,6 +37,13 @@ export interface SiteSettings {
   bioDescription?: string;
   logoImage?: string;
   maintenanceMode?: boolean;
+  smtpHost?: string;
+  smtpPort?: string;
+  smtpUser?: string;
+  smtpPass?: string;
+  smtpFrom?: string;
+  smtpFromName?: string;
+  notifyOnNewSubscriber?: boolean;
 }
 
 export interface EditPackItem {
