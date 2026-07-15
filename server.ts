@@ -4,6 +4,8 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import { getStorage, ref as fbStorageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import multer from "multer";
 import { Blob } from "buffer";
 
@@ -58,6 +60,22 @@ app.use("/uploads", express.static(uploadsDir));
 const CONFIG_FILE = path.join(process.cwd(), "firebase-applet-config.json");
 let firebaseApp: any = null;
 let db: any = null;
+let storageBucket: any = null;
+
+// Anonymous authentication helper to satisfy Firebase security rules
+async function ensureAuthenticated() {
+  if (!firebaseApp) return;
+  try {
+    const auth = getAuth(firebaseApp);
+    if (!auth.currentUser) {
+      console.log("[Firebase Auth] Server signing in anonymously...");
+      await signInAnonymously(auth);
+      console.log("[Firebase Auth] Signed in successfully as:", auth.currentUser?.uid);
+    }
+  } catch (authErr) {
+    console.error("[Firebase Auth] Anonymous sign in failed:", authErr);
+  }
+}
 
 try {
   if (fs.existsSync(CONFIG_FILE)) {
@@ -67,6 +85,11 @@ try {
       ? getFirestore(firebaseApp, firebaseConfig.firestoreDatabaseId)
       : getFirestore(firebaseApp);
     console.log("Firebase initialized successfully with project ID:", firebaseConfig.projectId);
+    
+    if (firebaseConfig.storageBucket) {
+      storageBucket = getStorage(firebaseApp);
+      console.log("Firebase Storage initialized with bucket:", firebaseConfig.storageBucket);
+    }
   } else {
     console.warn("firebase-applet-config.json not found. Offline fallback mode.");
   }
@@ -533,6 +556,31 @@ app.post("/api/visit", async (req, res) => {
   }
 });
 
+// Helper to upload a file to Firebase Storage (highly reliable, permanent, unblocked in Turkey)
+async function uploadToFirebaseStorage(filePath: string, originalName: string, mimeType: string): Promise<string> {
+  if (!storageBucket) {
+    throw new Error("Firebase Storage is not initialized.");
+  }
+
+  await ensureAuthenticated();
+
+  const fileBuffer = fs.readFileSync(filePath);
+  const uniqueId = Date.now() + "_" + Math.round(Math.random() * 1e6);
+  const cleanName = originalName.replace(/[^a-zA-Z0-9.]/g, "_");
+  const storagePath = `uploads/${uniqueId}_${cleanName}`;
+  const fileRef = fbStorageRef(storageBucket, storagePath);
+
+  console.log(`[Firebase Storage] Uploading ${originalName} to ${storagePath} (${mimeType}, size: ${fileBuffer.length} bytes)...`);
+  
+  await uploadBytes(fileRef, fileBuffer, {
+    contentType: mimeType,
+  });
+
+  const downloadUrl = await getDownloadURL(fileRef);
+  console.log(`[Firebase Storage] Upload success! Permanent URL: ${downloadUrl}`);
+  return downloadUrl;
+}
+
 // Helper to upload a file to Catbox (free, permanent, high-speed CDN with streaming / partial content support)
 async function uploadToCatbox(filePath: string, originalName: string, mimeType: string): Promise<string> {
   const fileBuffer = fs.readFileSync(filePath);
@@ -569,23 +617,27 @@ app.post("/api/upload", upload.single("file"), async (req, res) => {
     
     const localUrl = `/uploads/${req.file.filename}`;
     
-    try {
-      // Attempt permanent upload to Catbox
-      const catboxUrl = await uploadToCatbox(req.file.path, req.file.originalname, req.file.mimetype);
-      
-      // Clean up the local file after successful Catbox upload to save disk space
+    // 1. Try Firebase Storage first (highly reliable, permanent, 100% unblocked in Turkey)
+    if (storageBucket) {
       try {
-        fs.unlinkSync(req.file.path);
-      } catch (unlinkErr) {
-        console.warn("Could not delete local temp upload file:", unlinkErr);
+        const firebaseUrl = await uploadToFirebaseStorage(req.file.path, req.file.originalname, req.file.mimetype);
+        
+        // Clean up the local file after successful upload to save disk space
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkErr) {
+          console.warn("Could not delete local temp upload file:", unlinkErr);
+        }
+        
+        return res.json({ success: true, url: firebaseUrl });
+      } catch (fbErr: any) {
+        console.error("Firebase Storage upload failed, trying local storage:", fbErr);
       }
-      
-      return res.json({ success: true, url: catboxUrl });
-    } catch (catboxErr) {
-      console.error("Catbox upload failed, falling back to local storage:", catboxErr);
-      // Fallback to local URL if Catbox fails
-      return res.json({ success: true, url: localUrl });
     }
+
+    // 2. Fallback to local server static storage (fully functional, extremely fast, completely unblocked)
+    console.log("Using local storage fallback for upload:", localUrl);
+    return res.json({ success: true, url: localUrl });
   } catch (err: any) {
     console.error("Upload handler error:", err);
     res.status(500).json({ error: err.message || "Dosya sunucuya yazılırken hata oluştu." });
@@ -666,8 +718,103 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ error: err.message || "Sunucuda beklenmedik bir hata oluştu." });
 });
 
+// Background task to migrate any existing catbox.moe or tmpfiles.org URLs to Firebase Storage or local storage
+async function migrateCatboxUrls() {
+  try {
+    console.log("[Migration] Starting background Catbox/tmpfiles URL migration check...");
+    const content = await readData();
+    let updated = false;
+
+    if (!content || !content.categories) {
+      console.log("[Migration] No categories found in content.");
+      return;
+    }
+
+    for (const category of content.categories) {
+      if (!category.items) continue;
+      for (const item of category.items) {
+        const keysToMigrate = ["previewBefore", "previewAfter", "previewVideo"] as const;
+        for (const key of keysToMigrate) {
+          const url = item[key];
+          if (url && (url.includes("catbox.moe") || url.includes("tmpfiles.org"))) {
+            console.log(`[Migration] Found blocked/temporary URL in item '${item.name}' (${key}): ${url}`);
+            
+            try {
+              // 1. Download file from external URL
+              const response = await fetch(url);
+              if (!response.ok) {
+                console.error(`[Migration] Failed to download file from ${url}: Status ${response.status}`);
+                continue;
+              }
+              const buffer = await response.arrayBuffer();
+              const fileBuffer = Buffer.from(buffer);
+
+              // 2. Determine file name and mimetype
+              const parsedUrl = new URL(url);
+              const originalName = path.basename(parsedUrl.pathname) || "migrated_file";
+              const ext = path.extname(originalName) || ".bin";
+              
+              const contentType = response.headers.get("content-type") || "application/octet-stream";
+
+              // 3. Save locally in uploads first as a fallback
+              const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e6);
+              const localFilename = `migrated-${uniqueSuffix}${ext}`;
+              const localFilePath = path.join(uploadsDir, localFilename);
+              fs.writeFileSync(localFilePath, fileBuffer);
+              const localUrl = `/uploads/${localFilename}`;
+
+              let finalUrl = localUrl;
+
+              // 4. Try uploading to Firebase Storage if available
+              if (storageBucket) {
+                try {
+                  await ensureAuthenticated();
+                  const fileRef = fbStorageRef(storageBucket, `uploads/${uniqueSuffix}_${originalName}`);
+                  await uploadBytes(fileRef, fileBuffer, { contentType });
+                  finalUrl = await getDownloadURL(fileRef);
+                  console.log(`[Migration] Successfully uploaded to Firebase Storage: ${finalUrl}`);
+                  // delete local temp file if uploaded to Firebase
+                  try {
+                    fs.unlinkSync(localFilePath);
+                  } catch (e) {}
+                } catch (fbErr) {
+                  console.error("[Migration] Failed to upload to Firebase Storage, keeping local fallback:", fbErr);
+                }
+              } else {
+                console.log(`[Migration] Firebase Storage not initialized. Using local fallback: ${localUrl}`);
+              }
+
+              // 5. Update item
+              item[key] = finalUrl;
+              updated = true;
+              console.log(`[Migration] Migrated '${item.name}' (${key}) -> ${finalUrl}`);
+
+            } catch (migrateErr) {
+              console.error(`[Migration] Error migrating URL ${url}:`, migrateErr);
+            }
+          }
+        }
+      }
+    }
+
+    if (updated) {
+      console.log("[Migration] Catbox/tmpfiles migration completed successfully. Writing back updated content...");
+      await writeData(content);
+    } else {
+      console.log("[Migration] No Catbox/tmpfiles URLs found to migrate. Everything is clean.");
+    }
+  } catch (err) {
+    console.error("[Migration] Error running migration task:", err);
+  }
+}
+
 // Vite middleware and static serving setup
 async function startServer() {
+  // Run URL migration task in the background on startup
+  migrateCatboxUrls().catch(err => {
+    console.error("[Migration] Startup migration failed:", err);
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
