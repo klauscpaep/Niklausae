@@ -10,9 +10,9 @@ interface BeforeAfterSliderProps {
 export default function BeforeAfterSlider({ beforeImage, afterImage, className = "" }: BeforeAfterSliderProps) {
   const [sliderPosition, setSliderPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleMove = (clientX: number) => {
+  const updatePosition = (clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
@@ -20,45 +20,36 @@ export default function BeforeAfterSlider({ beforeImage, afterImage, className =
     setSliderPosition(position);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (e.touches[0]) {
-      handleMove(e.touches[0].clientX);
-    }
+  const handlePointerDown = (e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsDragging(true);
+    updatePosition(e.clientX);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging.current || e.buttons === 1) {
-      handleMove(e.clientX);
-    }
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    updatePosition(e.clientX);
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true;
-    handleMove(e.clientX);
-  };
-
-  const handleMouseUpOrLeave = () => {
-    isDragging.current = false;
+  const handlePointerUp = () => {
+    setIsDragging(false);
   };
 
   return (
     <div 
       ref={containerRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave}
-      onMouseLeave={handleMouseUpOrLeave}
-      onTouchStart={(e) => { isDragging.current = true; handleTouchMove(e); }}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleMouseUpOrLeave}
-      className={`relative aspect-video w-full overflow-hidden bg-zinc-950 rounded-2xl border border-zinc-850/60 select-none cursor-ew-resize ${className}`}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      className={`relative aspect-video w-full overflow-hidden bg-zinc-950 rounded-2xl border border-zinc-900 select-none cursor-ew-resize touch-none ${className}`}
     >
       {/* After Image (Sonrası) - Underneath */}
       <img
         src={afterImage}
         alt="Sonrası"
         referrerPolicy="no-referrer"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
       />
 
       {/* Before Image (Öncesi) - Clipped on top */}
@@ -66,7 +57,7 @@ export default function BeforeAfterSlider({ beforeImage, afterImage, className =
         src={beforeImage}
         alt="Öncesi"
         referrerPolicy="no-referrer"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
         style={{
           clipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
           WebkitClipPath: `inset(0 ${100 - sliderPosition}% 0 0)`,
@@ -79,16 +70,16 @@ export default function BeforeAfterSlider({ beforeImage, afterImage, className =
         style={{ left: `${sliderPosition}%` }}
       >
         {/* Slider Handle Button */}
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-2xl border border-zinc-200/50 pointer-events-none z-15">
-          <ChevronsLeftRight size={16} className="text-zinc-900" />
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full bg-white text-zinc-950 flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.5)] border border-zinc-200 pointer-events-none z-15">
+          <ChevronsLeftRight size={15} className="text-zinc-950" />
         </div>
       </div>
 
       {/* Text Labels */}
-      <div className="absolute bottom-4 left-4 bg-zinc-950/80 backdrop-blur border border-zinc-800/80 px-2.5 py-1 rounded-md text-[9px] font-mono font-bold tracking-wider text-zinc-300 select-none pointer-events-none z-10">
+      <div className="absolute bottom-3 left-3 bg-black/85 backdrop-blur border border-zinc-850 px-2.5 py-1 rounded-lg text-[9px] font-mono font-black tracking-wider text-zinc-300 select-none pointer-events-none z-10">
         ÖNCESİ
       </div>
-      <div className="absolute bottom-4 right-4 bg-zinc-950/80 backdrop-blur border border-zinc-800/80 px-2.5 py-1 rounded-md text-[9px] font-mono font-bold tracking-wider text-zinc-300 select-none pointer-events-none z-10">
+      <div className="absolute bottom-3 right-3 bg-black/85 backdrop-blur border border-zinc-850 px-2.5 py-1 rounded-lg text-[9px] font-mono font-black tracking-wider text-red-400 select-none pointer-events-none z-10">
         SONRASI
       </div>
     </div>

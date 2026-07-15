@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
   Play, ExternalLink, ArrowUp, Mail,
-  Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle
+  Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
+  FolderOpen, FileCheck
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
@@ -538,52 +539,91 @@ export default function App() {
             </div>
 
             {/* Categories Grid */}
-            <div className="grid grid-cols-1 gap-3.5">
+            <div className="grid grid-cols-1 gap-4">
               {content.categories.map((category, idx) => {
                 const itemCount = category.items?.length || 0;
+                // Count previews
+                const previewCount = category.items?.filter(
+                  item => (item.previewBefore && item.previewAfter) || item.previewVideo
+                ).length || 0;
+
                 return (
                   <motion.div
                     key={category.id}
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 + idx * 0.05 }}
+                    transition={{ delay: 0.2 + idx * 0.05 }}
                     onClick={() => setSelectedCategory(category)}
-                    className={`group relative p-5 bg-gradient-to-r ${category.gradient} border border-zinc-900/80 hover:border-red-500/35 hover:scale-[1.025] rounded-2xl shadow-xl hover:shadow-[0_0_30px_rgba(239,68,68,0.12)] transition-all duration-300 cursor-pointer overflow-hidden`}
+                    className="group relative p-5 bg-zinc-950/75 hover:bg-zinc-900/40 border border-zinc-900/90 hover:border-red-500/30 hover:scale-[1.015] rounded-2xl shadow-xl hover:shadow-[0_10px_35px_rgba(239,68,68,0.06)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
                   >
-                    {/* Decorative Corner Glow */}
-                    <div className="absolute right-0 top-0 w-24 h-24 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full pointer-events-none" />
+                    {/* Glowing Accent Gradient Background (Subtle) */}
+                    <div className={`absolute -right-24 -top-24 w-48 h-48 bg-gradient-to-br ${category.gradient} opacity-5 group-hover:opacity-15 blur-2xl transition-opacity pointer-events-none`} />
                     
-                    <div className="flex items-center justify-between relative z-10">
-                      <div className="flex items-center gap-4">
-                        {/* Number Index */}
-                        <span className="font-mono text-zinc-400 font-bold text-xs bg-zinc-950/85 border border-zinc-900 px-3 py-1.5 rounded-xl group-hover:border-red-500/25 group-hover:text-red-400 transition-colors">
-                          {category.index}
-                        </span>
-                        
+                    {/* Left Accent Neon Strip */}
+                    <div className={`absolute left-0 inset-y-0 w-[4px] bg-gradient-to-b ${category.gradient} rounded-l-2xl`} />
+
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 pl-2">
+                      <div className="flex items-start sm:items-center gap-4 flex-1">
+                        {/* Number Index + Folder Icon wrapper */}
+                        <div className="relative flex items-center justify-center shrink-0">
+                          <span className="font-mono text-zinc-400 font-extrabold text-xs bg-zinc-900 border border-zinc-850 w-9 h-9 rounded-xl flex items-center justify-center group-hover:border-red-500/20 group-hover:text-red-400 transition-all">
+                            {category.index}
+                          </span>
+                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 border border-zinc-950 animate-pulse" />
+                        </div>
+
                         <div className="space-y-1">
                           {/* Badge Pill Row */}
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-block font-mono text-[9px] text-zinc-400 font-bold tracking-wider bg-zinc-950/80 px-2 py-0.5 rounded border border-zinc-900">
-                              {category.badge}
+                            <span className="inline-flex items-center gap-1 font-mono text-[9px] text-zinc-400 font-bold tracking-wider bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded">
+                              <FolderOpen size={9} className="text-zinc-500" />
+                              <span>{category.badge}</span>
                             </span>
                             
                             {/* Dynamic Item/File count Badge */}
-                            <span className="inline-block font-mono text-[9px] text-red-400 font-extrabold tracking-wider bg-red-950/20 px-2 py-0.5 rounded border border-red-950/30">
-                              {itemCount} PAKET
+                            <span className="inline-block font-mono text-[9px] text-red-400 font-black tracking-wider bg-red-950/20 px-2 py-0.5 rounded border border-red-950/30">
+                              {itemCount} DOSYA
                             </span>
+
+                            {previewCount > 0 && (
+                              <span className="inline-block font-mono text-[9px] text-emerald-400 font-black tracking-wider bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-950/30">
+                                {previewCount} ÖNİZLEME
+                              </span>
+                            )}
                           </div>
+                          
                           {/* Title */}
-                          <h3 className="text-base font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase tracking-tight">
+                          <h3 className="text-base font-display font-black text-white group-hover:text-red-400 transition-colors uppercase tracking-tight">
                             {category.title}
                           </h3>
                         </div>
                       </div>
 
                       {/* Arrow Action Button */}
-                      <div className="p-2.5 bg-zinc-950/80 group-hover:bg-red-600 text-zinc-500 group-hover:text-white border border-zinc-900 group-hover:border-red-500/30 rounded-xl transition-all duration-300">
+                      <div className="p-2.5 bg-zinc-900 group-hover:bg-red-600 text-zinc-400 group-hover:text-white border border-zinc-850 group-hover:border-red-500/25 rounded-xl transition-all duration-300 self-end sm:self-auto">
                         <ChevronRight size={15} className="transition-transform group-hover:translate-x-1" />
                       </div>
                     </div>
+
+                    {/* Inline file preview pill list */}
+                    {category.items && category.items.length > 0 && (
+                      <div className="mt-4 pt-3.5 border-t border-zinc-900/80 flex flex-wrap gap-1.5 pl-2 z-10 pointer-events-none">
+                        {category.items.slice(0, 3).map((item) => (
+                          <span 
+                            key={item.id} 
+                            className="inline-flex items-center gap-1 text-[9px] font-mono text-zinc-400 bg-zinc-900/60 border border-zinc-900 px-2.5 py-1 rounded-lg"
+                          >
+                            <FileCheck size={8} className="text-red-500/60" />
+                            <span className="truncate max-w-[120px]">{item.name}</span>
+                          </span>
+                        ))}
+                        {category.items.length > 3 && (
+                          <span className="inline-flex items-center text-[9px] font-mono text-red-500/80 bg-red-950/10 border border-red-950/10 px-2.5 py-1 rounded-lg">
+                            +{category.items.length - 3} Dosya Daha
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}
