@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Mail, Loader2, Sparkles, CheckCircle } from "lucide-react";
 import { SiteContent } from "../types";
+import { getApiUrl } from "../firebase";
 
 interface NewsletterFormProps {
   content: SiteContent;
@@ -32,7 +33,7 @@ export default function NewsletterForm({ content, onSaveContent, onShowToast }: 
     try {
       const emailLower = email.trim().toLowerCase();
 
-      const response = await fetch("/api/subscribe", {
+      const response = await fetch(getApiUrl("/api/subscribe"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

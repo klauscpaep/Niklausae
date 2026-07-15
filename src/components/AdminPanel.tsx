@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 import defaultProfileImg from "../assets/images/pars_mazi_profile_1784000260155.jpg";
+import { getApiUrl } from "../firebase";
 
 // Reusable Media Upload Button supporting image and video uploads directly from PC or Phone
 interface MediaUploadButtonProps {
@@ -85,7 +86,7 @@ function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" 
     if (file.type.startsWith("image/")) {
       try {
         const compressed = await compressImage(file);
-        const res = await fetch("/api/upload-image", {
+        const res = await fetch(getApiUrl("/api/upload-image"), {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -111,7 +112,7 @@ function MediaUploadButton({ label, onUploadSuccess, accept = "image/*,video/*" 
 
     try {
       // 1. Try local server upload first
-      const res = await fetch("/api/upload", {
+      const res = await fetch(getApiUrl("/api/upload"), {
         method: "POST",
         body: formData,
       });
@@ -487,7 +488,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     setSmtpTestError(null);
 
     try {
-      const response = await fetch("/api/test-smtp", {
+      const response = await fetch(getApiUrl("/api/test-smtp"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

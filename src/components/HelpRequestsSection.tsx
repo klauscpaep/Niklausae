@@ -6,6 +6,7 @@ import {
   Link2, UploadCloud, ExternalLink, Loader2, Search, Filter
 } from "lucide-react";
 import { SiteContent, FAQItem, SuggestionRequest } from "../types";
+import { getApiUrl } from "../firebase";
 
 interface HelpRequestsSectionProps {
   content: SiteContent;
@@ -47,7 +48,7 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
 
     try {
       // 1. Try local server upload first
-      const res = await fetch("/api/upload", {
+      const res = await fetch(getApiUrl("/api/upload"), {
         method: "POST",
         body: formData,
       });

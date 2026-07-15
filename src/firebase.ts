@@ -267,3 +267,16 @@ export function subscribeToSiteContent(onUpdate: (content: any) => void, onError
     }
   );
 }
+
+export function getApiUrl(path: string): string {
+  const origin = window.location.origin;
+  if (
+    origin.includes("github.io") || 
+    origin.includes("localhost:517") || 
+    origin.includes("127.0.0.1")
+  ) {
+    return `https://ais-pre-6teowb4yycr7gvrlclmvtb-94283634220.europe-west2.run.app${path}`;
+  }
+  return path;
+}
+
