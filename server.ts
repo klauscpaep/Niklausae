@@ -823,21 +823,77 @@ async function migrateCatboxUrls() {
             console.log(`[Migration] Found blocked/temporary URL in item '${item.name}' (${key}): ${url}`);
             
             try {
-              // 1. Download file from external URL
-              const response = await fetch(url);
-              if (!response.ok) {
-                console.error(`[Migration] Failed to download file from ${url}: Status ${response.status}`);
-                continue;
-              }
-              const buffer = await response.arrayBuffer();
-              const fileBuffer = Buffer.from(buffer);
+              let fileBuffer: Buffer;
+              let originalName = "";
+              let contentType = "application/octet-stream";
 
-              // 2. Determine file name and mimetype
-              const parsedUrl = new URL(url);
-              const originalName = path.basename(parsedUrl.pathname) || "migrated_file";
+              if (url.includes("tmpfiles.org")) {
+                console.log(`[Migration] Handling tmpfiles.org URL specially to avoid landing page HTML...`);
+                let normalizedLandingUrl = url;
+                if (url.includes("/dl/")) {
+                  normalizedLandingUrl = url.replace("/dl/", "/");
+                }
+                
+                const parsedUrl = new URL(normalizedLandingUrl);
+                const pathParts = parsedUrl.pathname.split("/").filter(Boolean);
+                originalName = pathParts[pathParts.length - 1] || "migrated_file";
+
+                console.log(`[Migration] Fetching tmpfiles landing page: ${normalizedLandingUrl}`);
+                const landingRes = await fetch(normalizedLandingUrl, {
+                  headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+                  }
+                });
+
+                if (!landingRes.ok) {
+                  throw new Error(`Failed to fetch landing page. Status: ${landingRes.status}`);
+                }
+
+                const landingHtml = await landingRes.text();
+                const cookies = landingRes.headers.get("set-cookie");
+
+                const freshMatch = landingHtml.match(/class="download"\s+href="([^"]+)"/) || landingHtml.match(/id="img_preview"\s+src="([^"]+)"/);
+                if (!freshMatch) {
+                  throw new Error("Could not find direct download link in fresh landing page HTML");
+                }
+
+                const freshDlUrl = freshMatch[1];
+                console.log(`[Migration] Found fresh download URL: ${freshDlUrl}`);
+
+                console.log(`[Migration] Fetching direct binary...`);
+                const downloadRes = await fetch(freshDlUrl, {
+                  headers: {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Cookie": cookies || ""
+                  }
+                });
+
+                if (!downloadRes.ok) {
+                  throw new Error(`Failed to download binary from ${freshDlUrl}. Status: ${downloadRes.status}`);
+                }
+
+                const buffer = await downloadRes.arrayBuffer();
+                fileBuffer = Buffer.from(buffer);
+                contentType = downloadRes.headers.get("content-type") || "application/octet-stream";
+
+                if (fileBuffer.toString("utf8", 0, 100).includes("<!DOCTYPE") || fileBuffer.toString("utf8", 0, 100).includes("<html")) {
+                  throw new Error("Downloaded file is still HTML");
+                }
+              } else {
+                const response = await fetch(url);
+                if (!response.ok) {
+                  console.error(`[Migration] Failed to download file from ${url}: Status ${response.status}`);
+                  continue;
+                }
+                const buffer = await response.arrayBuffer();
+                fileBuffer = Buffer.from(buffer);
+
+                const parsedUrl = new URL(url);
+                originalName = path.basename(parsedUrl.pathname) || "migrated_file";
+                contentType = response.headers.get("content-type") || "application/octet-stream";
+              }
+
               const ext = path.extname(originalName) || ".bin";
-              
-              const contentType = response.headers.get("content-type") || "application/octet-stream";
 
               // 3. Save locally in uploads first as a fallback
               const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e6);
