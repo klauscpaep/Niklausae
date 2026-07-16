@@ -807,7 +807,7 @@ export default function App() {
             </div>
 
             {/* Categories Grid */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {content.categories.map((category, idx) => {
                 const itemCount = category.items?.length || 0;
                 // Count previews
@@ -818,80 +818,103 @@ export default function App() {
                 return (
                   <motion.div
                     key={category.id}
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 + idx * 0.05 }}
+                    transition={{ delay: 0.15 + idx * 0.05 }}
                     onClick={() => setSelectedCategory(category)}
-                    className="group relative p-5 bg-zinc-950/75 hover:bg-zinc-900/40 border border-zinc-900/90 hover:border-red-500/30 hover:scale-[1.015] rounded-2xl shadow-xl hover:shadow-[0_10px_35px_rgba(239,68,68,0.06)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
+                    className="group relative p-6 bg-zinc-950/40 hover:bg-[#0c0d12]/50 border border-zinc-900 hover:border-red-500/25 rounded-3xl shadow-2xl hover:shadow-[0_12px_40px_rgba(239,68,68,0.05)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
                   >
                     {/* Glowing Accent Gradient Background (Subtle) */}
-                    <div className={`absolute -right-24 -top-24 w-48 h-48 bg-gradient-to-br ${category.gradient} opacity-5 group-hover:opacity-15 blur-2xl transition-opacity pointer-events-none`} />
+                    <div className={`absolute -right-20 -top-20 w-44 h-44 bg-gradient-to-br ${category.gradient} opacity-5 group-hover:opacity-15 blur-3xl transition-opacity duration-300 pointer-events-none`} />
                     
-                    {/* Left Accent Neon Strip */}
-                    <div className={`absolute left-0 inset-y-0 w-[4px] bg-gradient-to-b ${category.gradient} rounded-l-2xl`} />
+                    {/* Glowing Ambient Background Spot */}
+                    <div className="absolute left-6 top-6 w-12 h-12 bg-red-500/5 group-hover:bg-red-500/10 rounded-full blur-xl pointer-events-none transition-all duration-300" />
 
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 pl-2">
-                      <div className="flex items-start sm:items-center gap-4 flex-1">
-                        {/* Number Index + Folder Icon wrapper */}
-                        <div className="relative flex items-center justify-center shrink-0">
-                          <span className="font-mono text-zinc-400 font-extrabold text-xs bg-zinc-900 border border-zinc-850 w-9 h-9 rounded-xl flex items-center justify-center group-hover:border-red-500/20 group-hover:text-red-400 transition-all">
-                            {category.index}
-                          </span>
-                          <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-red-500 border border-zinc-950 animate-pulse" />
+                    <div className="space-y-5 relative z-10">
+                      {/* Top bar of Card */}
+                      <div className="flex items-center justify-between">
+                        {/* Monogram Index */}
+                        <span className="font-mono text-[10px] text-zinc-500 font-extrabold tracking-widest uppercase bg-zinc-900/60 border border-zinc-850 px-2.5 py-1 rounded-lg">
+                          ODA {category.index}
+                        </span>
+
+                        {/* Pulsing Active Indicator */}
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/5 border border-emerald-500/10 rounded-md">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="font-mono text-[8px] text-emerald-500 font-bold uppercase tracking-wider">AKTİF</span>
                         </div>
+                      </div>
 
+                      {/* Main Title and Folder Icon Wrapper */}
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-zinc-900 border border-zinc-850 rounded-2xl text-zinc-400 group-hover:text-red-400 group-hover:border-red-500/15 group-hover:bg-red-950/5 transition-all duration-300">
+                          <FolderOpen size={20} className="transition-transform group-hover:scale-110" />
+                        </div>
                         <div className="space-y-1">
-                          {/* Badge Pill Row */}
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center gap-1 font-mono text-[9px] text-zinc-400 font-bold tracking-wider bg-zinc-900 border border-zinc-850 px-2 py-0.5 rounded">
-                              <FolderOpen size={9} className="text-zinc-500" />
-                              <span>{category.badge}</span>
-                            </span>
-                            
-                            {/* Dynamic Item/File count Badge */}
-                            <span className="inline-block font-mono text-[9px] text-red-400 font-black tracking-wider bg-red-950/20 px-2 py-0.5 rounded border border-red-950/30">
-                              {itemCount} DOSYA
-                            </span>
-
-                            {previewCount > 0 && (
-                              <span className="inline-block font-mono text-[9px] text-emerald-400 font-black tracking-wider bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-950/30">
-                                {previewCount} ÖNİZLEME
-                              </span>
-                            )}
-                          </div>
-                          
-                          {/* Title */}
-                          <h3 className="text-base font-display font-black text-white group-hover:text-red-400 transition-colors uppercase tracking-tight">
+                          <h3 className="text-base font-display font-black text-white group-hover:text-red-400 transition-colors uppercase tracking-tight leading-tight">
                             {category.title}
                           </h3>
+                          <p className="text-[11px] text-zinc-500 font-mono tracking-wider font-semibold uppercase">
+                            {category.badge}
+                          </p>
                         </div>
                       </div>
 
-                      {/* Arrow Action Button */}
-                      <div className="p-2.5 bg-zinc-900 group-hover:bg-red-600 text-zinc-400 group-hover:text-white border border-zinc-850 group-hover:border-red-500/25 rounded-xl transition-all duration-300 self-end sm:self-auto">
-                        <ChevronRight size={15} className="transition-transform group-hover:translate-x-1" />
-                      </div>
+                      {/* Description Text */}
+                      <p className="text-xs text-zinc-400 leading-relaxed font-sans min-h-[40px] line-clamp-2">
+                        {category.description || "After Effects için özel kurgu presetleri ve araçları."}
+                      </p>
+
+                      {/* Miniature File Explorer Representation */}
+                      {category.items && category.items.length > 0 ? (
+                        <div className="space-y-1.5 p-3 bg-zinc-950/80 rounded-2xl border border-zinc-900/60 font-mono">
+                          <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-wider block mb-2">ODA İÇERİĞİ ({itemCount} DOSYA)</span>
+                          
+                          {category.items.slice(0, 3).map((item) => (
+                            <div 
+                              key={item.id} 
+                              className="flex items-center justify-between text-[10px] text-zinc-400 py-1 border-b border-zinc-900/30 last:border-0"
+                            >
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <FileCheck size={10} className="text-red-500 shrink-0" />
+                                <span className="truncate max-w-[140px] text-zinc-300">{item.name}</span>
+                              </div>
+                              <span className="text-zinc-600 text-[9px] shrink-0 font-medium">{item.size || "Sertifikalı"}</span>
+                            </div>
+                          ))}
+                          
+                          {category.items.length > 3 && (
+                            <div className="text-center pt-1.5">
+                              <span className="inline-block text-[9px] font-bold text-red-500/80 hover:text-red-400 transition-colors uppercase tracking-widest bg-red-950/10 px-2 py-0.5 rounded-md border border-red-950/20">
+                                +{category.items.length - 3} DOSYA DAHA MEVCUT
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-zinc-950/40 border border-zinc-900/40 rounded-2xl text-center text-zinc-600 font-mono text-[10px] uppercase">
+                          Klasör boş
+                        </div>
+                      )}
                     </div>
 
-                    {/* Inline file preview pill list */}
-                    {category.items && category.items.length > 0 && (
-                      <div className="mt-4 pt-3.5 border-t border-zinc-900/80 flex flex-wrap gap-1.5 pl-2 z-10 pointer-events-none">
-                        {category.items.slice(0, 3).map((item) => (
-                          <span 
-                            key={item.id} 
-                            className="inline-flex items-center gap-1 text-[9px] font-mono text-zinc-400 bg-zinc-900/60 border border-zinc-900 px-2.5 py-1 rounded-lg"
-                          >
-                            <FileCheck size={8} className="text-red-500/60" />
-                            <span className="truncate max-w-[120px]">{item.name}</span>
-                          </span>
-                        ))}
-                        {category.items.length > 3 && (
-                          <span className="inline-flex items-center text-[9px] font-mono text-red-500/80 bg-red-950/10 border border-red-950/10 px-2.5 py-1 rounded-lg">
-                            +{category.items.length - 3} Dosya Daha
+                    {/* Bottom Action Footer */}
+                    <div className="mt-5 pt-4 border-t border-zinc-900/60 flex items-center justify-between relative z-10">
+                      <div className="flex items-center gap-2">
+                        {previewCount > 0 && (
+                          <span className="inline-flex items-center gap-1 font-mono text-[9px] text-emerald-400 font-bold tracking-wider bg-emerald-950/10 px-2 py-0.5 rounded border border-emerald-950/20">
+                            {previewCount} ÖNİZLEME HAZIR
                           </span>
                         )}
                       </div>
-                    )}
+                      
+                      <div className="flex items-center gap-1.5 text-xs font-mono font-black text-zinc-400 group-hover:text-red-400 transition-colors">
+                        <span>ODAYI İNCELE</span>
+                        <div className="p-1.5 bg-zinc-900 group-hover:bg-red-600 border border-zinc-850 group-hover:border-red-500/30 text-zinc-500 group-hover:text-white rounded-lg transition-all duration-300">
+                          <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 );
               })}
@@ -902,11 +925,13 @@ export default function App() {
         </div>
 
         {/* Newsletter Subscription Form */}
-        <NewsletterForm 
-          content={content} 
-          onSaveContent={handleSaveUserContent} 
-          onShowToast={showToast} 
-        />
+        {content.settings.showNewsletter !== false && (
+          <NewsletterForm 
+            content={content} 
+            onSaveContent={handleSaveUserContent} 
+            onShowToast={showToast} 
+          />
+        )}
 
         {/* User Requests & FAQ Section */}
         <HelpRequestsSection content={content} onSaveContent={handleSaveUserContent} />

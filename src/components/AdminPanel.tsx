@@ -1297,6 +1297,33 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             {editedContent.settings.maintenanceMode ? "● BAKIMDA (AKTİF)" : "○ YAYINDA (PASİF)"}
                           </button>
                         </div>
+
+                        {/* Newsletter visibility Toggle */}
+                        <div className="p-4 bg-indigo-950/5 border border-indigo-950/20 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="text-xs font-mono font-black text-indigo-400 uppercase tracking-wider flex items-center gap-2">
+                              <Mail size={14} className="text-indigo-500" />
+                              BÜLTEN ABONELİK PANELİ (NEWSLETTER SECTION)
+                            </h4>
+                            <p className="text-[10px] text-zinc-400 font-mono leading-relaxed max-w-xl">
+                              Bu ayar ile ana sayfanın altındaki "Bültene Abone Ol" bölümünü tamamen gizleyebilir ya da gösterebilirsiniz. Eğer sunucu SMTP e-posta servisiniz yoksa şimdilik gizli tutabilirsiniz.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setEditedContent({
+                              ...editedContent,
+                              settings: { ...editedContent.settings, showNewsletter: editedContent.settings.showNewsletter === false ? true : false }
+                            })}
+                            className={`px-4 py-2.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider border transition-all duration-300 shrink-0 ${
+                              editedContent.settings.showNewsletter !== false
+                                ? "bg-indigo-500/15 border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/25 shadow-[0_0_15px_rgba(99,102,241,0.08)] cursor-pointer"
+                                : "bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:bg-zinc-850 hover:text-white cursor-pointer"
+                            }`}
+                          >
+                            {editedContent.settings.showNewsletter !== false ? "● GÖSTERİLİYOR (AKTİF)" : "○ GİZLENDİ (PASİF)"}
+                          </button>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="space-y-1.5">

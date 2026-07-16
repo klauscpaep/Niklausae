@@ -44,6 +44,7 @@ export interface SiteSettings {
   smtpFrom?: string;
   smtpFromName?: string;
   notifyOnNewSubscriber?: boolean;
+  showNewsletter?: boolean;
 }
 
 export interface EditPackItem {

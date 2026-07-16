@@ -25,7 +25,7 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
   
   // Submit Form State
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("Geçiş Efektleri");
+  const [category, setCategory] = useState("Öneri & Geliştirme");
   const [description, setDescription] = useState("");
   const [referenceUrl, setReferenceUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -263,11 +263,16 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
   });
 
   const categoriesList = [
+    "Öneri & Geliştirme",
+    "Şikayet & Geri Bildirim",
+    "Hata & Bug Bildirimi",
+    "Kırık / Hatalı Link",
+    "Efekt / Dosya İsteği",
+    "Twixtor & Velocity",
+    "Color Correction (CC)",
     "Geçiş Efektleri",
     "Ses Efektleri (SFX)",
-    "Twixtor & Velocity",
     "Overlays & Texture",
-    "Color Correction (CC)",
     "After Effects Şablonu",
     "Diğer / Özel İstek"
   ];
@@ -414,14 +419,14 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/[0.02] rounded-full blur-3xl pointer-events-none" />
           
           <div className="space-y-3">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
-              <MessageSquare size={10} /> İstek & Öneri Kutusu
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-full text-[10px] font-mono font-bold uppercase tracking-wider">
+              <MessageSquare size={10} /> Mini Şikayet, Öneri & İstek Kutusu
             </span>
             <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white uppercase tracking-tight leading-tight">
-              Arşivi Birlikte Büyütelim
+              Geri Bildirim Bildir
             </h3>
             <p className="text-xs text-zinc-400 leading-relaxed">
-              Arşivde bulunmasını istediğiniz yeni efekt paketlerini, presetleri veya araçları talep edin. Diğer kullanıcıların isteklerine oy vererek öne çıkmasını sağlayın!
+              Arşivle ilgili her türlü memnuniyetsizliği, şikayeti, link hatalarını bildirebilir veya yeni efekt ve özellik önerileri talep edebilirsiniz.
             </p>
           </div>
 
@@ -557,17 +562,27 @@ export default function HelpRequestsSection({ content, onSaveContent }: HelpRequ
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-mono text-zinc-500 block uppercase font-bold tracking-wider">KATEGORİ</label>
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-900 rounded-xl text-xs text-zinc-300 focus:outline-none focus:border-red-500/50 transition-colors"
-                    >
-                      {categoriesList.map((cat, i) => (
-                        <option key={i} value={cat}>{cat}</option>
-                      ))}
-                    </select>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-mono text-zinc-500 block uppercase font-bold tracking-wider">KATEGORİ / BİLDİRİM TÜRÜ</label>
+                    <div className="flex flex-wrap gap-1.5 max-h-[140px] overflow-y-auto p-2 bg-zinc-950 rounded-xl border border-zinc-900">
+                      {categoriesList.map((cat, i) => {
+                        const isSelected = category === cat;
+                        return (
+                          <button
+                            type="button"
+                            key={i}
+                            onClick={() => setCategory(cat)}
+                            className={`px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wide transition-all cursor-pointer border ${
+                              isSelected
+                                ? "bg-red-500/10 border-red-500/45 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.06)]"
+                                : "bg-zinc-900/40 border-zinc-900/80 text-zinc-500 hover:text-zinc-300 hover:border-zinc-800"
+                            }`}
+                          >
+                            {cat}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
