@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, ExternalLink, ArrowUp, Mail,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
-  FolderOpen, FileCheck, X, Lock, Unlock, ArrowRight, MessageSquare
+  FolderOpen, FileCheck, X, Lock, Unlock, ArrowRight, MessageSquare,
+  Sun, Moon, MoreHorizontal
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
@@ -38,6 +39,31 @@ export default function App() {
   const [loadingText, setLoadingText] = useState(() => {
     return localStorage.getItem("kreatif_loading_text") || "KREATİF EDİT PACK yükleniyor...";
   });
+
+  // Appearance Theme state (Gece / Gündüz)
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem("kreatif_theme");
+    return saved !== "false"; // Default to dark mode (Gece)
+  });
+
+  useEffect(() => {
+    localStorage.setItem("kreatif_theme", isDarkMode ? "true" : "false");
+  }, [isDarkMode]);
+
+  // Design-system theme styles
+  const t = {
+    bg: isDarkMode ? "bg-[#0e0e12]" : "bg-[#f4f5f8]",
+    text: isDarkMode ? "text-zinc-200" : "text-zinc-800",
+    textMuted: isDarkMode ? "text-zinc-400" : "text-zinc-600",
+    textMutedMore: isDarkMode ? "text-zinc-500" : "text-zinc-400",
+    cardBg: isDarkMode ? "bg-zinc-950/90 border-zinc-900" : "bg-white border-zinc-200 shadow-sm",
+    cardBgTransparent: isDarkMode ? "bg-zinc-950/55 border-zinc-900/80" : "bg-white/80 border-zinc-200/80 shadow-lg",
+    innerCardBg: isDarkMode ? "bg-zinc-900/40 border-zinc-900" : "bg-zinc-50 border-zinc-200/40",
+    border: isDarkMode ? "border-zinc-900/80" : "border-zinc-200/80",
+    titleText: isDarkMode ? "text-white" : "text-zinc-900",
+    modalBg: isDarkMode ? "bg-[#0c0d12]" : "bg-white",
+    btnBorder: isDarkMode ? "border-zinc-850 hover:border-zinc-700 text-zinc-400 hover:text-white" : "border-zinc-200 hover:border-zinc-300 text-zinc-600 hover:text-zinc-900",
+  };
   
   // Modals state
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
@@ -445,34 +471,34 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0e0e12] text-zinc-200 font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden">
+    <div className={`min-h-screen ${t.bg} ${t.text} font-sans selection:bg-red-600 selection:text-white pb-24 relative overflow-hidden transition-colors duration-500`}>
       
       {/* Cinematic Golden Geometric Background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <img
           src={goldenPolyBg}
           alt="Golden Poly Background"
-          className="w-full h-full object-cover opacity-[0.38] filter blur-[0.5px] transition-all duration-1000"
+          className={`w-full h-full object-cover ${isDarkMode ? "opacity-[0.38]" : "opacity-[0.10] grayscale"} filter blur-[0.5px] transition-all duration-1000`}
           referrerPolicy="no-referrer"
         />
         {/* Subtle dark vignette overlay to keep text ultra-readable */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0e0e12]/50 via-transparent to-[#0e0e12]/75" />
+        <div className={`absolute inset-0 bg-gradient-to-b ${isDarkMode ? "from-[#0e0e12]/50 via-transparent to-[#0e0e12]/75" : "from-[#f4f5f8]/50 via-transparent to-[#f4f5f8]/75"}`} />
       </div>
 
       {/* Cyberpunk Grid Overlay */}
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.05] pointer-events-none" />
 
       {/* Ambient Decorative Lighting Gradients - Brighter and warmer */}
-      <div className="absolute top-[-10%] left-[5%] w-[600px] h-[600px] rounded-full bg-red-500/[0.04] blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-[15%] right-[-5%] w-[500px] h-[500px] rounded-full bg-amber-500/[0.12] blur-[130px] pointer-events-none" />
-      <div className="absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-amber-500/[0.09] blur-[160px] pointer-events-none" />
-      <div className="absolute top-[50%] left-[10%] w-[500px] h-[500px] rounded-full bg-yellow-500/[0.06] blur-[140px] pointer-events-none" />
+      <div className={`absolute top-[-10%] left-[5%] w-[600px] h-[600px] rounded-full ${isDarkMode ? "bg-red-500/[0.04]" : "bg-red-500/[0.02]"} blur-[150px] pointer-events-none`} />
+      <div className={`absolute bottom-[15%] right-[-5%] w-[500px] h-[500px] rounded-full ${isDarkMode ? "bg-amber-500/[0.12]" : "bg-amber-500/[0.04]"} blur-[130px] pointer-events-none`} />
+      <div className={`absolute top-[25%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] rounded-full ${isDarkMode ? "bg-amber-500/[0.09]" : "bg-amber-500/[0.03]"} blur-[160px] pointer-events-none`} />
+      <div className={`absolute top-[50%] left-[10%] w-[500px] h-[500px] rounded-full ${isDarkMode ? "bg-yellow-500/[0.06]" : "bg-yellow-500/[0.02]"} blur-[140px] pointer-events-none`} />
 
       {/* Main Container */}
       <div className="max-w-5xl xl:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-16 space-y-8 relative z-10">
         
         {/* Top Brand & Visitor Counter Header Bar */}
-        <header className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-zinc-950/55 backdrop-blur-md border border-zinc-900/80 rounded-3xl shadow-xl shadow-black/40">
+        <header className={`flex flex-col md:flex-row items-center justify-between gap-4 p-4 ${t.cardBgTransparent} backdrop-blur-md border rounded-3xl shadow-xl transition-all duration-300`}>
           {/* Brand Logo Trigger (Double-click opens admin panel secretly) */}
           <div 
             onDoubleClick={() => setIsAdminOpen(true)}
@@ -491,7 +517,7 @@ export default function App() {
               )}
             </div>
             <div>
-              <h1 className="text-sm font-mono font-bold text-zinc-300 tracking-[0.2em] uppercase flex items-center gap-1.5">
+              <h1 className={`text-sm font-mono font-bold ${isDarkMode ? "text-zinc-300" : "text-zinc-800"} tracking-[0.2em] uppercase flex items-center gap-1.5`}>
                 {(() => {
                   const text = content.settings.topBarText || "KREATİF EDİT PACK";
                   const words = text.split(" ");
@@ -507,31 +533,72 @@ export default function App() {
                   return text;
                 })()}
               </h1>
-              <span className="text-[9px] font-mono font-medium text-zinc-500 tracking-wider">CREATIVE RESOURCE ARCHIVE</span>
+              <span className={`text-[9px] font-mono font-medium ${isDarkMode ? "text-zinc-500" : "text-zinc-400"} tracking-wider`}>CREATIVE RESOURCE ARCHIVE</span>
             </div>
           </div>
 
-          {/* Visitor Counter */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative px-8 py-3.5 bg-[#09090b] border border-zinc-900/80 rounded-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col items-center justify-center min-w-[170px] group transition-all duration-300 hover:border-zinc-800"
-          >
-            {/* Glowing top line */}
-            <div className="absolute top-0 left-3 right-3 h-[2px] bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-400 rounded-full shadow-[0_1px_10px_rgba(168,85,247,0.5)]"></div>
+          {/* Side-by-side Appearance Toggle & Visitor Counter */}
+          <div className="flex flex-row items-center gap-3.5 w-full md:w-auto justify-center md:justify-end">
             
-            {/* Glowing light spread under the top bar */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-4/5 h-[8px] bg-gradient-to-r from-rose-500/10 via-purple-500/20 to-cyan-400/10 blur-sm pointer-events-none"></div>
+            {/* Appearance Mode Toggle Widget */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="relative py-2.5 px-4.5 bg-[#0a0a0f] border border-zinc-900 rounded-[22px] shadow-2xl flex items-center gap-3.5 select-none cursor-pointer group hover:border-zinc-800 transition-all duration-300 min-w-[170px]"
+            >
+              {/* Glowing top line */}
+              <div className="absolute top-0 left-3.5 right-3.5 h-[1.5px] bg-gradient-to-r from-orange-500 via-pink-500 to-cyan-400 rounded-full opacity-80" />
+              
+              {/* Custom High-Fidelity Slider Switch */}
+              <div className="relative w-12 h-7 rounded-full bg-[#121319] border border-zinc-850 p-0.5 flex items-center transition-colors">
+                {/* Sun & Moon hidden icons inside track */}
+                <div className="absolute left-1.5 flex items-center justify-center text-amber-500/80">
+                  <Sun size={11} className="animate-pulse" />
+                </div>
+                <div className="absolute right-2 flex items-center justify-center text-zinc-600">
+                  <Moon size={11} />
+                </div>
+                
+                {/* Sliding Thumb */}
+                <motion.div 
+                  animate={{ x: isDarkMode ? 20 : 0 }}
+                  transition={{ type: "spring", stiffness: 450, damping: 28 }}
+                  className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-400 to-orange-500 shadow-md shadow-orange-500/20 z-10 flex items-center justify-center"
+                />
+              </div>
 
-            <div className="text-center leading-none mt-1">
-              <span className="text-[9px] font-mono font-black text-zinc-400 tracking-[0.25em] uppercase block text-center">
-                TOPLAM ZİYARET
-              </span>
-              <span className="text-3xl font-bold font-sans text-white mt-2 block text-center tracking-wide leading-none select-none">
-                {content.visitorCount}
-              </span>
-            </div>
-          </motion.div>
+              {/* Text Labels Stack */}
+              <div className="flex flex-col text-left leading-none">
+                <span className="text-[8px] font-mono font-bold text-zinc-500 tracking-[0.18em] uppercase">
+                  GÖRÜNÜM
+                </span>
+                <span className="text-sm font-sans font-black text-white uppercase tracking-wider mt-1 block select-none">
+                  {isDarkMode ? "GECE" : "GÜNDÜZ"}
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Total Visit Counter Widget */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="relative py-2.5 px-6 bg-[#0a0a0f] border border-zinc-900 rounded-[22px] shadow-2xl flex flex-col items-center justify-center min-w-[160px] group transition-all duration-300 hover:border-zinc-800"
+            >
+              {/* Glowing top line */}
+              <div className="absolute top-0 left-3.5 right-3.5 h-[1.5px] bg-gradient-to-r from-rose-500 via-purple-500 to-cyan-400 rounded-full opacity-80" />
+              
+              <div className="text-center leading-none mt-0.5">
+                <span className="text-[8px] font-mono font-bold text-zinc-500 tracking-[0.18em] uppercase block">
+                  TOPLAM ZİYARET
+                </span>
+                <span className="text-2xl font-bold font-sans text-white mt-1 block tracking-wide select-none leading-none pt-0.5">
+                  {content ? content.visitorCount : "..."}
+                </span>
+              </div>
+            </motion.div>
+
+          </div>
         </header>
 
         {/* Active Announcements */}
@@ -540,15 +607,15 @@ export default function App() {
         {/* Dashboard Responsive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
-          {/* Left Column (Hero Card, Creator Profile, Stats, Social Channels) */}
-          <div className="lg:col-span-5 space-y-6">
+          {/* Left Column (Hero Card) */}
+          <div className="lg:col-span-4 space-y-6">
             
             {/* Hero Card */}
             <motion.div 
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="relative p-8 bg-gradient-to-b from-zinc-900/90 to-zinc-950/95 border border-zinc-850/80 rounded-3xl shadow-2xl overflow-hidden group sweep-effect"
+              className={`relative p-8 ${isDarkMode ? "bg-gradient-to-b from-zinc-900/90 to-zinc-950/95 border-zinc-850/80" : "bg-white border-zinc-200/85 shadow-md"} border rounded-3xl overflow-hidden group sweep-effect`}
             >
               {/* Internal Glow Effects */}
               <div className="absolute -right-24 -top-24 w-48 h-48 rounded-full bg-red-600/10 blur-3xl pointer-events-none" />
@@ -556,14 +623,14 @@ export default function App() {
 
               {/* Badge */}
               <div className="flex justify-center mb-6">
-                <span className="px-3.5 py-1.5 bg-zinc-950/80 border border-zinc-850 text-[10px] font-mono text-zinc-400 font-bold rounded-full flex items-center gap-2">
+                <span className={`px-3.5 py-1.5 ${isDarkMode ? "bg-zinc-950/80 border-zinc-850 text-zinc-400" : "bg-zinc-50 border-zinc-200 text-zinc-600"} border text-[10px] font-mono font-bold rounded-full flex items-center gap-2`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
                   {content.settings.heroBadge || "AFTER EFFECTS PACKS"}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 className="text-3xl font-display font-extrabold text-white text-center tracking-tight uppercase leading-tight">
+              <h2 className={`text-3xl font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} text-center tracking-tight uppercase leading-tight`}>
                 {content.settings.heroTitle || "KREATİF EDİT PACK"}
               </h2>
 
@@ -572,202 +639,27 @@ export default function App() {
                 <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-red-500/60" />
                 <div className="flex items-center gap-2 px-3">
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-zinc-700" : "bg-zinc-300"}`} />
                   <div className="w-2.5 h-2.5 border border-red-500 rotate-45 flex items-center justify-center">
                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                   </div>
-                  <span className="w-1.5 h-1.5 rounded-full bg-zinc-700" />
+                  <span className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-zinc-700" : "bg-zinc-300"}`} />
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                 </div>
                 <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-red-500/60" />
               </div>
             </motion.div>
 
-            {/* Biography & Creator Profile */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="relative p-6 bg-zinc-950/90 border border-zinc-900 rounded-3xl shadow-2xl space-y-6 overflow-hidden"
-            >
-              {/* Subtle Decorative Light Leak */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-2xl rounded-full pointer-events-none" />
-
-              {/* Header */}
-              <div className="flex items-center gap-2 border-b border-zinc-900 pb-3 justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
-                  <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-wider uppercase">
-                    {content.settings.bioSub || "EDİTÖR / KREATİF PROFİL"}
-                  </span>
-                </div>
-                <span className="text-[9px] font-mono text-zinc-600">ID: #01</span>
-              </div>
-
-              {/* Profile Picture with high-fidelity effects (Double-click opens admin panel secretly) */}
-              <div 
-                onDoubleClick={() => setIsAdminOpen(true)}
-                className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden border border-zinc-900 shadow-2xl group cursor-pointer"
-              >
-                <img 
-                  src={content.settings.bioImage || defaultProfileImg} 
-                  alt="Editör Profil" 
-                  className="w-full h-full object-cover grayscale brightness-90 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700 ease-out"
-                />
-                {/* Sleek shadow overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
-                
-                {/* Floating text badge */}
-                <div className="absolute bottom-4 left-4">
-                  <span className="text-[9px] font-mono font-black text-red-500 tracking-widest block uppercase">
-                    {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
-                  </span>
-                  <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5 block glow-text-red">
-                    {content.settings.bioName || "KREATİF EDİTÖR"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Bio Description */}
-              <div className="space-y-2">
-                <h3 className="text-sm font-display font-black text-white tracking-wider uppercase leading-none flex items-center gap-2">
-                  <Sparkles size={14} className="text-red-500" />
-                  {content.settings.bioTitle || "BEN KİMİM?"}
-                </h3>
-                <div className="w-10 h-[1.5px] bg-red-600 rounded-full" />
-                {content.settings.bioDescription && (
-                  <p className="text-xs text-zinc-400 mt-3 leading-relaxed whitespace-pre-line bg-zinc-900/20 p-3.5 rounded-xl border border-zinc-900/50">
-                    {content.settings.bioDescription}
-                  </p>
-                )}
-              </div>
-
-              {/* Bento Stats Grid */}
-              <div className="grid grid-cols-3 gap-2.5">
-                {content.settings.stats.map((stat, idx) => (
-                  <div key={idx} className="p-3 bg-zinc-900/40 border border-zinc-900 rounded-xl text-center space-y-1 hover:border-red-950/50 transition-colors">
-                    <span className="text-lg font-mono font-extrabold text-white block glow-text-red">
-                      {stat.value}
-                    </span>
-                    <span className="text-[8px] font-mono text-zinc-500 tracking-widest block uppercase font-bold leading-tight">
-                      {stat.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Portfolio Main Action Button */}
-              <a
-                href={content.settings.portfolioUrl}
-                target="_blank"
-                referrerPolicy="no-referrer"
-                className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-display font-extrabold text-xs tracking-widest text-center uppercase rounded-xl border border-red-500 transition-all active:scale-98 shadow-lg shadow-red-600/10 block cursor-pointer"
-              >
-                PORTFÖYÜ İNCELE
-              </a>
-            </motion.div>
-
-            {/* Social Channels Panel */}
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="relative p-5 bg-zinc-950/90 border border-zinc-900 rounded-3xl shadow-xl space-y-4"
-            >
-              <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                <span className="text-[9px] font-mono font-bold text-zinc-500 tracking-widest uppercase block">SOSYAL MEDYA KANALLARI</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2.5">
-                {/* YouTube Card */}
-                <a 
-                  href={content.settings.socialLinks.youtube} 
-                  target="_blank" 
-                  referrerPolicy="no-referrer"
-                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-red-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="p-1.5 bg-red-600/10 group-hover:bg-red-600 text-red-500 group-hover:text-white rounded-lg transition-all duration-300">
-                    <Youtube size={14} fill="currentColor" />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-white block group-hover:text-red-400 transition-colors">YouTube</span>
-                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.youtube || "KREATİF EDİTÖR"}
-                    </span>
-                  </div>
-                </a>
-
-                {/* Instagram Card */}
-                <a 
-                  href={content.settings.socialLinks.instagram} 
-                  target="_blank" 
-                  referrerPolicy="no-referrer"
-                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-pink-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="p-1.5 bg-pink-600/10 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-pink-600 text-pink-500 group-hover:text-white rounded-lg transition-all duration-300">
-                    <Instagram size={14} />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-white block group-hover:text-pink-400 transition-colors">Instagram</span>
-                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.instagram || "@kreatifeditor"}
-                    </span>
-                  </div>
-                </a>
-
-                {/* Discord Card */}
-                <a 
-                  href={content.settings.socialLinks.discord} 
-                  target="_blank" 
-                  referrerPolicy="no-referrer"
-                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-blue-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="p-1.5 bg-blue-600/10 group-hover:bg-[#5865F2] text-blue-400 group-hover:text-white rounded-lg transition-all duration-300">
-                    <Disc size={14} />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-white block group-hover:text-blue-400 transition-colors">Discord</span>
-                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.discord || "KATIL"}
-                    </span>
-                  </div>
-                </a>
-
-                {/* TikTok Card */}
-                <a 
-                  href={content.settings.socialLinks.tiktok} 
-                  target="_blank" 
-                  referrerPolicy="no-referrer"
-                  className="group relative flex items-center gap-2.5 p-2.5 bg-zinc-900/30 border border-zinc-900 hover:border-cyan-600/30 rounded-xl transition-all duration-300 cursor-pointer overflow-hidden"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/0 via-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="p-1.5 bg-cyan-600/10 group-hover:bg-zinc-900 text-cyan-400 group-hover:text-pink-500 rounded-lg transition-all duration-300 flex items-center justify-center">
-                    <TikTokIcon size={14} />
-                  </div>
-                  <div className="min-w-0">
-                    <span className="text-[10px] font-bold text-white block group-hover:text-cyan-400 transition-colors">TikTok</span>
-                    <span className="text-[8px] text-zinc-500 font-mono truncate block">
-                      {content.settings.socialHandles?.tiktok || "@kreatifeditor"}
-                    </span>
-                  </div>
-                </a>
-              </div>
-            </motion.div>
-
           </div>
 
           {/* Right Column (Plugins, Categories Library) */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-8 space-y-6">
             
             {/* Quick Actions Bento Stack (Matches User Video exactly) */}
             <div className="space-y-3.5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">HIZLI MENÜ / ARAÇLAR</span>
+                <span className={`text-[10px] font-mono font-bold ${isDarkMode ? "text-zinc-500" : "text-zinc-450"} tracking-widest uppercase`}>HIZLI MENÜ / ARAÇLAR</span>
               </div>
 
               {/* Card 1: En Son Eklenenler */}
@@ -776,7 +668,7 @@ export default function App() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.22 }}
                 onClick={() => setIsRecentOpen(true)}
-                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
+                className={`group relative flex items-center justify-between p-5 ${isDarkMode ? "bg-gradient-to-r from-zinc-950 to-[#0e1017] border-zinc-900" : "bg-gradient-to-r from-white to-zinc-50 border-zinc-200/80 shadow-sm"} border hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
@@ -787,16 +679,16 @@ export default function App() {
                   </div>
                   <div>
                     <span className="text-[9px] font-mono text-red-400 tracking-widest font-bold block uppercase mb-0.5">YENİ GÜNCELLEMELER</span>
-                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase">
+                    <h3 className={`text-sm font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} group-hover:text-red-400 transition-colors uppercase`}>
                       En Son Eklenenler
                     </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+                    <p className={`text-xs ${isDarkMode ? "text-zinc-400" : "text-zinc-600"} mt-0.5 font-sans`}>
                       Son 7 günde eklenen veya güncellenen efektler
                     </p>
                   </div>
                 </div>
                 
-                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300">
+                <div className={`p-2.5 ${isDarkMode ? "bg-zinc-900 border-zinc-850" : "bg-zinc-100 border-zinc-200"} border rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300`}>
                   <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
                 </div>
               </motion.div>
@@ -809,7 +701,7 @@ export default function App() {
                 href={content.settings.pluginUrl}
                 target="_blank"
                 referrerPolicy="no-referrer"
-                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden block"
+                className={`group relative flex items-center justify-between p-5 ${isDarkMode ? "bg-gradient-to-r from-zinc-950 to-[#0e1017] border-zinc-900" : "bg-gradient-to-r from-white to-zinc-50 border-zinc-200/80 shadow-sm"} border hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden block`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                 
@@ -819,51 +711,20 @@ export default function App() {
                     <Play size={18} fill="currentColor" />
                   </div>
                   <div>
-                    <span className="text-[9px] font-mono text-zinc-500 tracking-widest font-bold block uppercase mb-0.5">SİSTEM REHBERLERİ</span>
-                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase">
+                    <span className={`text-[9px] font-mono ${isDarkMode ? "text-zinc-500" : "text-zinc-400"} tracking-widest font-bold block uppercase mb-0.5`}>SİSTEM REHBERLERİ</span>
+                    <h3 className={`text-sm font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} group-hover:text-red-400 transition-colors uppercase`}>
                       {content.settings.pluginTitle || "Gerekli Pluginler"}
                     </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+                    <p className={`text-xs ${isDarkMode ? "text-zinc-400" : "text-zinc-600"} mt-0.5 font-sans`}>
                       {content.settings.pluginDesc || "Kurulum videosunu izle"}
                     </p>
                   </div>
                 </div>
                 
-                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300">
+                <div className={`p-2.5 ${isDarkMode ? "bg-zinc-900 border-zinc-850" : "bg-zinc-100 border-zinc-200"} border rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300`}>
                   <ExternalLink size={13} />
                 </div>
               </motion.a>
-
-              {/* Card 3: Şikayet & Öneri */}
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.26 }}
-                onClick={() => setIsFeedbackOpen(true)}
-                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-orange-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  {/* Glowing Message Badge */}
-                  <div className="p-3.5 bg-gradient-to-tr from-orange-500 via-amber-500 to-yellow-400 text-white rounded-2xl shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300">
-                    <MessageSquare size={18} className="animate-pulse" />
-                  </div>
-                  <div>
-                    <span className="text-[9px] font-mono text-orange-400 tracking-widest font-bold block uppercase mb-0.5">DESTEK & GERİ BİLDİRİM</span>
-                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-orange-400 transition-colors uppercase">
-                      Şikayet & Öneri Paneli
-                    </h3>
-                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
-                      Önerini paylaş veya karşılaştığın sorunları bildir
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-orange-500/20 text-zinc-500 group-hover:text-orange-400 transition-all duration-300">
-                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                </div>
-              </motion.div>
             </div>
 
             {/* Categories Section Header */}
@@ -874,8 +735,8 @@ export default function App() {
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-display font-extrabold text-white tracking-tight uppercase">Kategoriler / Odalar</h2>
-                  <p className="text-xs text-zinc-500 leading-relaxed mt-1">
+                  <h2 className={`text-2xl font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} tracking-tight uppercase`}>Kategoriler / Odalar</h2>
+                  <p className={`text-xs ${isDarkMode ? "text-zinc-500" : "text-zinc-600"} leading-relaxed mt-1`}>
                     {content.settings.heroSub || "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır."}
                   </p>
                 </div>
@@ -953,7 +814,7 @@ export default function App() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 + idx * 0.05 }}
                     onClick={() => setSelectedCategory(category)}
-                    className="group relative p-7 bg-[#0b0c10] hover:bg-[#0e1017] border border-zinc-900/80 hover:border-zinc-800 rounded-[28px] shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6"
+                    className={`group relative p-7 ${isDarkMode ? "bg-[#0b0c10] hover:bg-[#0e1017] border-zinc-900/80 hover:border-zinc-800 shadow-black/40" : "bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-zinc-200/50"} border rounded-[28px] shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6`}
                   >
                     {/* Glowing radial spot inside the card */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${theme.glowBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
@@ -961,12 +822,12 @@ export default function App() {
                     {/* Left Section: Info stack */}
                     <div className="space-y-3 relative z-10">
                       {/* Monogram/Index */}
-                      <span className="text-[11px] font-mono font-bold text-zinc-600 tracking-widest block uppercase">
+                      <span className={`text-[11px] font-mono font-bold ${isDarkMode ? "text-zinc-600" : "text-zinc-400"} tracking-widest block uppercase`}>
                         {category.index || `0${idx + 1}`}
                       </span>
 
                       {/* Redesigned custom pill/badge */}
-                      <div className={`inline-flex items-center gap-1.5 pl-1 pr-3 py-1 bg-zinc-950/80 border border-zinc-900 rounded-full text-[10px] font-mono font-bold tracking-wider`}>
+                      <div className={`inline-flex items-center gap-1.5 pl-1 pr-3 py-1 ${isDarkMode ? "bg-zinc-950/80 border-zinc-900" : "bg-zinc-100 border-zinc-200"} border rounded-full text-[10px] font-mono font-bold tracking-wider`}>
                         <span className={`px-2 py-0.5 rounded-full ${theme.badgeBg} text-white text-[9px] font-black`}>
                           {itemCount}
                         </span>
@@ -976,7 +837,7 @@ export default function App() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white uppercase tracking-tight group-hover:text-red-400 transition-colors duration-300 leading-none">
+                      <h3 className={`text-2xl sm:text-3xl font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} uppercase tracking-tight group-hover:text-red-400 transition-colors duration-300 leading-none`}>
                         {category.title}
                       </h3>
                     </div>
@@ -992,6 +853,208 @@ export default function App() {
 
           </div>
 
+        </div>
+
+        {/* Creator Biography & Social Channels Bottom Layout */}
+        <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 mt-12 pt-12 border-t ${isDarkMode ? "border-zinc-900/60" : "border-zinc-200"}`}>
+          {/* Left Side: Biography & Creator Profile */}
+          <div className="lg:col-span-7">
+            {/* Biography & Creator Profile */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className={`relative p-7 ${isDarkMode ? "bg-zinc-950/90 border-zinc-900 shadow-black/40" : "bg-white border-zinc-200/80 shadow-zinc-200/40"} border rounded-3xl shadow-2xl space-y-6 overflow-hidden h-full flex flex-col justify-between`}
+            >
+              {/* Subtle Decorative Light Leak */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/5 blur-2xl rounded-full pointer-events-none" />
+
+              {/* Top Section */}
+              <div className="space-y-6">
+                {/* Header */}
+                <div className={`flex items-center gap-2 border-b ${isDarkMode ? "border-zinc-900" : "border-zinc-100"} pb-3 justify-between`}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse" />
+                    <span className={`text-[9px] font-mono font-bold ${isDarkMode ? "text-zinc-500" : "text-zinc-450"} tracking-wider uppercase`}>
+                      {content.settings.bioSub || "EDİTÖR / KREATİF PROFİL"}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] font-mono ${isDarkMode ? "text-zinc-600" : "text-zinc-400"}`}>ID: #01</span>
+                </div>
+
+                {/* Main responsive grid for side-by-side on larger screens */}
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                  {/* Profile Picture with high-fidelity effects */}
+                  <div className="md:col-span-5">
+                    <div 
+                      onDoubleClick={() => setIsAdminOpen(true)}
+                      className={`relative aspect-[4/3] w-full rounded-2xl overflow-hidden border ${isDarkMode ? "border-zinc-900" : "border-zinc-150"} shadow-2xl group cursor-pointer`}
+                    >
+                      <img 
+                        src={content.settings.bioImage || defaultProfileImg} 
+                        alt="Editör Profil" 
+                        className="w-full h-full object-cover grayscale brightness-90 group-hover:scale-105 group-hover:grayscale-0 group-hover:brightness-100 transition-all duration-700 ease-out"
+                      />
+                      {/* Sleek shadow overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-t ${isDarkMode ? "from-zinc-950 via-zinc-950/20" : "from-zinc-900/80 via-zinc-900/10"} to-transparent`} />
+                      
+                      {/* Floating text badge */}
+                      <div className="absolute bottom-4 left-4">
+                        <span className="text-[9px] font-mono font-black text-red-500 tracking-widest block uppercase">
+                          {content.settings.bioRole || "VIDEO EDITOR • MOTION DESIGNER"}
+                        </span>
+                        <span className="text-xl font-display font-black text-white uppercase tracking-tight mt-0.5 block glow-text-red">
+                          {content.settings.bioName || "KREATİF EDİTÖR"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio Description & Details */}
+                  <div className="md:col-span-7 space-y-4">
+                    <div className="space-y-2">
+                      <h3 className={`text-sm font-display font-black ${isDarkMode ? "text-white" : "text-zinc-900"} tracking-wider uppercase leading-none flex items-center gap-2`}>
+                        <Sparkles size={14} className="text-red-500" />
+                        {content.settings.bioTitle || "BEN KİMİM?"}
+                      </h3>
+                      <div className="w-10 h-[1.5px] bg-red-600 rounded-full" />
+                      {content.settings.bioDescription && (
+                        <p className={`text-xs ${isDarkMode ? "text-zinc-400 bg-zinc-900/10 border-zinc-900/40" : "text-zinc-650 bg-zinc-50 border-zinc-200/50"} leading-relaxed whitespace-pre-line p-4 rounded-xl border`}>
+                          {content.settings.bioDescription}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Bento Stats Grid */}
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {content.settings.stats.map((stat, idx) => (
+                        <div key={idx} className={`p-3 ${isDarkMode ? "bg-zinc-900/40 border-zinc-900 hover:border-red-950/50" : "bg-zinc-50 border-zinc-150 hover:border-red-200"} border rounded-xl text-center space-y-1 transition-colors`}>
+                          <span className={`text-lg font-mono font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} block glow-text-red`}>
+                            {stat.value}
+                          </span>
+                          <span className={`text-[8px] font-mono ${isDarkMode ? "text-zinc-500" : "text-zinc-450"} tracking-widest block uppercase font-bold leading-tight`}>
+                            {stat.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Portfolio Main Action Button placed at the very bottom of the card */}
+              <div className={`pt-4 border-t ${isDarkMode ? "border-zinc-900/40" : "border-zinc-150"} mt-4`}>
+                <a
+                  href={content.settings.portfolioUrl}
+                  target="_blank"
+                  referrerPolicy="no-referrer"
+                  className="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-display font-extrabold text-xs tracking-widest text-center uppercase rounded-xl border border-red-500 transition-all active:scale-98 shadow-lg shadow-red-600/10 block cursor-pointer"
+                >
+                  PORTFÖYÜ İNCELE
+                </a>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Side: Social Channels Panel */}
+          <div className="lg:col-span-5">
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className={`relative p-7 ${isDarkMode ? "bg-zinc-950/90 border-zinc-900 shadow-xl" : "bg-white border-zinc-200/80 shadow-zinc-200/40"} border rounded-3xl shadow-xl space-y-4 h-full flex flex-col justify-between`}
+            >
+              <div>
+                <div className={`flex items-center gap-2 border-b ${isDarkMode ? "border-zinc-900" : "border-zinc-100"} pb-3 mb-5`}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                  <span className={`text-[9px] font-mono font-bold ${isDarkMode ? "text-zinc-500" : "text-zinc-450"} tracking-widest uppercase block`}>SOSYAL MEDYA KANALLARI</span>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {/* YouTube Card */}
+                  <a 
+                    href={content.settings.socialLinks.youtube} 
+                    target="_blank" 
+                    referrerPolicy="no-referrer"
+                    className={`group relative flex items-center gap-3 p-3.5 ${isDarkMode ? "bg-zinc-900/20 border-zinc-900" : "bg-zinc-50 border-zinc-150 hover:border-red-500/20 shadow-sm"} border hover:border-red-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="p-2 bg-red-600/10 group-hover:bg-red-600 text-red-500 group-hover:text-white rounded-xl transition-all duration-300">
+                      <Youtube size={15} fill="currentColor" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-[11px] font-bold ${isDarkMode ? "text-white" : "text-zinc-900"} block group-hover:text-red-400 transition-colors`}>YouTube</span>
+                      <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                        {content.settings.socialHandles?.youtube || "KREATİF EDİTÖR"}
+                      </span>
+                    </div>
+                  </a>
+
+                  {/* Instagram Card */}
+                  <a 
+                    href={content.settings.socialLinks.instagram} 
+                    target="_blank" 
+                    referrerPolicy="no-referrer"
+                    className={`group relative flex items-center gap-3 p-3.5 ${isDarkMode ? "bg-zinc-900/20 border-zinc-900" : "bg-zinc-50 border-zinc-150 hover:border-pink-500/20 shadow-sm"} border hover:border-pink-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="p-2 bg-pink-600/10 group-hover:bg-gradient-to-tr group-hover:from-amber-500 group-hover:to-pink-600 text-pink-500 group-hover:text-white rounded-xl transition-all duration-300">
+                      <Instagram size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-[11px] font-bold ${isDarkMode ? "text-white" : "text-zinc-900"} block group-hover:text-pink-400 transition-colors`}>Instagram</span>
+                      <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                        {content.settings.socialHandles?.instagram || "@kreatifeditor"}
+                      </span>
+                    </div>
+                  </a>
+
+                  {/* Discord Card */}
+                  <a 
+                    href={content.settings.socialLinks.discord} 
+                    target="_blank" 
+                    referrerPolicy="no-referrer"
+                    className={`group relative flex items-center gap-3 p-3.5 ${isDarkMode ? "bg-zinc-900/20 border-zinc-900" : "bg-zinc-50 border-zinc-150 hover:border-blue-500/20 shadow-sm"} border hover:border-blue-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="p-2 bg-blue-600/10 group-hover:bg-[#5865F2] text-blue-400 group-hover:text-white rounded-xl transition-all duration-300">
+                      <Disc size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-[11px] font-bold ${isDarkMode ? "text-white" : "text-zinc-900"} block group-hover:text-blue-400 transition-colors`}>Discord</span>
+                      <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                        {content.settings.socialHandles?.discord || "KATIL"}
+                      </span>
+                    </div>
+                  </a>
+
+                  {/* TikTok Card */}
+                  <a 
+                    href={content.settings.socialLinks.tiktok} 
+                    target="_blank" 
+                    referrerPolicy="no-referrer"
+                    className={`group relative flex items-center gap-3 p-3.5 ${isDarkMode ? "bg-zinc-900/20 border-zinc-900" : "bg-zinc-50 border-zinc-150 hover:border-cyan-500/20 shadow-sm"} border hover:border-cyan-600/30 rounded-2xl transition-all duration-300 cursor-pointer overflow-hidden`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-600/0 via-pink-600/0 to-pink-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="p-2 bg-cyan-600/10 group-hover:bg-zinc-900 text-cyan-400 group-hover:text-pink-500 rounded-lg transition-all duration-300 flex items-center justify-center">
+                      <TikTokIcon size={15} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className={`text-[11px] font-bold ${isDarkMode ? "text-white" : "text-zinc-900"} block group-hover:text-cyan-400 transition-colors`}>TikTok</span>
+                      <span className="text-[8px] text-zinc-500 font-mono truncate block">
+                        {content.settings.socialHandles?.tiktok || "@kreatifeditor"}
+                      </span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+
+              {/* Aesthetic footer signature */}
+              <div className={`text-center pt-5 border-t ${isDarkMode ? "border-zinc-900/60" : "border-zinc-150"} font-mono text-[8px] text-zinc-600 tracking-widest uppercase`}>
+                NIKLAUSAE CREATIVE HUBS // CONNECT ONLINE
+              </div>
+            </motion.div>
+          </div>
         </div>
 
         {/* Newsletter Subscription Form */}
@@ -1019,12 +1082,40 @@ export default function App() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-30 p-3 bg-zinc-950/90 hover:bg-red-600 hover:text-white border border-zinc-800 hover:border-red-500 text-zinc-400 rounded-xl shadow-lg transition-all cursor-pointer flex flex-col items-center gap-0.5 active:scale-95"
+          className="fixed bottom-24 right-6 z-30 p-3 bg-zinc-950/90 hover:bg-red-600 hover:text-white border border-zinc-800 hover:border-red-500 text-zinc-400 rounded-xl shadow-lg transition-all cursor-pointer flex flex-col items-center gap-0.5 active:scale-95"
         >
           <ArrowUp size={14} />
           <span className="text-[7px] font-mono font-bold tracking-widest uppercase">YUKARI</span>
         </motion.button>
       )}
+
+      {/* Floating Support & Suggestion Button - Pixel Perfect matching Image 2 */}
+      <motion.div
+        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
+        whileHover={{ scale: 1.05, y: -2 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => setIsFeedbackOpen(true)}
+        className="fixed bottom-6 right-6 z-40 p-[1.5px] rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] shadow-[0_12px_40px_rgba(236,72,153,0.3)] hover:shadow-[0_16px_50px_rgba(236,72,153,0.45)] cursor-pointer transition-all duration-300"
+      >
+        <div className="relative px-5 py-3 bg-[#0d0e12] rounded-full flex items-center gap-3.5 overflow-hidden">
+          {/* Subtle starry background specs inside the button */}
+          <div className="absolute top-2 left-8 w-0.5 h-0.5 bg-white rounded-full opacity-40 animate-pulse" />
+          <div className="absolute bottom-2.5 right-12 w-0.5 h-0.5 bg-amber-400 rounded-full opacity-30 animate-pulse" />
+          <div className="absolute top-3.5 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-25" />
+
+          {/* Glowing gradient thumb with Ellipsis */}
+          <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-[#f97316] via-[#ec4899] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold shadow-md shadow-pink-500/20 relative shrink-0">
+            <MoreHorizontal size={16} className="text-white font-black" />
+          </div>
+
+          {/* Text label */}
+          <span className="text-xs font-sans font-black text-white tracking-wide whitespace-nowrap pr-1.5">
+            Öneri veya Şikâyet Bildir
+          </span>
+        </div>
+      </motion.div>
 
       {/* Detailed Pack Category Modal */}
       <CategoryDetailModal 
