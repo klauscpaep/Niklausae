@@ -89,6 +89,9 @@ export interface SuggestionRequest {
   status: "pending" | "approved" | "completed" | "rejected";
   votes: number;
   referenceUrl?: string;
+  feedbackType?: "Öneri" | "Şikâyet";
+  userName?: string;
+  contactInfo?: string;
 }
 
 export interface FAQItem {

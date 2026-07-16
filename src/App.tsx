@@ -3,13 +3,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   Play, ExternalLink, ArrowUp, Mail,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
-  FolderOpen, FileCheck, X, Lock, Unlock
+  FolderOpen, FileCheck, X, Lock, Unlock, ArrowRight, MessageSquare
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
 import CategoryDetailModal from "./components/CategoryDetailModal";
 import AnnouncementsList from "./components/AnnouncementsList";
-import HelpRequestsSection from "./components/HelpRequestsSection";
+import FeedbackModal from "./components/FeedbackModal";
+import RecentlyAddedModal from "./components/RecentlyAddedModal";
 import NewsletterForm from "./components/NewsletterForm";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniPlayer from "./components/MiniPlayer";
@@ -41,6 +42,8 @@ export default function App() {
   // Modals state
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [isRecentOpen, setIsRecentOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeVideo, setActiveVideo] = useState<{ id: string; name: string; url: string } | null>(null);
 
@@ -760,160 +763,227 @@ export default function App() {
           {/* Right Column (Plugins, Categories Library) */}
           <div className="lg:col-span-7 space-y-6">
             
-            {/* Required Plugins Button */}
-            <motion.a 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.22 }}
-              href={content.settings.pluginUrl}
-              target="_blank"
-              referrerPolicy="no-referrer"
-              className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-red-950/20 to-zinc-950 border-l-[3px] border-l-red-600 border-y border-r border-zinc-900/80 hover:border-zinc-800 hover:border-l-red-500 rounded-2xl shadow-lg transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
-            >
-              {/* Background overlay on hover */}
-              <div className="absolute inset-0 bg-red-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-              
-              <div className="flex items-center gap-4">
-                {/* Play Button Icon */}
-                <div className="p-3.5 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-600/20 group-hover:scale-105 transition-transform duration-300">
-                  <Play size={18} fill="currentColor" />
-                </div>
-                <div>
-                  <span className="text-[9px] font-mono text-red-500 tracking-widest font-bold block uppercase mb-0.5">SİSTEM GEREKSİNİMLERİ</span>
-                  <h3 className="text-sm font-display font-bold text-white group-hover:text-red-400 transition-colors">
-                    {content.settings.pluginTitle || "Gerekli Pluginler"}
-                  </h3>
-                  <p className="text-xs text-zinc-400 mt-0.5">
-                    {content.settings.pluginDesc || "Kurulum videosunu izle"}
-                  </p>
-                </div>
+            {/* Quick Actions Bento Stack (Matches User Video exactly) */}
+            <div className="space-y-3.5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                <span className="text-[10px] font-mono font-bold text-zinc-500 tracking-widest uppercase">HIZLI MENÜ / ARAÇLAR</span>
               </div>
-              
-              <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-colors">
-                <ExternalLink size={13} />
-              </div>
-            </motion.a>
+
+              {/* Card 1: En Son Eklenenler */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.22 }}
+                onClick={() => setIsRecentOpen(true)}
+                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  {/* Glowing Sparkles badge */}
+                  <div className="p-3.5 bg-gradient-to-tr from-red-600 to-orange-500 text-white rounded-2xl shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <Sparkles size={18} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-mono text-red-400 tracking-widest font-bold block uppercase mb-0.5">YENİ GÜNCELLEMELER</span>
+                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase">
+                      En Son Eklenenler
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+                      Son 7 günde eklenen veya güncellenen efektler
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300">
+                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </motion.div>
+
+              {/* Card 2: Gerekli Pluginler */}
+              <motion.a
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.24 }}
+                href={content.settings.pluginUrl}
+                target="_blank"
+                referrerPolicy="no-referrer"
+                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-red-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden block"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 via-red-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  {/* Glowing YouTube Play badge */}
+                  <div className="p-3.5 bg-red-600 text-white rounded-2xl shadow-lg shadow-red-600/25 group-hover:scale-105 transition-transform duration-300">
+                    <Play size={18} fill="currentColor" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-mono text-zinc-500 tracking-widest font-bold block uppercase mb-0.5">SİSTEM REHBERLERİ</span>
+                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-red-400 transition-colors uppercase">
+                      {content.settings.pluginTitle || "Gerekli Pluginler"}
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+                      {content.settings.pluginDesc || "Kurulum videosunu izle"}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-red-500/20 text-zinc-500 group-hover:text-red-400 transition-all duration-300">
+                  <ExternalLink size={13} />
+                </div>
+              </motion.a>
+
+              {/* Card 3: Şikayet & Öneri */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.26 }}
+                onClick={() => setIsFeedbackOpen(true)}
+                className="group relative flex items-center justify-between p-5 bg-gradient-to-r from-zinc-950 to-[#0e1017] border border-zinc-900 hover:border-orange-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/0 via-orange-500/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  {/* Glowing Message Badge */}
+                  <div className="p-3.5 bg-gradient-to-tr from-orange-500 via-amber-500 to-yellow-400 text-white rounded-2xl shadow-lg shadow-orange-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <MessageSquare size={18} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-mono text-orange-400 tracking-widest font-bold block uppercase mb-0.5">DESTEK & GERİ BİLDİRİM</span>
+                    <h3 className="text-sm font-display font-extrabold text-white group-hover:text-orange-400 transition-colors uppercase">
+                      Şikayet & Öneri Paneli
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5 font-sans">
+                      Önerini paylaş veya karşılaştığın sorunları bildir
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="p-2.5 bg-zinc-900 border border-zinc-850 rounded-xl group-hover:border-orange-500/20 text-zinc-500 group-hover:text-orange-400 transition-all duration-300">
+                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </motion.div>
+            </div>
 
             {/* Categories Section Header */}
-            <div className="space-y-2 pt-2">
+            <div className="space-y-2 pt-4">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
                 <span className="text-[10px] font-mono font-bold text-emerald-500 tracking-wider uppercase">CANLI ARŞİV KÜTÜPHANESİ</span>
               </div>
-              <h2 className="text-2xl font-display font-extrabold text-white tracking-tight uppercase">Kategoriler / Odalar</h2>
-              <p className="text-xs text-zinc-500 leading-relaxed">
-                {content.settings.heroSub || "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır."}
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-display font-extrabold text-white tracking-tight uppercase">Kategoriler / Odalar</h2>
+                  <p className="text-xs text-zinc-500 leading-relaxed mt-1">
+                    {content.settings.heroSub || "İncelemek istediğin paketi seç. Yalnızca seçtiğin kategori açılır."}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Categories Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Categories List (Redesigned matching Screenshot 1) */}
+            <div className="grid grid-cols-1 gap-4">
               {content.categories.map((category, idx) => {
                 const itemCount = category.items?.length || 0;
-                // Count previews
-                const previewCount = category.items?.filter(
-                  item => (item.previewBefore && item.previewAfter) || item.previewVideo
-                ).length || 0;
+                
+                // Theme configurations based on category index
+                const getCategoryTheme = (index: number) => {
+                  const themes = [
+                    {
+                      border: "border-purple-500/10 group-hover:border-purple-500/30",
+                      badgeBg: "bg-purple-600",
+                      textColor: "text-purple-400",
+                      pillBg: "bg-purple-950/15 border-purple-900/30",
+                      btnBorder: "border-purple-500/15 text-purple-400 group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-500",
+                      glowBg: "from-purple-600/10 via-transparent to-transparent"
+                    },
+                    {
+                      border: "border-amber-500/10 group-hover:border-amber-500/30",
+                      badgeBg: "bg-amber-600",
+                      textColor: "text-amber-400",
+                      pillBg: "bg-amber-950/15 border-amber-900/30",
+                      btnBorder: "border-amber-500/15 text-amber-400 group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-500",
+                      glowBg: "from-amber-600/10 via-transparent to-transparent"
+                    },
+                    {
+                      border: "border-cyan-500/10 group-hover:border-cyan-500/30",
+                      badgeBg: "bg-cyan-600",
+                      textColor: "text-cyan-400",
+                      pillBg: "bg-cyan-950/15 border-cyan-900/30",
+                      btnBorder: "border-cyan-500/15 text-cyan-400 group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-500",
+                      glowBg: "from-cyan-600/10 via-transparent to-transparent"
+                    },
+                    {
+                      border: "border-emerald-500/10 group-hover:border-emerald-500/30",
+                      badgeBg: "bg-emerald-600",
+                      textColor: "text-emerald-400",
+                      pillBg: "bg-emerald-950/15 border-emerald-900/30",
+                      btnBorder: "border-emerald-500/15 text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-500",
+                      glowBg: "from-emerald-600/10 via-transparent to-transparent"
+                    },
+                    {
+                      border: "border-rose-500/10 group-hover:border-rose-500/30",
+                      badgeBg: "bg-rose-600",
+                      textColor: "text-rose-400",
+                      pillBg: "bg-rose-950/15 border-rose-900/30",
+                      btnBorder: "border-rose-500/15 text-rose-400 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-500",
+                      glowBg: "from-rose-600/10 via-transparent to-transparent"
+                    }
+                  ];
+                  return themes[index % themes.length];
+                };
+
+                const getBadgeText = (title: string) => {
+                  const upper = title.toUpperCase();
+                  if (upper.includes("RENK")) return "RENK EFEKTİ";
+                  if (upper.includes("SHAKE")) return "SHAKE EFEKTİ";
+                  if (upper.includes("TWİXTOR")) return "TWİXTOR EFEKTİ";
+                  if (upper.includes("GEÇİŞ")) return "GEÇİŞ EFEKTİ";
+                  return "EDİT EFEKTİ";
+                };
+
+                const theme = getCategoryTheme(idx);
+                const badgeLabel = getBadgeText(category.title);
 
                 return (
                   <motion.div
                     key={category.id}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 + idx * 0.05 }}
                     onClick={() => setSelectedCategory(category)}
-                    className="group relative p-6 bg-zinc-950/40 hover:bg-[#0c0d12]/50 border border-zinc-900 hover:border-red-500/25 rounded-3xl shadow-2xl hover:shadow-[0_12px_40px_rgba(239,68,68,0.05)] transition-all duration-300 cursor-pointer overflow-hidden flex flex-col justify-between"
+                    className="group relative p-7 bg-[#0b0c10] hover:bg-[#0e1017] border border-zinc-900/80 hover:border-zinc-800 rounded-[28px] shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6"
                   >
-                    {/* Glowing Accent Gradient Background (Subtle) */}
-                    <div className={`absolute -right-20 -top-20 w-44 h-44 bg-gradient-to-br ${category.gradient} opacity-5 group-hover:opacity-15 blur-3xl transition-opacity duration-300 pointer-events-none`} />
-                    
-                    {/* Glowing Ambient Background Spot */}
-                    <div className="absolute left-6 top-6 w-12 h-12 bg-red-500/5 group-hover:bg-red-500/10 rounded-full blur-xl pointer-events-none transition-all duration-300" />
+                    {/* Glowing radial spot inside the card */}
+                    <div className={`absolute inset-0 bg-gradient-to-r ${theme.glowBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
 
-                    <div className="space-y-5 relative z-10">
-                      {/* Top bar of Card */}
-                      <div className="flex items-center justify-between">
-                        {/* Monogram Index */}
-                        <span className="font-mono text-[10px] text-zinc-500 font-extrabold tracking-widest uppercase bg-zinc-900/60 border border-zinc-850 px-2.5 py-1 rounded-lg">
-                          ODA {category.index}
+                    {/* Left Section: Info stack */}
+                    <div className="space-y-3 relative z-10">
+                      {/* Monogram/Index */}
+                      <span className="text-[11px] font-mono font-bold text-zinc-600 tracking-widest block uppercase">
+                        {category.index || `0${idx + 1}`}
+                      </span>
+
+                      {/* Redesigned custom pill/badge */}
+                      <div className={`inline-flex items-center gap-1.5 pl-1 pr-3 py-1 bg-zinc-950/80 border border-zinc-900 rounded-full text-[10px] font-mono font-bold tracking-wider`}>
+                        <span className={`px-2 py-0.5 rounded-full ${theme.badgeBg} text-white text-[9px] font-black`}>
+                          {itemCount}
                         </span>
-
-                        {/* Pulsing Active Indicator */}
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/5 border border-emerald-500/10 rounded-md">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="font-mono text-[8px] text-emerald-500 font-bold uppercase tracking-wider">AKTİF</span>
-                        </div>
+                        <span className={`${theme.textColor} uppercase font-extrabold tracking-widest text-[9px]`}>
+                          {badgeLabel}
+                        </span>
                       </div>
 
-                      {/* Main Title and Folder Icon Wrapper */}
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 bg-zinc-900 border border-zinc-850 rounded-2xl text-zinc-400 group-hover:text-red-400 group-hover:border-red-500/15 group-hover:bg-red-950/5 transition-all duration-300">
-                          <FolderOpen size={20} className="transition-transform group-hover:scale-110" />
-                        </div>
-                        <div className="space-y-1">
-                          <h3 className="text-base font-display font-black text-white group-hover:text-red-400 transition-colors uppercase tracking-tight leading-tight">
-                            {category.title}
-                          </h3>
-                          <p className="text-[11px] text-zinc-500 font-mono tracking-wider font-semibold uppercase">
-                            {category.badge}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Description Text */}
-                      <p className="text-xs text-zinc-400 leading-relaxed font-sans min-h-[40px] line-clamp-2">
-                        {category.description || "After Effects için özel kurgu presetleri ve araçları."}
-                      </p>
-
-                      {/* Miniature File Explorer Representation */}
-                      {category.items && category.items.length > 0 ? (
-                        <div className="space-y-1.5 p-3 bg-zinc-950/80 rounded-2xl border border-zinc-900/60 font-mono">
-                          <span className="text-[8px] text-zinc-600 font-bold uppercase tracking-wider block mb-2">ODA İÇERİĞİ ({itemCount} DOSYA)</span>
-                          
-                          {category.items.slice(0, 3).map((item) => (
-                            <div 
-                              key={item.id} 
-                              className="flex items-center justify-between text-[10px] text-zinc-400 py-1 border-b border-zinc-900/30 last:border-0"
-                            >
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <FileCheck size={10} className="text-red-500 shrink-0" />
-                                <span className="truncate max-w-[140px] text-zinc-300">{item.name}</span>
-                              </div>
-                              <span className="text-zinc-600 text-[9px] shrink-0 font-medium">{item.size || "Sertifikalı"}</span>
-                            </div>
-                          ))}
-                          
-                          {category.items.length > 3 && (
-                            <div className="text-center pt-1.5">
-                              <span className="inline-block text-[9px] font-bold text-red-500/80 hover:text-red-400 transition-colors uppercase tracking-widest bg-red-950/10 px-2 py-0.5 rounded-md border border-red-950/20">
-                                +{category.items.length - 3} DOSYA DAHA MEVCUT
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="p-3 bg-zinc-950/40 border border-zinc-900/40 rounded-2xl text-center text-zinc-600 font-mono text-[10px] uppercase">
-                          Klasör boş
-                        </div>
-                      )}
+                      {/* Title */}
+                      <h3 className="text-2xl sm:text-3xl font-display font-extrabold text-white uppercase tracking-tight group-hover:text-red-400 transition-colors duration-300 leading-none">
+                        {category.title}
+                      </h3>
                     </div>
 
-                    {/* Bottom Action Footer */}
-                    <div className="mt-5 pt-4 border-t border-zinc-900/60 flex items-center justify-between relative z-10">
-                      <div className="flex items-center gap-2">
-                        {previewCount > 0 && (
-                          <span className="inline-flex items-center gap-1 font-mono text-[9px] text-emerald-400 font-bold tracking-wider bg-emerald-950/10 px-2 py-0.5 rounded border border-emerald-950/20">
-                            {previewCount} ÖNİZLEME HAZIR
-                          </span>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-1.5 text-xs font-mono font-black text-zinc-400 group-hover:text-red-400 transition-colors">
-                        <span>ODAYI İNCELE</span>
-                        <div className="p-1.5 bg-zinc-900 group-hover:bg-red-600 border border-zinc-850 group-hover:border-red-500/30 text-zinc-500 group-hover:text-white rounded-lg transition-all duration-300">
-                          <ChevronRight size={12} className="transition-transform group-hover:translate-x-0.5" />
-                        </div>
-                      </div>
+                    {/* Right Section: Action circle */}
+                    <div className={`w-11 h-11 sm:w-12 sm:h-12 rounded-full border ${theme.btnBorder} flex items-center justify-center shrink-0 relative z-10 transition-all duration-300 transform group-hover:scale-105 shadow-md`}>
+                      <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-0.5" />
                     </div>
                   </motion.div>
                 );
@@ -932,9 +1002,6 @@ export default function App() {
             onShowToast={showToast} 
           />
         )}
-
-        {/* User Requests & FAQ Section */}
-        <HelpRequestsSection content={content} onSaveContent={handleSaveUserContent} />
 
         {/* Footer */}
         <footer className="pt-8 flex flex-col items-center gap-2 border-t border-zinc-900/60 mt-12">
@@ -963,6 +1030,23 @@ export default function App() {
       <CategoryDetailModal 
         category={selectedCategory} 
         onClose={() => setSelectedCategory(null)} 
+        onPlayVideo={setActiveVideo}
+      />
+
+      {/* Suggestion & Complaint Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        content={content}
+        onSaveContent={handleSaveUserContent}
+        onShowToast={showToast}
+      />
+
+      {/* Recently Added Items Modal */}
+      <RecentlyAddedModal
+        isOpen={isRecentOpen}
+        onClose={() => setIsRecentOpen(false)}
+        content={content}
         onPlayVideo={setActiveVideo}
       />
 

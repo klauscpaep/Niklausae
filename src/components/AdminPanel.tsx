@@ -2632,6 +2632,15 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                     >
                                       <div className="space-y-1.5 flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
+                                          {req.feedbackType && (
+                                            <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded border uppercase ${
+                                              req.feedbackType === "Şikâyet"
+                                                ? "bg-red-500/10 border-red-500/25 text-red-400"
+                                                : "bg-purple-500/10 border-purple-500/25 text-purple-400"
+                                            }`}>
+                                              {req.feedbackType}
+                                            </span>
+                                          )}
                                           <span className="text-[9px] font-mono font-bold text-zinc-500 bg-zinc-950 px-2 py-0.5 border border-zinc-900 rounded">
                                             {req.category}
                                           </span>
@@ -2644,6 +2653,23 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                         </div>
                                         <h4 className="text-xs font-bold text-zinc-200 uppercase">{req.title}</h4>
                                         <p className="text-[11px] text-zinc-400 leading-normal">{req.description}</p>
+                                        
+                                        {/* Sender & Contact Info */}
+                                        {(req.userName || req.contactInfo) && (
+                                          <div className="flex items-center gap-2 flex-wrap pt-0.5 pb-1">
+                                            {req.userName && (
+                                              <span className="bg-zinc-950 border border-zinc-900 px-2.5 py-1 rounded text-[9px] font-mono text-zinc-400">
+                                                Gönderen: <strong className="text-zinc-200">{req.userName}</strong>
+                                              </span>
+                                            )}
+                                            {req.contactInfo && (
+                                              <span className="bg-zinc-950 border border-zinc-900 px-2.5 py-1 rounded text-[9px] font-mono text-zinc-400">
+                                                İletişim: <strong className="text-zinc-200">{req.contactInfo}</strong>
+                                              </span>
+                                            )}
+                                          </div>
+                                        )}
+
                                         <div className="pt-2 flex items-center gap-1.5 flex-wrap">
                                           <span className="text-[9px] font-mono font-bold text-zinc-500">Link/Ek Dosya:</span>
                                           {req.referenceUrl && (
