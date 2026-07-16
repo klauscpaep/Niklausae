@@ -1099,16 +1099,30 @@ export default function App() {
         onClick={() => setIsFeedbackOpen(true)}
         className="fixed bottom-6 right-6 z-40 p-[1.5px] rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] shadow-[0_12px_40px_rgba(236,72,153,0.3)] hover:shadow-[0_16px_50px_rgba(236,72,153,0.45)] cursor-pointer transition-all duration-300"
       >
+        {/* Premium Pulsing Glow Aura behind the button */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] opacity-40 blur-md animate-pulse pointer-events-none" />
+
         <div className="relative px-5 py-3 bg-[#0d0e12] rounded-full flex items-center gap-3.5 overflow-hidden">
           {/* Subtle starry background specs inside the button */}
           <div className="absolute top-2 left-8 w-0.5 h-0.5 bg-white rounded-full opacity-40 animate-pulse" />
           <div className="absolute bottom-2.5 right-12 w-0.5 h-0.5 bg-amber-400 rounded-full opacity-30 animate-pulse" />
           <div className="absolute top-3.5 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-25" />
 
-          {/* Glowing gradient thumb with Ellipsis */}
-          <div className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-[#f97316] via-[#ec4899] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold shadow-md shadow-pink-500/20 relative shrink-0">
+          {/* Glowing gradient thumb with Ellipsis - Infinitely pulsing and rotating */}
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.08, 1],
+              rotate: [0, 5, -5, 0]
+            }}
+            transition={{ 
+              repeat: Infinity, 
+              duration: 3.5, 
+              ease: "easeInOut" 
+            }}
+            className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-[#f97316] via-[#ec4899] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold shadow-md shadow-pink-500/20 relative shrink-0"
+          >
             <MoreHorizontal size={16} className="text-white font-black" />
-          </div>
+          </motion.div>
 
           {/* Text label */}
           <span className="text-xs font-sans font-black text-white tracking-wide whitespace-nowrap pr-1.5">
