@@ -744,7 +744,21 @@ export default function App() {
             </div>
 
             {/* Categories List (Redesigned matching Screenshot 1) */}
-            <div className="grid grid-cols-1 gap-4">
+            <motion.div 
+              variants={{
+                hidden: { opacity: 0 },
+                show: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.08,
+                    delayChildren: 0.1
+                  }
+                }
+              }}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-1 gap-4"
+            >
               {content.categories.map((category, idx) => {
                 const itemCount = category.items?.length || 0;
                 
@@ -757,7 +771,9 @@ export default function App() {
                       textColor: "text-purple-400",
                       pillBg: "bg-purple-950/15 border-purple-900/30",
                       btnBorder: "border-purple-500/15 text-purple-400 group-hover:bg-purple-600 group-hover:text-white group-hover:border-purple-500",
-                      glowBg: "from-purple-600/10 via-transparent to-transparent"
+                      glowBg: "from-purple-600/10 via-transparent to-transparent",
+                      laserLine: "from-transparent via-purple-400 to-transparent",
+                      laserGlow: "from-transparent via-purple-500/20 to-transparent"
                     },
                     {
                       border: "border-amber-500/10 group-hover:border-amber-500/30",
@@ -765,7 +781,9 @@ export default function App() {
                       textColor: "text-amber-400",
                       pillBg: "bg-amber-950/15 border-amber-900/30",
                       btnBorder: "border-amber-500/15 text-amber-400 group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-500",
-                      glowBg: "from-amber-600/10 via-transparent to-transparent"
+                      glowBg: "from-amber-600/10 via-transparent to-transparent",
+                      laserLine: "from-transparent via-amber-400 to-transparent",
+                      laserGlow: "from-transparent via-amber-500/20 to-transparent"
                     },
                     {
                       border: "border-cyan-500/10 group-hover:border-cyan-500/30",
@@ -773,7 +791,9 @@ export default function App() {
                       textColor: "text-cyan-400",
                       pillBg: "bg-cyan-950/15 border-cyan-900/30",
                       btnBorder: "border-cyan-500/15 text-cyan-400 group-hover:bg-cyan-600 group-hover:text-white group-hover:border-cyan-500",
-                      glowBg: "from-cyan-600/10 via-transparent to-transparent"
+                      glowBg: "from-cyan-600/10 via-transparent to-transparent",
+                      laserLine: "from-transparent via-cyan-400 to-transparent",
+                      laserGlow: "from-transparent via-cyan-500/20 to-transparent"
                     },
                     {
                       border: "border-emerald-500/10 group-hover:border-emerald-500/30",
@@ -781,7 +801,9 @@ export default function App() {
                       textColor: "text-emerald-400",
                       pillBg: "bg-emerald-950/15 border-emerald-900/30",
                       btnBorder: "border-emerald-500/15 text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-500",
-                      glowBg: "from-emerald-600/10 via-transparent to-transparent"
+                      glowBg: "from-emerald-600/10 via-transparent to-transparent",
+                      laserLine: "from-transparent via-emerald-400 to-transparent",
+                      laserGlow: "from-transparent via-emerald-500/20 to-transparent"
                     },
                     {
                       border: "border-rose-500/10 group-hover:border-rose-500/30",
@@ -789,7 +811,9 @@ export default function App() {
                       textColor: "text-rose-400",
                       pillBg: "bg-rose-950/15 border-rose-900/30",
                       btnBorder: "border-rose-500/15 text-rose-400 group-hover:bg-rose-600 group-hover:text-white group-hover:border-rose-500",
-                      glowBg: "from-rose-600/10 via-transparent to-transparent"
+                      glowBg: "from-rose-600/10 via-transparent to-transparent",
+                      laserLine: "from-transparent via-rose-400 to-transparent",
+                      laserGlow: "from-transparent via-rose-500/20 to-transparent"
                     }
                   ];
                   return themes[index % themes.length];
@@ -810,14 +834,48 @@ export default function App() {
                 return (
                   <motion.div
                     key={category.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.15 + idx * 0.05 }}
+                    variants={{
+                      hidden: { opacity: 0, y: 20, scale: 0.98 },
+                      show: { 
+                        opacity: 1, 
+                        y: 0, 
+                        scale: 1,
+                        transition: {
+                          type: "spring",
+                          stiffness: 90,
+                          damping: 14
+                        }
+                      }
+                    }}
+                    whileHover={{ 
+                      scale: 1.015,
+                      y: -2,
+                      transition: { duration: 0.2, ease: "easeOut" }
+                    }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedCategory(category)}
-                    className={`group relative p-7 ${isDarkMode ? "bg-[#0b0c10] hover:bg-[#0e1017] border-zinc-900/80 hover:border-zinc-800 shadow-black/40" : "bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-zinc-200/50"} border rounded-[28px] shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6`}
+                    className={`group relative p-7 ${isDarkMode ? "bg-[#0b0c10] hover:bg-[#0e1017] border-zinc-900/80 hover:border-zinc-800 shadow-black/40" : "bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-zinc-200/50"} border rounded-[28px] shadow-2xl transition-colors duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6`}
                   >
                     {/* Glowing radial spot inside the card */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${theme.glowBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
+
+                    {/* Holographic digital grid & micro scanline stripe overlay */}
+                    <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-15 transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(255,255,255,0.03)_50%)] bg-[length:100%_4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* High-Fidelity Animated Holographic Laser Scanline */}
+                    <motion.div
+                      className={`absolute left-0 right-0 h-[2px] bg-gradient-to-r ${theme.laserLine} z-20 pointer-events-none opacity-0 group-hover:opacity-100`}
+                      initial={{ top: "0%" }}
+                      animate={{ top: ["0%", "100%", "0%"] }}
+                      transition={{
+                        repeat: Infinity,
+                        duration: 3,
+                        ease: "linear"
+                      }}
+                    >
+                      <div className={`absolute inset-x-0 -top-2 h-4 bg-gradient-to-r ${theme.laserGlow} blur-sm`} />
+                    </motion.div>
 
                     {/* Left Section: Info stack */}
                     <div className="space-y-3 relative z-10">
@@ -849,7 +907,7 @@ export default function App() {
                   </motion.div>
                 );
               })}
-            </div>
+            </motion.div>
 
           </div>
 
