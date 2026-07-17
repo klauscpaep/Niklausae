@@ -73,6 +73,23 @@ export default function App() {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeVideo, setActiveVideo] = useState<{ id: string; name: string; url: string } | null>(null);
 
+  // Floating Suggestion Button auto-reveal sequence states
+  const [showFeedbackText, setShowFeedbackText] = useState(false);
+  const [isFeedbackHovered, setIsFeedbackHovered] = useState(false);
+
+  // Trigger floating suggestion button text expansion after 5.5s, then collapse after 4.5s
+  useEffect(() => {
+    const showTimer = setTimeout(() => {
+      setShowFeedbackText(true);
+      const hideTimer = setTimeout(() => {
+        setShowFeedbackText(false);
+      }, 4500); // show text for 4.5 seconds
+      return () => clearTimeout(hideTimer);
+    }, 5500); // wait 5.5 seconds before showing
+
+    return () => clearTimeout(showTimer);
+  }, []);
+
   // Maintenance Bypass States
   const [isBypassed, setIsBypassed] = useState(() => sessionStorage.getItem("admin_maintenance_bypass") === "true");
   const [maintenancePassword, setMaintenancePassword] = useState("");
@@ -860,21 +877,21 @@ export default function App() {
                     <div className={`absolute inset-0 bg-gradient-to-r ${theme.glowBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
 
                     {/* Holographic digital grid & micro scanline stripe overlay */}
-                    <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-15 transition-opacity duration-500 pointer-events-none" />
-                    <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(255,255,255,0.03)_50%)] bg-[length:100%_4px] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-grid-pattern opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(255,255,255,0.015)_50%)] bg-[length:100%_4px] opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
 
                     {/* High-Fidelity Animated Holographic Laser Scanline */}
                     <motion.div
-                      className={`absolute left-0 right-0 h-[2px] bg-gradient-to-r ${theme.laserLine} z-20 pointer-events-none opacity-0 group-hover:opacity-100`}
+                      className={`absolute left-0 right-0 h-[1.5px] bg-gradient-to-r ${theme.laserLine} z-20 pointer-events-none opacity-0 group-hover:opacity-20`}
                       initial={{ top: "0%" }}
                       animate={{ top: ["0%", "100%", "0%"] }}
                       transition={{
                         repeat: Infinity,
-                        duration: 3,
+                        duration: 4,
                         ease: "linear"
                       }}
                     >
-                      <div className={`absolute inset-x-0 -top-2 h-4 bg-gradient-to-r ${theme.laserGlow} blur-sm`} />
+                      <div className={`absolute inset-x-0 -top-1 h-2 bg-gradient-to-r ${theme.laserGlow} blur-md opacity-30`} />
                     </motion.div>
 
                     {/* Left Section: Info stack */}
@@ -1147,46 +1164,157 @@ export default function App() {
         </motion.button>
       )}
 
-      {/* Floating Support & Suggestion Button - Pixel Perfect matching Image 2 */}
+      {/* Floating Support & Suggestion Button - Ultra-Premium Sequenced Version */}
       <motion.div
-        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.5, type: "spring", stiffness: 260, damping: 20 }}
-        whileHover={{ scale: 1.05, y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        layout
+        initial="rest"
+        animate={(showFeedbackText || isFeedbackHovered) ? "hover" : "rest"}
+        whileTap="tap"
+        onMouseEnter={() => setIsFeedbackHovered(true)}
+        onMouseLeave={() => setIsFeedbackHovered(false)}
         onClick={() => setIsFeedbackOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-[1.5px] rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] shadow-[0_12px_40px_rgba(236,72,153,0.3)] hover:shadow-[0_16px_50px_rgba(236,72,153,0.45)] cursor-pointer transition-all duration-300"
+        className="fixed bottom-6 right-6 z-40 p-[1.5px] rounded-full bg-gradient-to-r from-[#f97316]/80 via-[#ec4899]/80 to-[#8b5cf6]/80 shadow-[0_4px_20px_rgba(236,72,153,0.15)] hover:shadow-[0_8px_30px_rgba(236,72,153,0.25)] cursor-pointer transition-shadow duration-300"
+        style={{ borderRadius: "9999px" }}
       >
-        {/* Premium Pulsing Glow Aura behind the button */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] opacity-40 blur-md animate-pulse pointer-events-none" />
+        {/* Dynamic Rotating/Pulsing Glow Aura behind the button */}
+        <motion.div 
+          variants={{
+            rest: { scale: 1.0, opacity: 0.15, rotate: 0 },
+            hover: { scale: 1.15, opacity: 0.3, rotate: 180 }
+          }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="absolute inset-0 rounded-full bg-gradient-to-r from-[#f97316] via-[#ec4899] to-[#8b5cf6] blur-md pointer-events-none"
+        />
 
-        <div className="relative px-5 py-3 bg-[#0d0e12] rounded-full flex items-center gap-3.5 overflow-hidden">
-          {/* Subtle starry background specs inside the button */}
-          <div className="absolute top-2 left-8 w-0.5 h-0.5 bg-white rounded-full opacity-40 animate-pulse" />
-          <div className="absolute bottom-2.5 right-12 w-0.5 h-0.5 bg-amber-400 rounded-full opacity-30 animate-pulse" />
-          <div className="absolute top-3.5 right-4 w-1 h-1 bg-purple-400 rounded-full opacity-25" />
+        <motion.div 
+          layout
+          className={`relative bg-[#0d0e12] rounded-full flex items-center overflow-hidden transition-all duration-500 ${
+            (showFeedbackText || isFeedbackHovered) ? "px-5 py-3 gap-3.5" : "p-3 gap-0"
+          }`}
+        >
+          {/* Continuous Metallic Sheen Sweep */}
+          <motion.div
+            variants={{
+              rest: { x: "-150%" },
+              hover: { 
+                x: ["-150%", "200%"],
+                transition: {
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  duration: 2.2,
+                  ease: "easeInOut"
+                }
+              }
+            }}
+            className="absolute inset-y-0 w-16 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none"
+          />
 
-          {/* Glowing gradient thumb with Ellipsis - Infinitely pulsing and rotating */}
+          {/* Interactive Sparkle Particles */}
+          <motion.div
+            variants={{
+              rest: { opacity: 0.2, y: 0 },
+              hover: { 
+                opacity: [0.2, 0.6, 0.2],
+                y: [-0.5, -2, -0.5],
+                transition: { repeat: Infinity, duration: 2.5, ease: "easeInOut" }
+              }
+            }}
+            className="absolute top-1.5 left-10 w-1 h-1 bg-white rounded-full pointer-events-none"
+          />
+          <motion.div
+            variants={{
+              rest: { opacity: 0.15, scale: 0.8 },
+              hover: { 
+                opacity: [0.15, 0.5, 0.15],
+                scale: [0.8, 1.1, 0.8],
+                transition: { repeat: Infinity, duration: 3, ease: "easeInOut", delay: 0.3 }
+              }
+            }}
+            className="absolute bottom-2 right-14 w-1.5 h-1.5 bg-pink-400 rounded-full pointer-events-none"
+          />
+          <motion.div
+            variants={{
+              rest: { opacity: 0.1 },
+              hover: { 
+                opacity: [0.1, 0.4, 0.1],
+                transition: { repeat: Infinity, duration: 2.2, ease: "easeInOut", delay: 0.6 }
+              }
+            }}
+            className="absolute top-3 right-6 w-0.5 h-0.5 bg-purple-300 rounded-full pointer-events-none"
+          />
+
+          {/* Glowing gradient thumb with Ellipsis - Custom Rotates and Scales */}
           <motion.div 
-            animate={{ 
-              scale: [1, 1.08, 1],
-              rotate: [0, 5, -5, 0]
+            layout
+            variants={{
+              rest: { 
+                scale: 1.0, 
+                rotate: 0,
+                boxShadow: "0 0 0px rgba(236,72,153,0)"
+              },
+              hover: { 
+                scale: 1.08, 
+                rotate: 360,
+                boxShadow: "0 0 8px rgba(236,72,153,0.3)",
+                transition: { type: "spring", stiffness: 200, damping: 15 }
+              }
             }}
-            transition={{ 
-              repeat: Infinity, 
-              duration: 3.5, 
-              ease: "easeInOut" 
-            }}
-            className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-[#f97316] via-[#ec4899] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold shadow-md shadow-pink-500/20 relative shrink-0"
+            className="w-8.5 h-8.5 rounded-full bg-gradient-to-tr from-[#f97316] via-[#ec4899] to-[#8b5cf6] flex items-center justify-center text-white font-extrabold shadow-md shadow-pink-500/10 relative shrink-0"
           >
-            <MoreHorizontal size={16} className="text-white font-black" />
+            <motion.div
+              variants={{
+                rest: { scale: 1 },
+                hover: { 
+                  scale: [1, 1.1, 1],
+                  transition: { repeat: Infinity, duration: 1.5 }
+                }
+              }}
+            >
+              <MoreHorizontal size={16} className="text-white font-black" />
+            </motion.div>
           </motion.div>
 
-          {/* Text label */}
-          <span className="text-xs font-sans font-black text-white tracking-wide whitespace-nowrap pr-1.5">
-            Öneri veya Şikâyet Bildir
-          </span>
-        </div>
+          {/* Sliding and fading dynamic text label with AnimatePresence */}
+          <AnimatePresence initial={false}>
+            {(showFeedbackText || isFeedbackHovered) && (
+              <motion.span 
+                initial={{ width: 0, opacity: 0, x: -10 }}
+                animate={{ 
+                  width: "auto", 
+                  opacity: 1, 
+                  x: 0,
+                  transition: {
+                    width: { type: "spring", stiffness: 150, damping: 20 },
+                    opacity: { duration: 0.2, delay: 0.1 },
+                    x: { duration: 0.2, delay: 0.1 }
+                  }
+                }}
+                exit={{ 
+                  width: 0, 
+                  opacity: 0, 
+                  x: -10,
+                  transition: {
+                    width: { type: "spring", stiffness: 150, damping: 20 },
+                    opacity: { duration: 0.15 },
+                    x: { duration: 0.15 }
+                  }
+                }}
+                variants={{
+                  rest: { letterSpacing: "0.025em", color: "#ffffff" },
+                  hover: { 
+                    letterSpacing: "0.035em", 
+                    color: "#ffeff8",
+                    textShadow: "0 0 3px rgba(236,72,153,0.2)",
+                    transition: { duration: 0.3 }
+                  }
+                }}
+                className="text-xs font-sans font-black tracking-wide whitespace-nowrap pr-1.5 transition-colors overflow-hidden"
+              >
+                Öneri veya Şikâyet Bildir
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </motion.div>
 
       {/* Detailed Pack Category Modal */}
