@@ -67,6 +67,7 @@ export interface Category {
   description: string;
   gradient: string;
   items: EditPackItem[];
+  icon?: string;
 }
 
 export interface Announcement {

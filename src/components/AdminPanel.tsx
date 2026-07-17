@@ -240,7 +240,8 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     title: "", 
     badge: "", 
     description: "", 
-    gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40" 
+    gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40",
+    icon: ""
   });
 
   // Clock state for the Turkish Time Display (Dashboard feeling)
@@ -552,13 +553,14 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       badge: newCategory.badge || "EFEKT",
       description: newCategory.description || "",
       gradient: newCategory.gradient || "from-amber-500/20 to-red-600/10 hover:border-amber-500/40",
-      items: []
+      items: [],
+      icon: newCategory.icon || ""
     };
     setEditedContent({
       ...editedContent,
       categories: [...editedContent.categories, newCatObj]
     });
-    setNewCategory({ title: "", badge: "", description: "", gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40" });
+    setNewCategory({ title: "", badge: "", description: "", gradient: "from-blue-500/20 to-indigo-600/10 hover:border-blue-500/40", icon: "" });
   };
 
   const handleRemoveCategory = (catId: string) => {
@@ -1520,7 +1522,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                               </span>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                               <div className="space-y-1.5">
                                 <label className="text-xs font-mono font-bold text-zinc-400 block">ODA ADI</label>
                                 <input
@@ -1556,6 +1558,26 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                   <option value="from-purple-500/20 to-fuchsia-600/10 hover:border-purple-500/40">Mor - Fuşya Kreatif</option>
                                   <option value="from-pink-500/20 to-rose-600/10 hover:border-pink-500/40">Pembe - Gül Rüyası</option>
                                   <option value="from-cyan-500/20 to-sky-600/10 hover:border-cyan-500/40">Turkuaz - Gökyüzü Esintisi</option>
+                                </select>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-mono font-bold text-zinc-400 block">KATEGORİ İKONU</label>
+                                <select
+                                  value={newCategory.icon || ""}
+                                  onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
+                                  className="w-full px-4 py-2.5 bg-[#050608] border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-zinc-300 focus:outline-none transition-all"
+                                >
+                                  <option value="">Otomatik (Başlığa göre)</option>
+                                  <option value="palette">Renk / CC (Palette)</option>
+                                  <option value="zap">Sarsıntı / Shake (Zap)</option>
+                                  <option value="sliders">Ayar / Twixtor (Sliders)</option>
+                                  <option value="scissors">Geçiş / Transition (Scissors)</option>
+                                  <option value="volume2">Ses / SFX (Volume)</option>
+                                  <option value="type">Yazı / Font (Type)</option>
+                                  <option value="film">Kaplama / Overlay (Film)</option>
+                                  <option value="folder">Proje / AEP (Folder)</option>
+                                  <option value="sparkles">Özel / Işıltı (Sparkles)</option>
                                 </select>
                               </div>
                             </div>
@@ -1638,7 +1660,7 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                         </div>
                                       </div>
 
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div className="space-y-1">
                                           <label className="text-[10px] text-zinc-400 font-mono uppercase block">ROZET METNİ</label>
                                           <input
@@ -1662,6 +1684,25 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                             <option value="from-purple-500/20 to-fuchsia-600/10 hover:border-purple-500/40">Mor - Fuşya Kreatif</option>
                                             <option value="from-pink-500/20 to-rose-600/10 hover:border-pink-500/40">Pembe - Gül Rüyası</option>
                                             <option value="from-cyan-500/20 to-sky-600/10 hover:border-cyan-500/40">Turkuaz - Gökyüzü Esintisi</option>
+                                          </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                          <label className="text-[10px] text-zinc-400 font-mono uppercase block">KATEGORİ İKONU</label>
+                                          <select
+                                            value={cat.icon || ""}
+                                            onChange={(e) => handleUpdateCategoryField(cat.id, "icon", e.target.value)}
+                                            className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 focus:border-indigo-500/50 rounded-xl text-sm text-white focus:outline-none"
+                                          >
+                                            <option value="">Otomatik (Başlığa göre)</option>
+                                            <option value="palette">Renk / CC (Palette)</option>
+                                            <option value="zap">Sarsıntı / Shake (Zap)</option>
+                                            <option value="sliders">Ayar / Twixtor (Sliders)</option>
+                                            <option value="scissors">Geçiş / Transition (Scissors)</option>
+                                            <option value="volume2">Ses / SFX (Volume)</option>
+                                            <option value="type">Yazı / Font (Type)</option>
+                                            <option value="film">Kaplama / Overlay (Film)</option>
+                                            <option value="folder">Proje / AEP (Folder)</option>
+                                            <option value="sparkles">Özel / Işıltı (Sparkles)</option>
                                           </select>
                                         </div>
                                       </div>

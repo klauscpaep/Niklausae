@@ -4,7 +4,7 @@ import {
   Play, ExternalLink, ArrowUp, Mail,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
   FolderOpen, FileCheck, X, Lock, Unlock, ArrowRight, MessageSquare,
-  Sun, Moon, MoreHorizontal
+  Sun, Moon, MoreHorizontal, Palette, Sliders, Scissors, Volume2, Type, Film, Zap
 } from "lucide-react";
 import { SiteContent, Category } from "./types";
 import AdminPanel from "./components/AdminPanel";
@@ -30,6 +30,135 @@ const TikTokIcon = ({ size = 16 }: { size?: number }) => (
     <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.02 1.72 4.1 1.13 1.09 2.69 1.63 4.26 1.7v3.92c-1.74-.02-3.47-.48-4.94-1.42-.21-.13-.41-.28-.61-.43-.02 2.62-.01 5.24-.02 7.86-.06 2.37-1.12 4.67-2.98 6.13-2.14 1.69-5.11 2.21-7.72 1.34-2.5-1-4.32-3.37-4.57-6.04-.41-3.62 1.99-7.1 5.58-7.9 1.4-.35 2.89-.13 4.16.59.02 1.48.01 2.96.01 4.44-1.01-.58-2.22-.72-3.32-.36-.93.28-1.7 1.02-1.95 1.96-.39 1.43.34 3.03 1.71 3.59 1.15.5 2.53.25 3.44-.6.54-.53.81-1.27.8-2.02 0-3.32-.01-6.64-.01-9.97.01 0 .01-.01.01-.01z"/>
   </svg>
 );
+
+// High-Fidelity Web Audio Synthesizer for Theme Transitions
+const playThemeSound = (isToDark: boolean) => {
+  try {
+    const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    
+    if (isToDark) {
+      // Night mode: Resonant sub-bass warm drop & star twinkles
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      const filter = ctx.createBiquadFilter();
+      
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(140, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(75, ctx.currentTime + 0.65);
+      
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(400, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.65);
+      filter.Q.setValueAtTime(3, ctx.currentTime);
+      
+      gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.1);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.65);
+      
+      osc.connect(filter);
+      filter.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 0.7);
+
+      // Star chime echo (D6 -> A6)
+      const playBell = (freq: number, delay: number) => {
+        const oscB = ctx.createOscillator();
+        const gainB = ctx.createGain();
+        oscB.type = "sine";
+        oscB.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        gainB.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+        gainB.gain.linearRampToValueAtTime(0.04, ctx.currentTime + delay + 0.05);
+        gainB.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.45);
+        oscB.connect(gainB);
+        gainB.connect(ctx.destination);
+        oscB.start(ctx.currentTime + delay);
+        oscB.stop(ctx.currentTime + delay + 0.5);
+      };
+      
+      playBell(1174.66, 0.05); // D6
+      playBell(1760.00, 0.18); // A6
+    } else {
+      // Day mode: Sparkling positive sunrise chime (C major 7 arpeggio ascending)
+      const playPluck = (freq: number, delay: number, dur: number) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+        
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(1000, ctx.currentTime + delay);
+        filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + delay + 0.1);
+        
+        gainNode.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+        gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + delay + 0.04);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
+        
+        osc.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        osc.start(ctx.currentTime + delay);
+        osc.stop(ctx.currentTime + delay + dur + 0.05);
+      };
+
+      playPluck(523.25, 0, 0.4);       // C5
+      playPluck(659.25, 0.06, 0.4);    // E5
+      playPluck(783.99, 0.12, 0.4);    // G5
+      playPluck(1046.50, 0.18, 0.5);   // C6
+    }
+  } catch (e) {
+    console.warn("Audio context failed to start:", e);
+  }
+};
+
+// Dynamic helper to map category titles to highly intuitive, custom visual SVG icons
+const getCategoryIcon = (title: string, customIcon?: string, size = 24, className = "") => {
+  if (customIcon) {
+    const c = customIcon.toLowerCase();
+    if (c === "palette") return <Palette size={size} className={className} />;
+    if (c === "zap") return <Zap size={size} className={className} />;
+    if (c === "sliders") return <Sliders size={size} className={className} />;
+    if (c === "scissors") return <Scissors size={size} className={className} />;
+    if (c === "volume2") return <Volume2 size={size} className={className} />;
+    if (c === "type") return <Type size={size} className={className} />;
+    if (c === "film") return <Film size={size} className={className} />;
+    if (c === "folder" || c === "folderopen") return <FolderOpen size={size} className={className} />;
+    if (c === "sparkles") return <Sparkles size={size} className={className} />;
+  }
+
+  const t = title.toLowerCase();
+  if (t.includes("renk") || t.includes("cc") || t.includes("color")) {
+    return <Palette size={size} className={className} />;
+  }
+  if (t.includes("shake") || t.includes("sarsıntı")) {
+    return <Zap size={size} className={className} />;
+  }
+  if (t.includes("twixtor") || t.includes("slow") || t.includes("yavaş") || t.includes("hız")) {
+    return <Sliders size={size} className={className} />;
+  }
+  if (t.includes("geçiş") || t.includes("transition")) {
+    return <Scissors size={size} className={className} />;
+  }
+  if (t.includes("ses") || t.includes("sfx") || t.includes("sound")) {
+    return <Volume2 size={size} className={className} />;
+  }
+  if (t.includes("font") || t.includes("yazı")) {
+    return <Type size={size} className={className} />;
+  }
+  if (t.includes("overlay") || t.includes("kaplama") || t.includes("film")) {
+    return <Film size={size} className={className} />;
+  }
+  if (t.includes("proje") || t.includes("project") || t.includes("aep")) {
+    return <FolderOpen size={size} className={className} />;
+  }
+  return <Sparkles size={size} className={className} />;
+};
 
 export default function App() {
   const [content, setContent] = useState<SiteContent | null>(null);
@@ -561,7 +690,11 @@ export default function App() {
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              onClick={() => setIsDarkMode(!isDarkMode)}
+              onClick={() => {
+                const targetDark = !isDarkMode;
+                setIsDarkMode(targetDark);
+                playThemeSound(targetDark);
+              }}
               className="relative py-2.5 px-4.5 bg-[#0a0a0f] border border-zinc-900 rounded-[22px] shadow-2xl flex items-center gap-3.5 select-none cursor-pointer group hover:border-zinc-800 transition-all duration-300 min-w-[170px]"
             >
               {/* Glowing top line */}
@@ -871,7 +1004,7 @@ export default function App() {
                     }}
                     whileTap={{ scale: 0.99 }}
                     onClick={() => setSelectedCategory(category)}
-                    className={`group relative p-7 ${isDarkMode ? "bg-[#0b0c10] hover:bg-[#0e1017] border-zinc-900/80 hover:border-zinc-800 shadow-black/40" : "bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-zinc-200/50"} border rounded-[28px] shadow-2xl transition-colors duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6`}
+                    className={`group relative p-6 sm:p-7 ${isDarkMode ? "bg-[#0b0c10] hover:bg-[#0e1017] border-zinc-900/80 hover:border-zinc-800 shadow-black/40" : "bg-white hover:bg-zinc-50 border-zinc-200 hover:border-zinc-300 shadow-zinc-200/50"} border rounded-[28px] shadow-2xl transition-colors duration-300 cursor-pointer overflow-hidden flex items-center justify-between gap-6`}
                   >
                     {/* Glowing radial spot inside the card */}
                     <div className={`absolute inset-0 bg-gradient-to-r ${theme.glowBg} opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
@@ -894,27 +1027,55 @@ export default function App() {
                       <div className={`absolute inset-x-0 -top-1 h-2 bg-gradient-to-r ${theme.laserGlow} blur-md opacity-30`} />
                     </motion.div>
 
-                    {/* Left Section: Info stack */}
-                    <div className="space-y-3 relative z-10">
-                      {/* Monogram/Index */}
-                      <span className={`text-[11px] font-mono font-bold ${isDarkMode ? "text-zinc-600" : "text-zinc-400"} tracking-widest block uppercase`}>
-                        {category.index || `0${idx + 1}`}
-                      </span>
-
-                      {/* Redesigned custom pill/badge */}
-                      <div className={`inline-flex items-center gap-1.5 pl-1 pr-3 py-1 ${isDarkMode ? "bg-zinc-950/80 border-zinc-900" : "bg-zinc-100 border-zinc-200"} border rounded-full text-[10px] font-mono font-bold tracking-wider`}>
-                        <span className={`px-2 py-0.5 rounded-full ${theme.badgeBg} text-white text-[9px] font-black`}>
-                          {itemCount}
-                        </span>
-                        <span className={`${theme.textColor} uppercase font-extrabold tracking-widest text-[9px]`}>
-                          {badgeLabel}
-                        </span>
+                    {/* Left Section: Responsive Icon & Text Wrapper */}
+                    <div className="flex items-center gap-4 sm:gap-6 relative z-10 flex-1 min-w-0">
+                      {/* Unique Category SVG Icon Container */}
+                      <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] flex items-center justify-center shrink-0 relative transition-all duration-500 border ${
+                        isDarkMode 
+                          ? "bg-zinc-950/50 border-zinc-900/60 group-hover:border-zinc-800" 
+                          : "bg-zinc-50 border-zinc-200/60 group-hover:border-zinc-300"
+                      } group-hover:scale-105 overflow-hidden shadow-inner`}>
+                        {/* Inner ambient colored soft glow behind the icon on hover */}
+                        <div className={`absolute inset-0 bg-gradient-to-tr ${theme.glowBg} opacity-0 group-hover:opacity-30 transition-opacity duration-500`} />
+                        
+                        {/* The animated icon itself */}
+                        <motion.div
+                          variants={{
+                            rest: { rotate: 0, scale: 1 },
+                            hover: { 
+                              rotate: [0, -10, 10, -5, 5, 0],
+                              scale: 1.1,
+                              transition: { duration: 0.5, ease: "easeInOut" }
+                            }
+                          }}
+                          className={`${theme.textColor} transition-colors duration-300 relative z-10`}
+                        >
+                          {getCategoryIcon(category.title, category.icon, 26)}
+                        </motion.div>
                       </div>
 
-                      {/* Title */}
-                      <h3 className={`text-2xl sm:text-3xl font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} uppercase tracking-tight group-hover:text-red-400 transition-colors duration-300 leading-none`}>
-                        {category.title}
-                      </h3>
+                      {/* Info stack */}
+                      <div className="space-y-2 min-w-0 flex-1">
+                        {/* Monogram/Index */}
+                        <span className={`text-[11px] font-mono font-bold ${isDarkMode ? "text-zinc-600" : "text-zinc-400"} tracking-widest block uppercase`}>
+                          {category.index || `0${idx + 1}`}
+                        </span>
+
+                        {/* Redesigned custom pill/badge */}
+                        <div className={`inline-flex items-center gap-1.5 pl-1 pr-3 py-1 ${isDarkMode ? "bg-zinc-950/80 border-zinc-900" : "bg-zinc-100 border-zinc-200"} border rounded-full text-[10px] font-mono font-bold tracking-wider`}>
+                          <span className={`px-2 py-0.5 rounded-full ${theme.badgeBg} text-white text-[9px] font-black`}>
+                            {itemCount}
+                          </span>
+                          <span className={`${theme.textColor} uppercase font-extrabold tracking-widest text-[9px]`}>
+                            {badgeLabel}
+                          </span>
+                        </div>
+
+                        {/* Title */}
+                        <h3 className={`text-2xl sm:text-3xl font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} uppercase tracking-tight group-hover:text-red-400 transition-colors duration-300 leading-none truncate`}>
+                          {category.title}
+                        </h3>
+                      </div>
                     </div>
 
                     {/* Right Section: Action circle */}
