@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   X, Download, FileArchive, ArrowUpRight, HelpCircle, Maximize2, 
   Video, Image as ImageIcon, Play, Sparkles, Filter, Eye, ListFilter,
-  CheckCircle2, AlertCircle, RefreshCw
+  CheckCircle2, AlertCircle, RefreshCw, Heart
 } from "lucide-react";
 import { Category, EditPackItem } from "../types";
 import BeforeAfterSlider from "./BeforeAfterSlider";
@@ -12,6 +12,8 @@ interface CategoryDetailModalProps {
   category: Category | null;
   onClose: () => void;
   onPlayVideo?: (video: { id: string; name: string; url: string }) => void;
+  favorites?: string[];
+  onToggleFavorite?: (id: string) => void;
 }
 
 function getEmbedUrl(url: string): string | null {
@@ -37,7 +39,13 @@ function getEmbedUrl(url: string): string | null {
   return url;
 }
 
-export default function CategoryDetailModal({ category, onClose, onPlayVideo }: CategoryDetailModalProps) {
+export default function CategoryDetailModal({ 
+  category, 
+  onClose, 
+  onPlayVideo,
+  favorites = [],
+  onToggleFavorite
+}: CategoryDetailModalProps) {
   // Store tab selection (image comparison vs. video preview) for each item
   const [activeTabs, setActiveTabs] = useState<Record<string, "image" | "video">>({});
   // Lightbox view for full-screen comparison/video
@@ -305,6 +313,21 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                           </div>
 
                           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                            {/* Heart / Favorite Toggle */}
+                            {onToggleFavorite && (
+                              <button
+                                onClick={() => onToggleFavorite(item.id)}
+                                className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
+                                  favorites.includes(item.id)
+                                    ? "bg-pink-500/10 border-pink-500/30 text-pink-500 hover:text-pink-400"
+                                    : "bg-zinc-900 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-pink-500"
+                                }`}
+                                title={favorites.includes(item.id) ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+                              >
+                                <Heart size={14} className={favorites.includes(item.id) ? "fill-current" : ""} />
+                              </button>
+                            )}
+
                             {/* Mini Player Picture-in-Picture Button */}
                             {hasVideo && onPlayVideo && (
                               <button
@@ -380,15 +403,30 @@ export default function CategoryDetailModal({ category, onClose, onPlayVideo }: 
                         </p>
                       </div>
 
-                      <a
-                        href={item.downloadUrl}
-                        target="_blank"
-                        referrerPolicy="no-referrer"
-                        className="self-end sm:self-auto px-4 py-2.5 bg-zinc-900 hover:bg-red-600 border border-zinc-800 hover:border-red-500 text-xs font-bold text-zinc-300 hover:text-white rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-md cursor-pointer"
-                      >
-                        <span>İndir</span>
-                        <Download size={13} className="transition-transform group-hover:translate-y-0.5" />
-                      </a>
+                      <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                        {onToggleFavorite && (
+                          <button
+                            onClick={() => onToggleFavorite(item.id)}
+                            className={`p-2.5 rounded-xl border transition-all cursor-pointer select-none ${
+                              favorites.includes(item.id)
+                                ? "bg-pink-500/10 border-pink-500/30 text-pink-500 hover:text-pink-400"
+                                : "bg-zinc-900 hover:bg-zinc-850 border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-pink-500"
+                            }`}
+                            title={favorites.includes(item.id) ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+                          >
+                            <Heart size={14} className={favorites.includes(item.id) ? "fill-current" : ""} />
+                          </button>
+                        )}
+                        <a
+                          href={item.downloadUrl}
+                          target="_blank"
+                          referrerPolicy="no-referrer"
+                          className="px-4 py-2.5 bg-zinc-900 hover:bg-red-600 border border-zinc-800 hover:border-red-500 text-xs font-bold text-zinc-300 hover:text-white rounded-xl flex items-center gap-1.5 transition-all active:scale-95 shadow-md cursor-pointer"
+                        >
+                          <span>İndir</span>
+                          <Download size={13} className="transition-transform group-hover:translate-y-0.5" />
+                        </a>
+                      </div>
                     </motion.div>
                   );
                 })

@@ -1,6 +1,6 @@
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { X, Sparkles, Download, Play, Film, Layers, Zap } from "lucide-react";
+import { X, Sparkles, Download, Play, Film, Layers, Zap, Heart } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 
 interface RecentlyAddedModalProps {
@@ -8,13 +8,17 @@ interface RecentlyAddedModalProps {
   onClose: () => void;
   content: SiteContent;
   onPlayVideo: (video: { id: string; name: string; url: string }) => void;
+  favorites?: string[];
+  onToggleFavorite?: (id: string) => void;
 }
 
 export default function RecentlyAddedModal({
   isOpen,
   onClose,
   content,
-  onPlayVideo
+  onPlayVideo,
+  favorites = [],
+  onToggleFavorite
 }: RecentlyAddedModalProps) {
   
   // Collect recently added items
@@ -147,8 +151,23 @@ export default function RecentlyAddedModal({
                       </div>
                     </div>
 
-                    {/* Download & Play Actions */}
+                     {/* Download & Play Actions */}
                     <div className="flex items-center gap-2 sm:self-center self-end shrink-0 relative z-10">
+                      {/* Heart / Favorite Toggle */}
+                      {onToggleFavorite && (
+                        <button
+                          onClick={() => onToggleFavorite(item.id)}
+                          className={`p-2 rounded-xl border transition-all cursor-pointer select-none ${
+                            favorites.includes(item.id)
+                              ? "bg-pink-500/10 border-pink-500/35 text-pink-500"
+                              : "bg-zinc-900 hover:bg-zinc-850 border-zinc-850 hover:border-zinc-800 text-zinc-400 hover:text-pink-500"
+                          }`}
+                          title={favorites.includes(item.id) ? "Favorilerden Çıkar" : "Favorilere Ekle"}
+                        >
+                          <Heart size={13} className={favorites.includes(item.id) ? "fill-current" : ""} />
+                        </button>
+                      )}
+
                       {/* Preview Button if exists */}
                       {item.previewVideo && (
                         <button

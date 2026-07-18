@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
-  Play, ExternalLink, ArrowUp, Mail,
+  Play, ExternalLink, ArrowUp, Mail, Heart,
   Youtube, Instagram, Disc, ChevronRight, Loader2, Sparkles, AlertTriangle,
   FolderOpen, FileCheck, X, Lock, Unlock, ArrowRight, MessageSquare,
   Sun, Moon, MoreHorizontal, Palette, Sliders, Scissors, Volume2, Type, Film, Zap
@@ -12,6 +12,7 @@ import CategoryDetailModal from "./components/CategoryDetailModal";
 import AnnouncementsList from "./components/AnnouncementsList";
 import FeedbackModal from "./components/FeedbackModal";
 import RecentlyAddedModal from "./components/RecentlyAddedModal";
+import FavoritesModal from "./components/FavoritesModal";
 import NewsletterForm from "./components/NewsletterForm";
 import LoadingScreen from "./components/LoadingScreen";
 import MiniPlayer from "./components/MiniPlayer";
@@ -199,8 +200,49 @@ export default function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   const [isRecentOpen, setIsRecentOpen] = useState(false);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [activeVideo, setActiveVideo] = useState<{ id: string; name: string; url: string } | null>(null);
+
+  // Favorites state persisted in LocalStorage
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("pars_mazi_favorites");
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const handleToggleFavorite = (itemId: string) => {
+    setFavorites(prev => {
+      const isAlreadyFav = prev.includes(itemId);
+      const next = isAlreadyFav ? prev.filter(id => id !== itemId) : [...prev, itemId];
+      localStorage.setItem("pars_mazi_favorites", JSON.stringify(next));
+      
+      // Try to find the item name for a nice toast message
+      let itemName = "Öğe";
+      if (content && content.categories) {
+        for (const cat of content.categories) {
+          const found = cat.items?.find(item => item.id === itemId);
+          if (found) {
+            itemName = found.name;
+            break;
+          }
+        }
+      }
+
+      showToast(
+        isAlreadyFav ? "Favorilerden Çıkarıldı" : "Favorilere Eklendi",
+        isAlreadyFav 
+          ? `"${itemName}" favori listenizden kaldırıldı.` 
+          : `"${itemName}" favorilerinize başarıyla eklendi!`,
+        "success"
+      );
+      
+      return next;
+    });
+  };
 
   // Floating Suggestion Button auto-reveal sequence states
   const [showFeedbackText, setShowFeedbackText] = useState(false);
@@ -875,6 +917,42 @@ export default function App() {
                   <ExternalLink size={13} />
                 </div>
               </motion.a>
+
+              {/* Card 3: Favorilerim */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.26 }}
+                onClick={() => setIsFavoritesOpen(true)}
+                className={`group relative flex items-center justify-between p-5 ${isDarkMode ? "bg-gradient-to-r from-zinc-950 to-[#0e1017] border-zinc-900" : "bg-gradient-to-r from-white to-zinc-50 border-zinc-200/80 shadow-sm"} border hover:border-pink-500/30 rounded-2xl shadow-xl transition-all duration-300 active:scale-99 cursor-pointer overflow-hidden`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-pink-600/0 via-pink-600/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                <div className="flex items-center gap-4 relative z-10">
+                  {/* Glowing Pink Heart badge */}
+                  <div className="p-3.5 bg-gradient-to-tr from-pink-600 to-red-500 text-white rounded-2xl shadow-lg shadow-pink-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <Heart size={18} className="fill-current animate-pulse" />
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-mono text-pink-400 tracking-widest font-bold block uppercase mb-0.5">KİŞİSEL KÜTÜPHANENİZ</span>
+                    <h3 className={`text-sm font-display font-extrabold ${isDarkMode ? "text-white" : "text-zinc-900"} group-hover:text-pink-400 transition-colors uppercase flex items-center gap-2`}>
+                      <span>Favori Paketlerim</span>
+                      {favorites.length > 0 && (
+                        <span className="px-2 py-0.5 text-[9px] bg-pink-500/15 border border-pink-500/30 text-pink-400 rounded-full font-mono">
+                          {favorites.length}
+                        </span>
+                      )}
+                    </h3>
+                    <p className={`text-xs ${isDarkMode ? "text-zinc-400" : "text-zinc-600"} mt-0.5 font-sans`}>
+                      Hızlı erişim için kalp ile işaretlediğiniz dosyalar
+                    </p>
+                  </div>
+                </div>
+                
+                <div className={`p-2.5 ${isDarkMode ? "bg-zinc-900 border-zinc-850" : "bg-zinc-100 border-zinc-200"} border rounded-xl group-hover:border-pink-500/20 text-zinc-500 group-hover:text-pink-400 transition-all duration-300`}>
+                  <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                </div>
+              </motion.div>
             </div>
 
             {/* Categories Section Header */}
@@ -1483,6 +1561,8 @@ export default function App() {
         category={selectedCategory} 
         onClose={() => setSelectedCategory(null)} 
         onPlayVideo={setActiveVideo}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
       />
 
       {/* Suggestion & Complaint Feedback Modal */}
@@ -1499,6 +1579,18 @@ export default function App() {
         isOpen={isRecentOpen}
         onClose={() => setIsRecentOpen(false)}
         content={content}
+        onPlayVideo={setActiveVideo}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+      />
+
+      {/* Favorites Modal */}
+      <FavoritesModal
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
+        content={content}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
         onPlayVideo={setActiveVideo}
       />
 
