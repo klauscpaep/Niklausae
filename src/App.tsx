@@ -752,7 +752,7 @@ export default function App() {
         </header>
 
         {/* Active Announcements */}
-        <AnnouncementsList announcements={content.announcements} />
+        <AnnouncementsList content={content} onSaveContent={handleSaveUserContent} />
 
         {/* Dashboard Responsive Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

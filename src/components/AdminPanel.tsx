@@ -5,7 +5,7 @@ import {
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
-  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell, ThumbsUp
+  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell, ThumbsUp, Pin
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 import defaultProfileImg from "../assets/images/pars_mazi_profile_1784000260155.jpg";
@@ -322,7 +322,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
     type: "announcement" as "info" | "warning" | "success" | "danger" | "announcement",
     linkText: "",
     linkUrl: "",
-    active: true
+    active: true,
+    pinned: false,
+    expiryDate: "",
+    publishAt: "",
+    imageUrl: "",
+    customIcon: ""
   });
   const [editingAnnId, setEditingAnnId] = useState<string | null>(null);
 
@@ -336,7 +341,13 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       linkText: tpl.linkText,
       linkUrl: tpl.linkUrl,
       active: true,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      pinned: false,
+      likes: 0,
+      expiryDate: "",
+      publishAt: "",
+      imageUrl: "",
+      customIcon: ""
     };
     const current = editedContent.announcements || [];
     setEditedContent({
@@ -355,7 +366,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       type: tpl.type,
       linkText: tpl.linkText,
       linkUrl: tpl.linkUrl,
-      active: true
+      active: true,
+      pinned: false,
+      expiryDate: "",
+      publishAt: "",
+      imageUrl: "",
+      customIcon: ""
     });
     setEditingAnnId(null);
   };
@@ -381,7 +397,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
           type: annForm.type,
           linkText: annForm.linkText,
           linkUrl: annForm.linkUrl,
-          active: annForm.active
+          active: annForm.active,
+          pinned: annForm.pinned,
+          expiryDate: annForm.expiryDate,
+          publishAt: annForm.publishAt,
+          imageUrl: annForm.imageUrl,
+          customIcon: annForm.customIcon
         };
       }
       setEditingAnnId(null);
@@ -395,6 +416,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
         linkText: annForm.linkText,
         linkUrl: annForm.linkUrl,
         active: annForm.active,
+        pinned: annForm.pinned,
+        expiryDate: annForm.expiryDate,
+        publishAt: annForm.publishAt,
+        imageUrl: annForm.imageUrl,
+        customIcon: annForm.customIcon,
+        likes: 0,
         createdAt: new Date().toISOString()
       };
       currentAnns.unshift(newAnn);
@@ -412,7 +439,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
       type: "announcement",
       linkText: "",
       linkUrl: "",
-      active: true
+      active: true,
+      pinned: false,
+      expiryDate: "",
+      publishAt: "",
+      imageUrl: "",
+      customIcon: ""
     });
 
     setSaveStatus({ type: "success", msg: "Duyuru listeye eklendi! Değişiklikleri kaydetmeyi unutmayın." });
@@ -2124,17 +2156,22 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                     type: "announcement",
                                     linkText: "",
                                     linkUrl: "",
-                                    active: true
+                                    active: true,
+                                    pinned: false,
+                                    expiryDate: "",
+                                    publishAt: "",
+                                    imageUrl: "",
+                                    customIcon: ""
                                   });
                                 }}
-                                className="text-[10px] font-mono text-rose-400 hover:underline"
+                                className="px-2.5 py-1 bg-zinc-900 hover:bg-zinc-800 border border-zinc-850 text-zinc-400 hover:text-white rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer"
                               >
-                                Düzenlemeyi İptal Et
+                                DÜZENLEMEYİ İPTAL ET
                               </button>
                             )}
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="md:col-span-2 space-y-1.5">
                               <label className="text-[10px] font-mono font-bold text-zinc-400">DUYURU BAŞLIĞI</label>
                               <input
@@ -2158,6 +2195,28 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                 <option value="warning">Kampanya / Uyarı (Sarı)</option>
                                 <option value="info">Bilgi / Sosyal Medya (Mavi)</option>
                                 <option value="danger">Sistem / Kritik Durum (Kırmızı)</option>
+                              </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">ÖZEL İKON (OPSİYONEL)</label>
+                              <select
+                                value={annForm.customIcon}
+                                onChange={(e) => setAnnForm({ ...annForm, customIcon: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none transition-colors"
+                              >
+                                <option value="">Varsayılan İkon</option>
+                                <option value="megaphone">Megaphone 📢</option>
+                                <option value="flame">Flame 🔥</option>
+                                <option value="gift">Gift 🎁</option>
+                                <option value="youtube">Youtube 📺</option>
+                                <option value="disc">Disc 💿</option>
+                                <option value="sparkles">Sparkles ✨</option>
+                                <option value="tv">TV 🖥️</option>
+                                <option value="info">Info ℹ️</option>
+                                <option value="warning">Warning ⚠️</option>
+                                <option value="success">Success ✅</option>
+                                <option value="danger">Danger 🚨</option>
                               </select>
                             </div>
                           </div>
@@ -2197,16 +2256,72 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between pt-2">
-                            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="md:col-span-2 space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">DUYURU BANNER GÖRSEL URL'Sİ (OPSİYONEL)</label>
                               <input
-                                type="checkbox"
-                                checked={annForm.active}
-                                onChange={(e) => setAnnForm({ ...annForm, active: e.target.checked })}
-                                className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-indigo-600 focus:ring-0 cursor-pointer"
+                                type="text"
+                                value={annForm.imageUrl}
+                                onChange={(e) => setAnnForm({ ...annForm, imageUrl: e.target.value })}
+                                placeholder="Örn: https://images.unsplash.com/... veya sağdan dosya yükleyin"
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-mono transition-colors"
                               />
-                              <span className="text-xs font-mono font-bold text-zinc-400">ANINDA AKTİF ET</span>
-                            </label>
+                            </div>
+                            <div className="space-y-1.5 flex flex-col justify-end">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">GÖRSEL YÜKLE</label>
+                              <MediaUploadButton 
+                                label="BİLGİSAYARDAN GÖRSEL SEÇ" 
+                                onUploadSuccess={(url) => setAnnForm(prev => ({ ...prev, imageUrl: url }))} 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">PLANLANMIŞ YAYIN TARİHİ (OPSİYONEL)</label>
+                              <input
+                                type="datetime-local"
+                                value={annForm.publishAt}
+                                onChange={(e) => setAnnForm({ ...annForm, publishAt: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-mono transition-colors text-zinc-300"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[10px] font-mono font-bold text-zinc-400">GEÇERLİLİK / SONA ERME TARİHİ (OPSİYONEL)</label>
+                              <input
+                                type="datetime-local"
+                                value={annForm.expiryDate}
+                                onChange={(e) => setAnnForm({ ...annForm, expiryDate: e.target.value })}
+                                className="w-full px-4 py-2.5 bg-zinc-950 border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-white outline-none font-mono transition-colors text-zinc-300"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap items-center justify-between pt-2 gap-4">
+                            <div className="flex items-center gap-6">
+                              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={annForm.active}
+                                  onChange={(e) => setAnnForm({ ...annForm, active: e.target.checked })}
+                                  className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-indigo-600 focus:ring-0 cursor-pointer"
+                                />
+                                <span className="text-xs font-mono font-bold text-zinc-400">ANINDA AKTİF ET</span>
+                              </label>
+
+                              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={annForm.pinned}
+                                  onChange={(e) => setAnnForm({ ...annForm, pinned: e.target.checked })}
+                                  className="w-4 h-4 rounded border-zinc-800 bg-zinc-950 text-yellow-500 focus:ring-0 cursor-pointer"
+                                />
+                                <span className="text-xs font-mono font-bold text-yellow-500 uppercase flex items-center gap-1">
+                                  <Pin size={10} className="rotate-45" /> Duyuruyu Başa Sabitle
+                                </span>
+                              </label>
+                            </div>
 
                             <button
                               type="submit"
@@ -2281,7 +2396,12 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                             type: ann.type,
                                             linkText: ann.linkText || "",
                                             linkUrl: ann.linkUrl || "",
-                                            active: ann.active
+                                            active: ann.active,
+                                            pinned: ann.pinned || false,
+                                            expiryDate: ann.expiryDate || "",
+                                            publishAt: ann.publishAt || "",
+                                            imageUrl: ann.imageUrl || "",
+                                            customIcon: ann.customIcon || ""
                                           });
                                           setEditingAnnId(ann.id);
                                         }}

@@ -79,6 +79,12 @@ export interface Announcement {
   createdAt: string;
   linkText?: string;
   linkUrl?: string;
+  pinned?: boolean;
+  expiryDate?: string;
+  publishAt?: string;
+  likes?: number;
+  imageUrl?: string;
+  customIcon?: string;
 }
 
 export interface SuggestionRequest {
