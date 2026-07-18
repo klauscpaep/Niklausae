@@ -5,11 +5,87 @@ import {
   Link2, FileText, CheckCircle, AlertTriangle, Eye, EyeOff, UploadCloud, 
   TrendingUp, Award, ExternalLink, Globe, Hash, Sparkles, ChevronRight, Check,
   Edit, FileEdit, Loader2, LayoutDashboard, Calendar, Clock, Database, Activity, 
-  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell, ThumbsUp, Pin
+  FileArchive, Users, Flame, CornerDownRight, Laptop, HelpCircle, Megaphone, Bell, ThumbsUp, Pin,
+  Palette, Zap, Sliders, Scissors, Volume2, Type, Film
 } from "lucide-react";
 import { SiteContent, Category, EditPackItem } from "../types";
 import defaultProfileImg from "../assets/images/pars_mazi_profile_1784000260155.jpg";
 import { getApiUrl } from "../firebase";
+
+const AVAILABLE_ICONS = [
+  { id: "", label: "Otomatik (Başlığa göre)", icon: Sparkles },
+  { id: "palette", label: "Renk / CC", icon: Palette },
+  { id: "zap", label: "Sarsıntı / Shake", icon: Zap },
+  { id: "sliders", label: "Twixtor / Ayar", icon: Sliders },
+  { id: "scissors", label: "Geçiş / Transition", icon: Scissors },
+  { id: "volume2", label: "Ses / SFX", icon: Volume2 },
+  { id: "type", label: "Yazı / Font", icon: Type },
+  { id: "film", label: "Kaplama / Overlay", icon: Film },
+  { id: "folder", label: "Proje / AEP", icon: FolderOpen },
+  { id: "sparkles", label: "Özel / Işıltı", icon: Sparkles }
+];
+
+interface VisualIconPickerProps {
+  value: string;
+  onChange: (val: string) => void;
+}
+
+function VisualIconPicker({ value, onChange }: VisualIconPickerProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const currentIcon = AVAILABLE_ICONS.find(item => item.id === value) || AVAILABLE_ICONS[0];
+  const CurrentIconComponent = currentIcon.icon;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-4 py-2.5 bg-[#050608] border border-zinc-850 hover:border-zinc-700 rounded-xl text-sm text-zinc-300 focus:outline-none transition-all cursor-pointer select-none"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-zinc-900 rounded-lg text-indigo-400 shrink-0">
+            <CurrentIconComponent size={14} />
+          </div>
+          <span className="font-mono text-xs font-bold text-white uppercase">{currentIcon.label}</span>
+        </div>
+        <ChevronRight size={14} className={`text-zinc-500 transform transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="absolute left-0 right-0 mt-2 p-3 bg-zinc-950 border border-zinc-850 rounded-2xl shadow-2xl z-50 grid grid-cols-1 sm:grid-cols-2 gap-2 animate-in fade-in slide-in-from-top-1 duration-150 max-h-[300px] overflow-y-auto">
+            {AVAILABLE_ICONS.map((item) => {
+              const IconComp = item.icon;
+              const isSelected = item.id === value;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(item.id);
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center gap-2 p-2 rounded-xl text-left transition-all cursor-pointer ${
+                    isSelected 
+                      ? "bg-indigo-600/15 border border-indigo-500/30 text-indigo-400" 
+                      : "hover:bg-zinc-900 border border-transparent text-zinc-400 hover:text-white"
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg shrink-0 ${isSelected ? "bg-indigo-500/10 text-indigo-400" : "bg-zinc-900 text-zinc-500"}`}>
+                    <IconComp size={13} />
+                  </div>
+                  <span className="text-[10px] font-mono font-bold uppercase truncate">{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 // Reusable Media Upload Button supporting image and video uploads directly from PC or Phone
 interface MediaUploadButtonProps {
@@ -1595,22 +1671,10 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
 
                               <div className="space-y-1.5">
                                 <label className="text-xs font-mono font-bold text-zinc-400 block">KATEGORİ İKONU</label>
-                                <select
+                                <VisualIconPicker
                                   value={newCategory.icon || ""}
-                                  onChange={(e) => setNewCategory({ ...newCategory, icon: e.target.value })}
-                                  className="w-full px-4 py-2.5 bg-[#050608] border border-zinc-850 focus:border-indigo-500/50 rounded-xl text-sm text-zinc-300 focus:outline-none transition-all"
-                                >
-                                  <option value="">Otomatik (Başlığa göre)</option>
-                                  <option value="palette">Renk / CC (Palette)</option>
-                                  <option value="zap">Sarsıntı / Shake (Zap)</option>
-                                  <option value="sliders">Ayar / Twixtor (Sliders)</option>
-                                  <option value="scissors">Geçiş / Transition (Scissors)</option>
-                                  <option value="volume2">Ses / SFX (Volume)</option>
-                                  <option value="type">Yazı / Font (Type)</option>
-                                  <option value="film">Kaplama / Overlay (Film)</option>
-                                  <option value="folder">Proje / AEP (Folder)</option>
-                                  <option value="sparkles">Özel / Işıltı (Sparkles)</option>
-                                </select>
+                                  onChange={(val) => setNewCategory({ ...newCategory, icon: val })}
+                                />
                               </div>
                             </div>
 
@@ -1720,22 +1784,10 @@ export default function AdminPanel({ content, isOpen, onClose, onSave }: AdminPa
                                         </div>
                                         <div className="space-y-1">
                                           <label className="text-[10px] text-zinc-400 font-mono uppercase block">KATEGORİ İKONU</label>
-                                          <select
-                                            value={cat.icon || ""}
-                                            onChange={(e) => handleUpdateCategoryField(cat.id, "icon", e.target.value)}
-                                            className="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 focus:border-indigo-500/50 rounded-xl text-sm text-white focus:outline-none"
-                                          >
-                                            <option value="">Otomatik (Başlığa göre)</option>
-                                            <option value="palette">Renk / CC (Palette)</option>
-                                            <option value="zap">Sarsıntı / Shake (Zap)</option>
-                                            <option value="sliders">Ayar / Twixtor (Sliders)</option>
-                                            <option value="scissors">Geçiş / Transition (Scissors)</option>
-                                            <option value="volume2">Ses / SFX (Volume)</option>
-                                            <option value="type">Yazı / Font (Type)</option>
-                                            <option value="film">Kaplama / Overlay (Film)</option>
-                                            <option value="folder">Proje / AEP (Folder)</option>
-                                            <option value="sparkles">Özel / Işıltı (Sparkles)</option>
-                                          </select>
+                                           <VisualIconPicker
+                                             value={cat.icon || ""}
+                                             onChange={(val) => handleUpdateCategoryField(cat.id, "icon", val)}
+                                           />
                                         </div>
                                       </div>
 
